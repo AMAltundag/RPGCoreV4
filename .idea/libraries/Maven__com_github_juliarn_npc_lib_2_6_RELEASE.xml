@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.juliarn:npc-lib:2.6-RELEASE">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/juliarn/npc-lib/2.6-RELEASE/npc-lib-2.6-RELEASE.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/juliarn/npc-lib/2.6-RELEASE/npc-lib-2.6-RELEASE-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/juliarn/npc-lib/2.6-RELEASE/npc-lib-2.6-RELEASE-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
