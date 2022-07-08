@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.node;
 
+import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
 import com.google.gson.stream.JsonReader;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.impl.ToolCommand;
@@ -7,12 +8,15 @@ import me.blutkrone.rpgcore.hud.editor.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.EditorNodeBox;
 import me.blutkrone.rpgcore.hud.editor.root.EditorNodeCollectible;
 import me.blutkrone.rpgcore.hud.editor.root.EditorNodeSpawner;
+import me.blutkrone.rpgcore.hud.editor.root.EditorNodeSpawnerNPC;
 import me.blutkrone.rpgcore.node.impl.CoreNodeBox;
 import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
 import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
+import me.blutkrone.rpgcore.node.impl.CoreNodeSpawnerNPC;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.node.struct.NodeWorld;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -33,6 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class NodeManager implements Listener{
     // nodes organized into world templates
@@ -41,12 +46,14 @@ public class NodeManager implements Listener{
     private EditorIndex<CoreNodeBox, EditorNodeBox> index_box;
     private EditorIndex<CoreNodeSpawner, EditorNodeSpawner> index_spawner;
     private EditorIndex<CoreNodeCollectible, EditorNodeCollectible> index_collectible;
+    private EditorIndex<CoreNodeSpawnerNPC, EditorNodeSpawnerNPC> index_npc;
 
     public NodeManager() {
         // load all indexes in the world
         this.index_box = new EditorIndex<>("box", EditorNodeBox.class, EditorNodeBox::new);
         this.index_spawner = new EditorIndex<>("spawner", EditorNodeSpawner.class, EditorNodeSpawner::new);
         this.index_collectible = new EditorIndex<>("collectible", EditorNodeCollectible.class, EditorNodeCollectible::new);
+        this.index_npc = new EditorIndex<>("npc-spawner", EditorNodeSpawnerNPC.class, EditorNodeSpawnerNPC::new);
 
         // load all nodes which we got in memory (including of unloaded worlds.)
         try {
@@ -130,6 +137,15 @@ public class NodeManager implements Listener{
         return index_spawner;
     }
 
+    /**
+     * An index for nodes granting certain content.
+     *
+     * @return an index to configure
+     */
+    public EditorIndex<CoreNodeSpawnerNPC, EditorNodeSpawnerNPC> getIndexNPC() {
+        return index_npc;
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     void onCreateNodeWithTool(PlayerInteractEvent e) {
         // only admins can create a node
@@ -164,6 +180,39 @@ public class NodeManager implements Listener{
         // actually create the node we are dealing with
         node_world.create(where.getX(), where.getY(), where.getZ(), tool);
         e.getPlayer().sendMessage("§cA node has been created!");
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void on(PlayerNPCInteractEvent e) {
+        // only one click should be detected
+        if (e.getHand() != PlayerNPCInteractEvent.Hand.MAIN_HAND) {
+            return;
+        }
+
+        // if using a tool, destroy the engaged node
+        if (e.getPlayer().hasPermission("rpg.admin")) {
+            ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
+            String tool = ToolCommand.getTool(item);
+            if (tool != null) {
+                // check if there is a node associated
+                NodeWorld node_world = this.nodes_by_world.get(e.getPlayer().getWorld().getName());
+                if (node_world != null) {
+                    UUID origin = RPGCore.inst().getNPCManager().getOrigin(e.getNPC());
+                    if (origin != null) {
+                        node_world.destruct(origin);
+                        e.getPlayer().sendMessage("§cA node has been destroyed!");
+                    }
+                }
+
+                return;
+            }
+        }
+
+        // delegate the interaction of the node if we got one
+        CoreNPC design = RPGCore.inst().getNPCManager().getDesign(e.getNPC());
+        if (design != null) {
+            design.interact(e);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

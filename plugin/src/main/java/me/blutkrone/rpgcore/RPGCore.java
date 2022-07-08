@@ -28,9 +28,9 @@ import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.minimap.MinimapManager;
 import me.blutkrone.rpgcore.mob.MobManager;
 import me.blutkrone.rpgcore.mount.MountManager;
-import me.blutkrone.rpgcore.npc.NPCManager;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
 import me.blutkrone.rpgcore.node.NodeManager;
+import me.blutkrone.rpgcore.npc.NPCManager;
 import me.blutkrone.rpgcore.party.PartyManager;
 import me.blutkrone.rpgcore.passive.PassiveManager;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
@@ -217,12 +217,20 @@ public final class RPGCore extends JavaPlugin {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         AbstractCommand cmd = commands.get(args[0]);
-        if (cmd != null && cmd.canUseCommand(sender)) {
-            try {
-                cmd.invoke(sender, args);
-            } catch (CommandArgumentException e) {
-                sender.sendMessage("§c" + e.getMessage());
+        if (cmd != null) {
+            if (cmd.canUseCommand(sender)) {
+                try {
+                    cmd.invoke(sender, args);
+                } catch (CommandArgumentException e) {
+                    sender.sendMessage("§c" + e.getMessage());
+                }
+            } else {
+                String msg = RPGCore.inst().getLanguageManager().getTranslation("not_enough_permission");
+                sender.sendMessage("§c" + msg);
             }
+        } else {
+            String msg = RPGCore.inst().getLanguageManager().getTranslation("unknown_command");
+            sender.sendMessage("§c" + msg);
         }
         return true;
     }

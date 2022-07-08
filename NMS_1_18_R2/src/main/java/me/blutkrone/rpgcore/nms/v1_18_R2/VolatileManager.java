@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.nms.v1_18_R2;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import me.blutkrone.rpgcore.nms.api.*;
+import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
@@ -46,6 +46,8 @@ import java.util.UUID;
 
 public final class VolatileManager extends AbstractVolatileManager implements Listener {
 
+    private int entity_id = 300_000_000;
+
     private static final Gson gson = new GsonBuilder().
             registerTypeAdapter(BaseComponent.class, new ComponentSerializer()).
             registerTypeAdapter(TextComponent.class, new TextComponentSerializer()).
@@ -80,6 +82,12 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
                 }
             }
         }, 1, 1);
+    }
+
+    @Override
+    public int getNextEntityId() {
+        // faster access then using reflection for the NMS tracker
+        return this.entity_id++;
     }
 
     @Override
@@ -134,6 +142,17 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         String bukkit_to_json = gson.toJson(raw);
         IChatBaseComponent component = CraftChatMessage.fromJSON(bukkit_to_json);
         return CraftChatMessage.toJSON(component);
+    }
+
+    @Override
+    public Object adaptComponent(BaseComponent[] input) {
+        String bukkit_to_json = gson.toJson(input);
+        return CraftChatMessage.fromJSON(bukkit_to_json);
+    }
+
+    @Override
+    public Class adaptedComponentClass() {
+        return IChatBaseComponent.class;
     }
 
     @Override

@@ -71,6 +71,13 @@ public abstract class AbstractVolatileManager {
     }
 
     /**
+     * Reserve an entity ID and offer it to us.
+     *
+     * @return the entity ID we fetched
+     */
+    public abstract int getNextEntityId();
+
+    /**
      * Create an entity for visual purposes.
      *
      * @param where where to spawn the entity at
@@ -128,6 +135,21 @@ public abstract class AbstractVolatileManager {
      * @return a translated, usable, string.
      */
     public abstract String toChatString(BaseComponent[] raw);
+
+    /**
+     * Transform a chat message into a raw NMS message.
+     *
+     * @param input bukkit wrapped message
+     * @return NMS wrapped message
+     */
+    public abstract Object adaptComponent(BaseComponent[] input);
+
+    /**
+     * Offer the NMS class for chat messages.
+     *
+     * @return NMS chat message class
+     */
+    public abstract Class adaptedComponentClass();
 
     /**
      * Override the lore of the item with the given components.

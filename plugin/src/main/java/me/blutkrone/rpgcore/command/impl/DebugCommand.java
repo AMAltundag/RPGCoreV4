@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.command.impl;
 
-import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.command.CommandSender;
@@ -20,7 +19,7 @@ public class DebugCommand extends AbstractCommand {
 
     @Override
     public void invoke(CommandSender sender, String... args) {
-        RPGCore.inst().getNPCManager();
+
     }
 
     @Override

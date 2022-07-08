@@ -66,6 +66,8 @@ public class NodeActive {
             return node_manager.getIndexCollectible().get(id[1]);
         } else if (id[0].equalsIgnoreCase("spawner")) {
             return node_manager.getIndexSpawner().get(id[1]);
+        } else if (id[0].equalsIgnoreCase("npc")) {
+            return node_manager.getIndexNPC().get(id[1]);
         }
 
         throw new IllegalArgumentException("Bad node: '" + this.node + "'!");

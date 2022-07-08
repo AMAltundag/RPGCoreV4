@@ -25,7 +25,7 @@ public class EditorNPC implements IEditorRoot<CoreNPC> {
     @EditorCategory(icon = Material.CRAFTING_TABLE, info = "General")
     @EditorWrite(name = "Name", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Name to use for the NPC", "§cThis is a language code, NOT plaintext."})
-    public String lc_name;
+    public String lc_name = "NOTHINGNESS";
     @EditorWrite(name = "Skin", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = {"MineSkin URL", "Paste full URL here!"})
     public String skin = "NOTHINGNESS";
@@ -33,7 +33,7 @@ public class EditorNPC implements IEditorRoot<CoreNPC> {
     @EditorCategory(icon = Material.BOOKSHELF, info = "Miscellaneous")
     @EditorBoolean(name = "Staring")
     @EditorTooltip(tooltip = {"Stares at the player"})
-    public boolean staring;
+    public boolean staring = false;
 
     @EditorCategory(icon = Material.IRON_CHESTPLATE, info = "Equipment")
     @EditorWrite(name = "Helmet", constraint = ItemConstraint.class)
@@ -92,8 +92,7 @@ public class EditorNPC implements IEditorRoot<CoreNPC> {
         List<String> instruction = new ArrayList<>();
         instruction.add("§fNPC");
         instruction.add("§fEntity meant for miscellaneous purposes. Use for Quests,");
-        instruction.add("§fVendors, Quests, Background. Capable of basic combat, but");
-        instruction.add("§fNOT designed for it.");
+        instruction.add("§fVendors, Quests, Background. Not meant for combat.");
         return instruction;
     }
 }

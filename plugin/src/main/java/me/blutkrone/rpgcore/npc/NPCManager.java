@@ -2,10 +2,24 @@ package me.blutkrone.rpgcore.npc;
 
 import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
+import com.github.juliarn.npc.event.PlayerNPCHideEvent;
+import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
+import com.github.juliarn.npc.event.PlayerNPCShowEvent;
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hologram.impl.Hologram;
 import me.blutkrone.rpgcore.hud.editor.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.EditorNPC;
+import me.blutkrone.rpgcore.node.struct.NodeActive;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Manages miscellaneous entities, such as vendors or quest
@@ -13,10 +27,17 @@ import org.bukkit.Location;
  *
  * @see NPCPool https://github.com/juliarn/NPC-Lib/blob/development/LICENSE
  */
-public class NPCManager {
+public class NPCManager implements Listener {
 
     private NPCPool pool;
     private EditorIndex<CoreNPC, EditorNPC> index;
+
+    // NPC mapped to its hologram entity
+    private Map<NPC, Hologram> hologram = new HashMap<>();
+    // npc mapped to its core template
+    private Map<NPC, CoreNPC> design = new HashMap<>();
+    // npc mapped to the acitve node identifier
+    private Map<NPC, UUID> origin = new HashMap<>();
 
     public NPCManager() {
         // construct a pool to build our NPC entities with
@@ -27,6 +48,8 @@ public class NPCManager {
                 .build();
         // setup the index for the NPCs
         this.index = new EditorIndex<>("npc", EditorNPC.class, EditorNPC::new);
+
+        Bukkit.getPluginManager().registerEvents(this ,RPGCore.inst() );
     }
 
     /**
@@ -39,13 +62,95 @@ public class NPCManager {
     }
 
     /**
+     * Retrieve the design the NPC was created with.
+     *
+     * @param npc which NPC to check
+     * @return the design that created the NPC
+     */
+    public CoreNPC getDesign(NPC npc) {
+        return this.design.get(npc);
+    }
+
+    /**
+     * The UUID of the active node instance which spawned the
+     * NPC.
+     *
+     * @param npc which NPC to check
+     * @return the origin of the NPC, may not exist.
+     */
+    public UUID getOrigin(NPC npc) {
+        return this.origin.get(npc);
+    }
+
+    /**
      * Create an NPC at the given location.
      *
      * @param npc the NPC we want to create
      * @param where where to create the NPC
      * @return the created NPC instance
      */
-    public NPC create(CoreNPC npc, Location where) {
-        return npc.create(this.pool, where);
+    public NPC create(String npc, Location where) {
+        CoreNPC core_npc = getIndex().get(npc);
+        NPC created = core_npc.create(this.pool, where);
+        this.design.put(created, core_npc);
+        return created;
+    }
+
+    /**
+     * Create an NPC at the given location.
+     *
+     * @param npc the NPC we want to create
+     * @param where where to create the NPC
+     * @param origin node that created the NPC
+     * @return the created NPC instance
+     */
+    public NPC create(String npc, Location where, NodeActive origin) {
+        CoreNPC core_npc = getIndex().get(npc);
+        NPC created = core_npc.create(this.pool, where);
+        this.design.put(created, core_npc);
+        this.origin.put(created, origin.getID());
+        return created;
+    }
+
+    /**
+     * Unregister the NPC instance.
+     *
+     * @param npc which NPC to unregister.
+     */
+    public void remove(NPC npc) {
+        this.pool.removeNPC(npc.getEntityId());
+        // drop the trackers for the NPC
+        this.design.remove(npc);
+        this.origin.remove(npc);
+        Hologram remove = this.hologram.remove(npc);
+        if (remove != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                remove.destroy(player);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void on(PlayerNPCShowEvent e) {
+        Hologram hologram = this.hologram.computeIfAbsent(e.getNPC(), (k -> new Hologram()));
+        // spawn the hologram
+        hologram.spawn(e.getPlayer(), e.getNPC().getLocation());
+        // construct an appropriate name
+        CoreNPC core_npc = design.get(e.getNPC());
+        hologram.name(e.getPlayer(), core_npc.describe(e.getNPC()));
+        // attach it to the NPC
+        hologram.mount(e.getPlayer(), e.getNPC().getEntityId());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void on(PlayerNPCHideEvent e) {
+        Hologram hologram = this.hologram.computeIfAbsent(e.getNPC(), (k -> new Hologram()));
+        // destruct hologram while out of range
+        hologram.destroy(e.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void on(PlayerNPCInteractEvent e) {
+        // this is handled by NodeManager to cover node removal
     }
 }

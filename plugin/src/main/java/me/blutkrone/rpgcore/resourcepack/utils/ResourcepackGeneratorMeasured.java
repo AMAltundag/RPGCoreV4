@@ -70,12 +70,19 @@ public class ResourcepackGeneratorMeasured {
         minimap_offset = config.getInt("interface-offset.minimap-offset");
         marker_offset = config.getInt("interface-offset.marker-offset");
         portrait_offset = config.getInt("interface-offset.portrait-offset");
+
         // generate fonts for the instruction frame
         instruction_offset = config.getInt("interface-offset.instruction-offset");
         for (int i = 0; i < 24; i++) {
             text_offset.put("instruction_text_" + (i+1), (instruction_offset + (i*10)));
             text_opacity.put("instruction_text_" + (i+1), 1d);
         }
+        // generate fonts for the nameplate text
+        for (int i = 0; i < 10; i++) {
+            text_offset.put("nameplate_" + i, 25+(i*10));
+            text_opacity.put("nameplate_" + i, 1d);
+        }
+
         // load up font specific information
         ConfigWrapper font_configs = config.getSection("font-permutation");
         for (String identifier : font_configs.getKeys(false)) {

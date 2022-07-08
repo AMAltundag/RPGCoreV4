@@ -21,7 +21,7 @@ import java.util.List;
 
 public class ToolCommand extends AbstractCommand {
 
-    public static ItemStack TOOL_COLLECTIBLE = ItemBuilder
+    private static ItemStack TOOL_COLLECTIBLE = ItemBuilder
             .of(Material.BLAZE_ROD)
             .enchant(Enchantment.DURABILITY, 1)
             .flag(ItemFlag.values())
@@ -31,7 +31,7 @@ public class ToolCommand extends AbstractCommand {
             .appendLore("§bA RPGCore tool to create a collectible node.")
             .build();
 
-    public static ItemStack TOOL_BOX = ItemBuilder
+    private static ItemStack TOOL_BOX = ItemBuilder
             .of(Material.BLAZE_ROD)
             .enchant(Enchantment.DURABILITY, 1)
             .flag(ItemFlag.values())
@@ -41,11 +41,21 @@ public class ToolCommand extends AbstractCommand {
             .appendLore("§bA RPGCore tool to create a box node.")
             .build();
 
-    public static ItemStack TOOL_SPAWNER = ItemBuilder
+    private static ItemStack TOOL_SPAWNER = ItemBuilder
             .of(Material.BLAZE_ROD)
             .enchant(Enchantment.DURABILITY, 1)
             .flag(ItemFlag.values())
             .name("§cTool: Node (Spawner)")
+            .appendLore("§fCreate a new node by clicking atop a block.")
+            .appendLore("§fDestroy an existing node by clicking it.")
+            .appendLore("§bA RPGCore tool to create a spawner node.")
+            .build();
+
+    private static ItemStack TOOL_NPC = ItemBuilder
+            .of(Material.BLAZE_ROD)
+            .enchant(Enchantment.DURABILITY, 1)
+            .flag(ItemFlag.values())
+            .name("§cTool: Node (NPC)")
             .appendLore("§fCreate a new node by clicking atop a block.")
             .appendLore("§fDestroy an existing node by clicking it.")
             .appendLore("§bA RPGCore tool to create a spawner node.")
@@ -98,6 +108,11 @@ public class ToolCommand extends AbstractCommand {
                         .name("§cTool: Node (Spawner, " + args[2] + ")")
                         .persist("tool-value", args[1] + " " + args[2])
                         .build();
+            } else if (args[1].equalsIgnoreCase("npc")) {
+                item = ItemBuilder.of(TOOL_SPAWNER.clone())
+                        .name("§cTool: Node (NPC, " + args[2] + ")")
+                        .persist("tool-value", args[1] + " " + args[2])
+                        .build();
             }
 
             if (item != null) {
@@ -115,6 +130,7 @@ public class ToolCommand extends AbstractCommand {
             suggests.add("collectible");
             suggests.add("box");
             suggests.add("spawner");
+            suggests.add("npc");
             suggests.removeIf(t -> !t.startsWith(args[1]));
             return suggests;
         }
