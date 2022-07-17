@@ -2,16 +2,20 @@ package me.blutkrone.rpgcore.item;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixChance;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixLimit;
-import me.blutkrone.rpgcore.hud.editor.root.EditorItem;
+import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixChance;
+import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixLimit;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.item.data.ItemDataDurability;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.util.ItemBuilder;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,10 +60,13 @@ public class CoreItem {
 
     private String animation_shatter;
 
+    private String bank_group;
+    private int bank_quantity;
+    private String bank_symbol;
+
     /**
      * A container for information on how the given item
      * is engaging with the server.
-     *
      */
     public CoreItem(String id, EditorItem editor) {
         this.id = id;
@@ -99,6 +106,9 @@ public class CoreItem {
         this.jewel_shatter = editor.jewel_shatter;
         this.jewel_previous = editor.jewel_previous;
         this.animation_shatter = editor.animation_shatter;
+        this.bank_group = editor.bank_group;
+        this.bank_quantity = Math.max(1, (int) editor.bank_quantity);
+        this.bank_symbol = editor.bank_symbol;
     }
 
     /**
@@ -114,7 +124,7 @@ public class CoreItem {
      * Acquire the given item, with the given player being intended
      * as the recipient of it.
      *
-     * @param player who will acquire the item
+     * @param player  who will acquire the item
      * @param quality the quality affects random modifiers
      * @return the item to acquire
      */
@@ -138,6 +148,67 @@ public class CoreItem {
         manager.describe(item);
 
         // offer up the item that was generated
+        return item;
+    }
+
+    /**
+     * Acquire the given item, with the given player being intended
+     * as the recipient of it.
+     *
+     * @param player  who will acquire the item
+     * @param quality the quality affects random modifiers
+     * @return the item to acquire
+     */
+    public ItemStack bounded(CorePlayer player, double quality) {
+        ItemManager manager = RPGCore.inst().getItemManager();
+
+        // create a copy of our base template
+        ItemStack item = this.template.clone();
+
+        // initiate the relevant data compounds
+        try {
+            ItemDataGeneric data = new ItemDataGeneric(this, quality, player);
+            data.bindTo(player);
+            data.save(item);
+            new ItemDataModifier(this, quality).save(item);
+            new ItemDataDurability(this, quality).save(item);
+            new ItemDataJewel(this, quality).save(item);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // generate appropriate lore for the item
+        manager.describe(item);
+
+        // offer up the item that was generated
+        return item;
+    }
+
+    /**
+     * Retrieve a pseudo-item which is intended to be
+     * an "unidentified" item. An unidentified item can
+     * be treated as a token.
+     *
+     * @return the unidentified item.
+     */
+    public ItemStack unidentified() {
+        ItemManager manager = RPGCore.inst().getItemManager();
+
+        // create a copy of our base template
+        ItemStack item = this.template.clone();
+        // ensure we got a metadata
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            throw new NullPointerException("meta cannot be null!");
+        }
+        // mark item with the id that it identifies into
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        NamespacedKey keying = new NamespacedKey(RPGCore.inst(), "core-unidentified");
+        data.set(keying, PersistentDataType.STRING, this.getId());
+        item.setItemMeta(meta);
+        // describe item to use
+        manager.describe(item);
+
         return item;
     }
 
@@ -341,5 +412,33 @@ public class CoreItem {
      */
     public List<String> getTags() {
         return tags;
+    }
+
+    /**
+     * Tag used to identify bankable items, items cannot be banked
+     * if this value is "none"
+     *
+     * @return group to bank items in.
+     */
+    public String getBankGroup() {
+        return bank_group;
+    }
+
+    /**
+     * Quantity contributed when banked into the group.
+     *
+     * @return quantity to contribute.
+     */
+    public int getBankQuantity() {
+        return bank_quantity;
+    }
+
+    /**
+     * A symbol used when rendered into a text-line.
+     *
+     * @return currency symbol to render.
+     */
+    public String getBankSymbol() {
+        return bank_symbol;
     }
 }

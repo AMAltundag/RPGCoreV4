@@ -214,7 +214,7 @@ public class ConfigWrapper {
     }
 
     public Location getLocation(@NotNull String path) {
-            if (!isSet(path))
+        if (!isSet(path))
             return null;
         World w = Bukkit.getWorld(getString(path + ".world", "undefined"));
         double x = getDouble(path + ".x");
@@ -222,7 +222,7 @@ public class ConfigWrapper {
         double z = getDouble(path + ".z");
         float pitch = (float) getDouble(path + ".pitch");
         float yaw = (float) getDouble(path + ".yaw");
-        return new Location(w, x, y, z, pitch, yaw);
+        return new Location(w, x, y, z, yaw, pitch);
     }
 
     public Location getLocation(@NotNull String path, @Nullable Location def) {

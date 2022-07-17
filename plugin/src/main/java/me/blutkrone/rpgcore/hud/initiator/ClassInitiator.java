@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.hud.initiator;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
@@ -28,6 +29,8 @@ public class ClassInitiator implements IRosterInitiator {
     private ItemStack viewport_right;
     private ItemStack confirm_class;
 
+    private IndexAttachment<CoreJob, List<CoreJob>> attachment_starter_jobs = RPGCore.inst().getJobManager().getIndex().createFiltered(CoreJob::isDefaults);
+
     public ClassInitiator(ConfigWrapper config) {
         this.viewport_left = RPGCore.inst().getLanguageManager().getAsItem("viewport_left").build();
         this.viewport_right = RPGCore.inst().getLanguageManager().getAsItem("viewport_right").build();
@@ -48,8 +51,7 @@ public class ClassInitiator implements IRosterInitiator {
             return false;
 
         // shuffle job list to avoid favourites
-        List<CoreJob> options = new ArrayList<>(RPGCore.inst().getJobManager().getIndex().getAll());
-        options.removeIf(job -> !job.isDefaults());
+        List<CoreJob> options = new ArrayList<>(attachment_starter_jobs.get());
         Collections.shuffle(options);
 
         // process single-choice options

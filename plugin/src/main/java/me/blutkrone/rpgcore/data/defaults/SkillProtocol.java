@@ -12,6 +12,11 @@ import java.util.HashSet;
 public class SkillProtocol implements DataProtocol {
 
     @Override
+    public boolean isRosterData() {
+        return false;
+    }
+
+    @Override
     public void save(CorePlayer player, DataBundle bundle) {
         for (int i = 0; i < 6; i++) {
             CoreSkill skill = player.getSkillbar().getSkill(i);

@@ -4,15 +4,13 @@ import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
 import com.google.gson.stream.JsonReader;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.impl.ToolCommand;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeBox;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeCollectible;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeSpawner;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeSpawnerNPC;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeBox;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.node.impl.CoreNodeBox;
 import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
 import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
-import me.blutkrone.rpgcore.node.impl.CoreNodeSpawnerNPC;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.node.struct.NodeWorld;
@@ -39,21 +37,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class NodeManager implements Listener{
+public class NodeManager implements Listener {
     // nodes organized into world templates
     private Map<String, NodeWorld> nodes_by_world = new HashMap<>();
     // indexes for node implementations
     private EditorIndex<CoreNodeBox, EditorNodeBox> index_box;
     private EditorIndex<CoreNodeSpawner, EditorNodeSpawner> index_spawner;
     private EditorIndex<CoreNodeCollectible, EditorNodeCollectible> index_collectible;
-    private EditorIndex<CoreNodeSpawnerNPC, EditorNodeSpawnerNPC> index_npc;
 
     public NodeManager() {
         // load all indexes in the world
         this.index_box = new EditorIndex<>("box", EditorNodeBox.class, EditorNodeBox::new);
         this.index_spawner = new EditorIndex<>("spawner", EditorNodeSpawner.class, EditorNodeSpawner::new);
         this.index_collectible = new EditorIndex<>("collectible", EditorNodeCollectible.class, EditorNodeCollectible::new);
-        this.index_npc = new EditorIndex<>("npc-spawner", EditorNodeSpawnerNPC.class, EditorNodeSpawnerNPC::new);
 
         // load all nodes which we got in memory (including of unloaded worlds.)
         try {
@@ -77,7 +73,7 @@ public class NodeManager implements Listener{
             nodes_by_world.forEach((id, world) -> {
                 world.tick();
             });
-        }, 1, 100);
+        }, 1, 60);
 
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -137,15 +133,6 @@ public class NodeManager implements Listener{
         return index_spawner;
     }
 
-    /**
-     * An index for nodes granting certain content.
-     *
-     * @return an index to configure
-     */
-    public EditorIndex<CoreNodeSpawnerNPC, EditorNodeSpawnerNPC> getIndexNPC() {
-        return index_npc;
-    }
-
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     void onCreateNodeWithTool(PlayerInteractEvent e) {
         // only admins can create a node
@@ -183,7 +170,7 @@ public class NodeManager implements Listener{
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    void on(PlayerNPCInteractEvent e) {
+    void onInteractNodeNPC(PlayerNPCInteractEvent e) {
         // only one click should be detected
         if (e.getHand() != PlayerNPCInteractEvent.Hand.MAIN_HAND) {
             return;
@@ -216,7 +203,7 @@ public class NodeManager implements Listener{
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    void onInteractNode(PlayerInteractEntityEvent e) {
+    void onInteractNodeRightClick(PlayerInteractEntityEvent e) {
         // only one click should be detected
         if (e.getHand() != EquipmentSlot.HAND) {
             return;
@@ -238,14 +225,8 @@ public class NodeManager implements Listener{
             ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
             String tool = ToolCommand.getTool(item);
             if (tool != null) {
-                // clean up our node
-                NodeData data = node.getData();
-                if (data != null) {
-                    data.abandon();
-                }
-                // inform about the node being removed
+                node_world.destruct(node.getID());
                 e.getPlayer().sendMessage("§cA node has been destroyed!");
-                // we are finished
                 return;
             }
         }
@@ -253,8 +234,8 @@ public class NodeManager implements Listener{
         node.getNode().right(e.getPlayer().getWorld(), node, e.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    void onInteractNode(EntityDamageByEntityEvent e) {
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    void onInteractNodeLeftClick(EntityDamageByEntityEvent e) {
         // only check player interactions
         if (!(e.getDamager() instanceof Player)) {
             return;
@@ -276,14 +257,8 @@ public class NodeManager implements Listener{
             ItemStack item = ((Player) e.getDamager()).getInventory().getItemInMainHand();
             String tool = ToolCommand.getTool(item);
             if (tool != null) {
-                // clean up our node
-                NodeData data = node.getData();
-                if (data != null) {
-                    data.abandon();
-                }
-                // inform about the node being removed
+                node_world.destruct(node.getID());
                 e.getDamager().sendMessage("§cA node has been destroyed!");
-                // we are finished
                 return;
             }
         }

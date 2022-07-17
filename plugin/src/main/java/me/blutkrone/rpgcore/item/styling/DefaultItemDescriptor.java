@@ -18,7 +18,11 @@ import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
@@ -44,7 +48,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
         msb.shiftToExact(-20);
         msb.append(styling.texture("header", 1), ChatColor.WHITE);
         // [2] score of the item
-        msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(item_level_text));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(item_level_text));
         msb.append(styling.color("score", item_level_text), "lore_score");
         // [3] title texture background
         msb.shiftToExact(-20);
@@ -54,14 +58,14 @@ public class DefaultItemDescriptor implements IItemDescriber {
         // [4] slice of title segment, item name
         msb.shiftToExact(-20);
         msb.append(styling.texture("title", 1), ChatColor.WHITE);
-        msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(name));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(name));
         msb.append(styling.color("upper-name", name), "lore_upper_name");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());
         // [5] slice of title segment, sub name
         msb.shiftToExact(-20);
         msb.append(styling.texture("title", 2), ChatColor.WHITE);
-        msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(sub_name));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(sub_name));
         msb.append(styling.color("lower-name", sub_name), "lore_lower_name");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());
@@ -118,7 +122,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
 
         // drop last element if it is a separator.
         if (previous != compiled.size()) {
-            compiled.remove(compiled.size()-1);
+            compiled.remove(compiled.size() - 1);
         }
 
         // [8] close up the header, and open the generic lore segment
@@ -193,7 +197,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
-            msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
             msb.append(styling.color("category", translation));
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -259,7 +263,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
-            msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
             msb.append(styling.color("category", translation));
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -311,7 +315,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             }
         });
         if (previous != compiled.size()) {
-            compiled.remove(compiled.size()-1);
+            compiled.remove(compiled.size() - 1);
         }
 
         return compiled;
@@ -369,7 +373,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation("lore_category_description");
-            msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
             msb.append(styling.color("category", translation));
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -382,7 +386,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             for (String line : lore) {
                 msb.shiftToExact(-20);
                 msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
-                msb.shiftCentered((this.width_base/2)-20, Utility.measureWidthExact(line));
+                msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(line));
                 msb.append(styling.color("description", line));
                 msb.shiftToExact(0);
                 compiled.add(msb.compileAndClean());
@@ -446,8 +450,8 @@ public class DefaultItemDescriptor implements IItemDescriber {
         }
 
         // compute relevant centering
-        int width = symbols.size()*28 + (symbols.size()-1)*2;
-        msb.shiftCentered((this.width_base/2)-20, width);
+        int width = symbols.size() * 28 + (symbols.size() - 1) * 2;
+        msb.shiftCentered((this.width_base / 2) - 20, width);
         // render the relevant jewel sockets
         for (String symbol : symbols) {
             IndexedTexture texture = resource_manager.texture("lore_jewel_" + symbol);
@@ -490,15 +494,21 @@ public class DefaultItemDescriptor implements IItemDescriber {
         // note down the durability on the footer
         String durability_text = language_manager.getTranslation("lore_durability");
         msb.shiftToExact(-20 + this.padding);
-        msb.append(styling.color("durability", durability_text + String.format("%.1f%%", durability*100d)), "lore_durability");
+        msb.append(styling.color("durability", durability_text + String.format("%.1f%%", durability * 100d)), "lore_durability");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());
 
         return compiled;
     }
 
-    @Override
-    public void describe(ItemStack item) {
+    /*
+     * Attempt to describe like an identified item, this
+     * returns false if we are not.
+     *
+     * @param item what item are we describing
+     * @return true if we were described
+     */
+    private boolean describeIdentified(ItemStack item) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
         ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
@@ -511,7 +521,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
 
         // generic data is present on all rpgcore items
         if (generic_data == null) {
-            return;
+            return false;
         }
 
         // extract the basic information of the item
@@ -558,5 +568,88 @@ public class DefaultItemDescriptor implements IItemDescriber {
         // apply the lore to the item
         RPGCore.inst().getVolatileManager().setItemLore(item, compiled);
         RPGCore.inst().getVolatileManager().setItemName(item, new MagicStringBuilder().compile());
+
+        // notify about successful update
+        return true;
+    }
+
+    /*
+     * Attempt to describe like an unidentified item, this
+     * returns false if we are not.
+     *
+     * @param item what item are we describing
+     * @return true if we were described
+     */
+    private boolean describeUnidentified(ItemStack item) {
+        LanguageManager language_manager = RPGCore.inst().getLanguageManager();
+        ItemManager item_manager = RPGCore.inst().getItemManager();
+        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+
+        // extract id we are wrapping.
+        if (!item.hasItemMeta()) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        NamespacedKey keying = new NamespacedKey(RPGCore.inst(), "core-unidentified");
+        String item_id = data.get(keying, PersistentDataType.STRING);
+        if (item_id == null) {
+            return false;
+        }
+        // build description based on it.
+
+        // extract the basic information of the item
+        CoreItem item_base = RPGCore.inst().getItemManager().getItemIndex().get(item_id);
+        ItemStylingRule styling = item_manager.getStylingRule(item_base.getStyling());
+        List<String> lore = language_manager.getTranslationList(item_base.getLCText());
+        String name = lore.isEmpty() ? "name is missing" : lore.remove(0);
+        String sub_name = lore.isEmpty() ? "sub-name is missing" : lore.remove(0);
+        List<String> info = new ArrayList<>(Collections.singletonList(language_manager.getTranslation("item_unidentified")));
+        int item_level = item_base.getItemLevel();
+
+        // generate the appropriate lore for the item
+        List<BaseComponent[]> compiled = new ArrayList<>();
+        if (styling != null) {
+            // populate with the relevant parts
+            compiled.addAll(this.getHeader(styling, item_level, name, sub_name));
+            compiled.addAll(this.getHighlight(styling, new ArrayList<>()));
+            compiled.addAll(this.getInfo(styling, info));
+            compiled.addAll(this.getAttributes(styling, new ArrayList<>()));
+            compiled.addAll(this.getAbilities(styling, new ArrayList<>()));
+            compiled.addAll(this.getDescription(styling, lore));
+            compiled.addAll(this.getJewels(styling, 0, 0, new ArrayList<>()));
+            compiled.addAll(this.getFooter(styling, 1.0d));
+        } else {
+            compiled.add(TextComponent.fromLegacyText("§cStyling rule '" + item_base.getStyling() + "' does not exist!"));
+        }
+
+        // ItemBuilder.of(item).name("EMPTY NAME").lore("EMPTY LORE").build();
+
+        for (BaseComponent[] components : compiled) {
+            for (BaseComponent component : components) {
+                component.setItalic(false);
+            }
+        }
+
+        // apply the lore to the item
+        RPGCore.inst().getVolatileManager().setItemLore(item, compiled);
+        RPGCore.inst().getVolatileManager().setItemName(item, new MagicStringBuilder().compile());
+
+        return true;
+    }
+
+    @Override
+    public void describe(ItemStack item) {
+        // try to describe as an identified item
+        if (describeIdentified(item)) {
+            return;
+        }
+        // try to describe as an unidentified item
+        if (describeUnidentified(item)) {
+            return;
+        }
     }
 }

@@ -40,7 +40,7 @@ public class LoreGenerator {
                 for (IndexedTexture.GeneratedTexture texture : ((IndexedTexture.GeneratedCompoundTexture) textures.get("lore_header_" + id + "_1")).getTextures()) {
                     texture.offset += 10;
                 }
-                for (IndexedTexture.GeneratedTexture texture : ((IndexedTexture.GeneratedCompoundTexture) textures.get("lore_footer_"+ id + "_1")).getTextures()) {
+                for (IndexedTexture.GeneratedTexture texture : ((IndexedTexture.GeneratedCompoundTexture) textures.get("lore_footer_" + id + "_1")).getTextures()) {
                     texture.offset -= 10;
                 }
             }
@@ -97,7 +97,7 @@ public class LoreGenerator {
                 current += Math.min(128, bi.getWidth());
             }
             // offer up the texture we generated
-            output.put(prefix + "_" + (i/10), IndexedTexture.GeneratedCompoundTexture.build(sliced));
+            output.put(prefix + "_" + (i / 10), IndexedTexture.GeneratedCompoundTexture.build(sliced));
         }
 
         return output;

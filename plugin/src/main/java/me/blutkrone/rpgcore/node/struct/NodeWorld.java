@@ -39,9 +39,9 @@ public class NodeWorld {
     /**
      * Request a tick on every node present on this world, provided
      * that the world associated with it is loaded.
-     *
+     * <p>
      * This still happens, even without players in the world.
-     *
+     * <p>
      * Execution is threaded, no assurance is made about when the
      * execution will finish.
      */
@@ -84,9 +84,9 @@ public class NodeWorld {
      * always check if this is a valid space. Nodes created like this
      * will always be saved to the disk.
      *
-     * @param x position
-     * @param y position
-     * @param z position
+     * @param x    position
+     * @param y    position
+     * @param z    position
      * @param node "type:id"
      */
     public void create(int x, int y, int z, String node) {
@@ -98,7 +98,7 @@ public class NodeWorld {
         // track the node which we are using
         NodeActive active_node = new NodeActive(uuid, x, y, z, node);
         this.node_by_id.put(uuid, active_node);
-        long id = (((long) ((x>>4))) << 32) | (z>>4) & 0xFFFFFFFFL;
+        long id = (((long) ((x >> 4))) << 32) | (z >> 4) & 0xFFFFFFFFL;
         this.node_by_chunk.computeIfAbsent(id, (k -> new ArrayList<>()))
                 .add(active_node);
         // identify where to dump the node
@@ -128,7 +128,7 @@ public class NodeWorld {
         // register node by the ID
         this.node_by_id.put(active.getID(), active);
         // register node by the quick-search
-        long id = (((long) ((active.getX()>>4))) << 32) | (active.getZ()>>4) & 0xFFFFFFFFL;
+        long id = (((long) ((active.getX() >> 4))) << 32) | (active.getZ() >> 4) & 0xFFFFFFFFL;
         this.node_by_chunk.computeIfAbsent(id, (k -> new ArrayList<>())).add(active);
         // inform about successful registration
         return true;
@@ -138,9 +138,9 @@ public class NodeWorld {
      * Retrieve all nodes within the radius of the given location, the search
      * cannot extend beyond a radius of 128.
      *
-     * @param x position
-     * @param y position
-     * @param z position
+     * @param x      position
+     * @param y      position
+     * @param z      position
      * @param radius distance to search
      * @return all nodes within distance
      */
@@ -150,11 +150,11 @@ public class NodeWorld {
         Vector origin = new Vector(x, y, z);
         int distSq = radius * radius;
         // chunk specific parameters
-        int chunks = 1 + (radius>>4);
+        int chunks = 1 + (radius >> 4);
         // search for all nodes within distance
         for (int i = -chunks; i <= +chunks; i++) {
             for (int j = -chunks; j <= +chunks; j++) {
-                long id = (((long) ((x>>4)+i)) << 32) | ((z>>4)+j) & 0xFFFFFFFFL;
+                long id = (((long) ((x >> 4) + i)) << 32) | ((z >> 4) + j) & 0xFFFFFFFFL;
                 List<NodeActive> candidates = this.node_by_chunk.get(id);
                 if (candidates != null) {
                     for (NodeActive candidate : candidates) {
@@ -178,18 +178,21 @@ public class NodeWorld {
     public void destruct(UUID uuid) {
         // drop the node from the ID
         NodeActive removed = this.node_by_id.remove(uuid);
+        Bukkit.getLogger().severe("UNREGISTERED " + uuid);
         if (removed == null) {
             return;
         }
         // drop the node from the chunk index
-        long id = (((long) ((removed.getX()>>4))) << 32) | ((removed.getZ()>>4)) & 0xFFFFFFFFL;
+        long id = (((long) ((removed.getX() >> 4))) << 32) | ((removed.getZ() >> 4)) & 0xFFFFFFFFL;
         List<NodeActive> nodes = this.node_by_chunk.get(id);
         if (nodes != null) {
             nodes.remove(removed);
+            Bukkit.getLogger().severe("ABANDONED FROM CHUNK");
         }
         // clean the data of the node
         NodeData data = removed.getData();
         if (data != null) {
+            Bukkit.getLogger().severe("DATA WAS CLEARED");
             data.abandon();
         }
         // delete the file of the node
@@ -197,6 +200,7 @@ public class NodeWorld {
         try {
             file.getParentFile().mkdirs();
             file.delete();
+            Bukkit.getLogger().severe("FILE WAS DESTRUCTED");
         } catch (Exception e) {
             e.printStackTrace();
         }

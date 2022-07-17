@@ -1,6 +1,8 @@
 package me.blutkrone.rpgcore.hud.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.effect.CoreEffect;
+import me.blutkrone.rpgcore.effect.EffectManager;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.item.ItemManager;
@@ -18,10 +20,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class JewelMenu {
@@ -30,6 +29,8 @@ public class JewelMenu {
     private ItemStack locked;
     private ItemStack unlocked;
     private ItemStack await;
+    private List<String> jewel_shatter_effect;
+    private List<String> jewel_embed_effect;
 
     public JewelMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "jewel.yml"));
@@ -38,6 +39,8 @@ public class JewelMenu {
         this.unlocked = RPGCore.inst().getLanguageManager().getAsItem("jewel_socket_unlocked").build();
         this.await = RPGCore.inst().getLanguageManager().getAsItem("jewel_socket_await_item").build();
         this.invisible = RPGCore.inst().getLanguageManager().getAsItem("invisible").build();
+        this.jewel_shatter_effect = config.getStringList("jewel-shatter-effect");
+        this.jewel_embed_effect = config.getStringList("jewel-embed-effect");
     }
 
     /**
@@ -167,7 +170,7 @@ public class JewelMenu {
             ItemStack single = sacrifice.clone();
             single.setAmount(1);
             // pop one jewel off the stack that was clicked
-            sacrifice.setAmount(sacrifice.getAmount()-1);
+            sacrifice.setAmount(sacrifice.getAmount() - 1);
             // check if we need to shatter anything
             ItemDataJewel sacrifice_data = item_manager.getItemData(single, ItemDataJewel.class);
             double shatter_chance = sacrifice_data.getChanceToShatterOther();
@@ -184,7 +187,7 @@ public class JewelMenu {
             menu.setItemAt(slot, single);
             // query an effect for shattering a jewel
             if (!shatter.isEmpty()) {
-                RPGCore.inst().getItemManager().playShatterEffect(menu.getViewer());
+                this.playShatterEffect(menu.getViewer());
             }
             // clear slots which have shattered
             shatter.forEach((pos, item) -> {
@@ -199,11 +202,11 @@ public class JewelMenu {
                 ItemDataJewel data = RPGCore.inst().getItemManager().getItemData(item, ItemDataJewel.class);
                 if (data != null) {
                     String anim = data.getItem().getAnimationShatter();
-                    animation.queue(anim + "_" + v, -24+18*h);
+                    animation.queue(anim + "_" + v, -24 + 18 * h);
                 }
             });
             // query an effect for embedding a jewel
-            RPGCore.inst().getItemManager().playEmbedEffect(menu.getViewer());
+            this.playEmbedEffect(menu.getViewer());
         });
         menu.setCloseHandler((event) -> {
             Player bukkit_player = menu.getViewer();
@@ -220,5 +223,33 @@ public class JewelMenu {
         });
 
         menu.open();
+    }
+
+    /**
+     * An effect meant to play when a player shattered a
+     * jewel on one of their items.
+     *
+     * @param player who has shattered the jewel.
+     */
+    public void playShatterEffect(Player player) {
+        EffectManager manager = RPGCore.inst().getEffectManager();
+        for (String effect : jewel_shatter_effect) {
+            CoreEffect core_effect = manager.getIndex().get(effect);
+            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+        }
+    }
+
+    /**
+     * An effect meant to play once a player successfully
+     * embedded a jewel upon an item.
+     *
+     * @param player who has embedded the jewel.
+     */
+    public void playEmbedEffect(Player player) {
+        EffectManager manager = RPGCore.inst().getEffectManager();
+        for (String effect : jewel_embed_effect) {
+            CoreEffect core_effect = manager.getIndex().get(effect);
+            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+        }
     }
 }

@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.attribute;
 
-import me.blutkrone.rpgcore.hud.editor.root.EditorAttribute;
+import me.blutkrone.rpgcore.hud.editor.root.other.EditorAttribute;
 
 import java.util.List;
 import java.util.stream.Collectors;

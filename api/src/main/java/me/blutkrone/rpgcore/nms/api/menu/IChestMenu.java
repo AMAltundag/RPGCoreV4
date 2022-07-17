@@ -13,7 +13,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 /**
@@ -25,11 +28,11 @@ public interface IChestMenu {
      * Retrieve a list of elements that are contained within the
      * viewport, do note
      *
-     * @param offset how far to offset within the viewport
+     * @param offset   how far to offset within the viewport
      * @param viewport how big the viewport is
      * @param elements which elements are in the viewport
      * @return a list the length of viewport, if there are not enough
-     *         elements available we pad it up with null values.
+     * elements available we pad it up with null values.
      */
     static <K> List<K> getViewport(int offset, int viewport, List<K> elements) {
         // retrieve the elements within our constraint
@@ -40,7 +43,7 @@ public interface IChestMenu {
             // ensure that the offset does not exit the viewport
             offset = Math.max(0, Math.min(elements.size() - viewport, offset));
             // retrieve the elements from within our viewport
-            for (int i = offset; i < offset+viewport; i++) {
+            for (int i = offset; i < offset + viewport; i++) {
                 viewing.add(elements.get(i));
             }
         }
@@ -56,11 +59,11 @@ public interface IChestMenu {
      * viewport, the keying refers to the position within the
      * original list.
      *
-     * @param offset how far to offset within the viewport
+     * @param offset   how far to offset within the viewport
      * @param viewport how big the viewport is
      * @param elements which elements are in the viewport
      * @return a list the length of viewport, if there are not enough
-     *         elements available we pad it up with null values.
+     * elements available we pad it up with null values.
      */
     static <K> SortedMap<Integer, K> getIndexedViewport(int offset, int viewport, List<K> elements) {
         // retrieve the elements within our constraint
@@ -73,7 +76,7 @@ public interface IChestMenu {
             // ensure that the offset does not exit the viewport
             offset = Math.max(0, Math.min(elements.size() - viewport, offset));
             // retrieve the elements from within our viewport
-            for (int i = offset; i < offset+viewport; i++) {
+            for (int i = offset; i < offset + viewport; i++) {
                 viewing.put(i, elements.get(i));
             }
         }
@@ -85,23 +88,23 @@ public interface IChestMenu {
      * Clamp the given 'offset' so that that the pointer does not
      * exceed the elements.
      *
-     * @param offset how far to offset within the viewport
+     * @param offset   how far to offset within the viewport
      * @param viewport how big the viewport is
      * @param elements which elements are in the viewport
      * @return a list the length of viewport, if there are not enough
-     *         elements available we pad it up with null values.
+     * elements available we pad it up with null values.
      */
     static int clampInViewport(int offset, int viewport, List<?> elements) {
-        return Math.max(0, Math.min(elements.size()-viewport, offset));
+        return Math.max(0, Math.min(elements.size() - viewport, offset));
     }
 
     /**
      * A brand is a persistent data tag allocated to the item.
      *
-     * @param item which item receives the tag
+     * @param item   which item receives the tag
      * @param plugin which plugin creates the tag
-     * @param id the key for the brand
-     * @param brand the value for the brand
+     * @param id     the key for the brand
+     * @param brand  the value for the brand
      */
     static void setBrand(ItemStack item, JavaPlugin plugin, String id, String brand) {
         // ensure the item can actually hold a brand
@@ -113,7 +116,7 @@ public interface IChestMenu {
             return;
         }
         // write the brand on the item
-        NamespacedKey key = new NamespacedKey(plugin, "chest_menu_brand_"+id);
+        NamespacedKey key = new NamespacedKey(plugin, "chest_menu_brand_" + id);
         PersistentDataContainer data = meta.getPersistentDataContainer();
         data.set(key, PersistentDataType.STRING, brand);
         item.setItemMeta(meta);
@@ -122,9 +125,9 @@ public interface IChestMenu {
     /**
      * A brand is a persistent data tag allocated to the item.
      *
-     * @param item which item has the tag
-     * @param plugin which plugin created the tag
-     * @param id the key for the brand
+     * @param item     which item has the tag
+     * @param plugin   which plugin created the tag
+     * @param id       the key for the brand
      * @param defaults fallback in case no brand is set
      * @return the brand, else the default value
      */
@@ -164,7 +167,6 @@ public interface IChestMenu {
 
     /**
      * Rebuild the menu at the start of the next tick.
-     *
      */
     void rebuild();
 
@@ -214,7 +216,7 @@ public interface IChestMenu {
      * be called when the inventory is opened otherwise we may see the
      * fallback title.
      *
-     * @param title  the title presented
+     * @param title the title presented
      */
     void setTitle(BaseComponent[] title);
 

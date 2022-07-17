@@ -56,7 +56,7 @@ public interface IEditorConstraint {
      * Get the constraint from the value at the given index.
      *
      * @param container which container to read from
-     * @param index the index we wish to inspect.
+     * @param index     the index we wish to inspect.
      * @return the constraint from the given index.
      */
     String getConstraintAt(List container, int index);
@@ -65,8 +65,8 @@ public interface IEditorConstraint {
      * Present a menu which allows us to replace a value of the given list.
      *
      * @param container which container are we working with
-     * @param index the index we wish to inspect.
-     * @param value which value to substitute with.
+     * @param index     the index we wish to inspect.
+     * @param value     which value to substitute with.
      */
     void setElementAt(List container, int index, String value);
 
@@ -74,7 +74,7 @@ public interface IEditorConstraint {
      * Present a menu which allows us to add a value to the given list.
      *
      * @param container which container are we working with
-     * @param value which value to append to the list
+     * @param value     which value to append to the list
      */
     void addElement(List container, String value);
 

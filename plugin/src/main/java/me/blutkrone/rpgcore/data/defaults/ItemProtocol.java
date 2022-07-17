@@ -13,6 +13,11 @@ import java.io.IOException;
 public class ItemProtocol implements DataProtocol {
 
     @Override
+    public boolean isRosterData() {
+        return false;
+    }
+
+    @Override
     public void save(CorePlayer player, DataBundle bundle) {
         bundle.addString(BukkitSerialization.toBase64(player.getEntity().getInventory().getContents()));
         bundle.addNumber(player.getEquipped().size());

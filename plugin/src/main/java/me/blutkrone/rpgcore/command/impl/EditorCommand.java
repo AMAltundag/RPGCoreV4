@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.command.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
@@ -46,13 +46,13 @@ public class EditorCommand extends AbstractCommand {
     @Override
     public List<String> suggest(CommandSender sender, String... args) {
         if (args.length == 2) {
-           List<String> suggests = new ArrayList<>();
-           getIndexes().forEach((key, index) -> {
-               if (key.startsWith(args[1])) {
-                   suggests.add(key);
-               }
-           });
-           return suggests;
+            List<String> suggests = new ArrayList<>();
+            getIndexes().forEach((key, index) -> {
+                if (key.startsWith(args[1])) {
+                    suggests.add(key);
+                }
+            });
+            return suggests;
         }
 
         return null;
@@ -63,14 +63,15 @@ public class EditorCommand extends AbstractCommand {
             this.indexes = new HashMap<>();
             this.indexes.put("attribute", RPGCore.inst().getAttributeManager().getIndex());
             this.indexes.put("item", RPGCore.inst().getItemManager().getItemIndex());
+            this.indexes.put("refine", RPGCore.inst().getItemManager().getRefineIndex());
             this.indexes.put("modifier", RPGCore.inst().getItemManager().getModifierIndex());
             this.indexes.put("effect", RPGCore.inst().getEffectManager().getIndex());
             this.indexes.put("job", RPGCore.inst().getJobManager().getIndex());
             this.indexes.put("skill", RPGCore.inst().getSkillManager().getIndex());
-            this.indexes.put("ncollectible", RPGCore.inst().getNodeManager().getIndexCollectible());
-            this.indexes.put("nspawner", RPGCore.inst().getNodeManager().getIndexSpawner());
-            this.indexes.put("nbox", RPGCore.inst().getNodeManager().getIndexBox());
-            this.indexes.put("nnpc", RPGCore.inst().getNodeManager().getIndexNPC());
+            this.indexes.put("collectible", RPGCore.inst().getNodeManager().getIndexCollectible());
+            this.indexes.put("spawner", RPGCore.inst().getNodeManager().getIndexSpawner());
+            this.indexes.put("box", RPGCore.inst().getNodeManager().getIndexBox());
+            this.indexes.put("npc", RPGCore.inst().getNPCManager().getIndex());
         }
 
         return this.indexes;

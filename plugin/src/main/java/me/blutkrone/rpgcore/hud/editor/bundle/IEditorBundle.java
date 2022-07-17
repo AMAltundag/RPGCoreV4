@@ -16,14 +16,6 @@ import java.util.List;
 public interface IEditorBundle {
 
     /**
-     * Validate if this object meets conditions necessary
-     * for continued existence.
-     *
-     * @return true if this object is completed.
-     */
-    boolean isValid();
-
-    /**
      * Create an itemized preview of this bundle.
      *
      * @return who created a preview.

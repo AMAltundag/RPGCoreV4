@@ -42,11 +42,12 @@ public abstract class AbstractItemData {
      * A base constructor which identifies which version the
      * data was created for.
      *
-     * @param item which item creates the data.
+     * @param item    which item creates the data.
      * @param quality the quality the item was instanced with.
+     * @param version
      */
-    AbstractItemData(CoreItem item, double quality) throws IOException {
-        this.version = 1;
+    AbstractItemData(CoreItem item, double quality, int version) throws IOException {
+        this.version = version;
         this.item = item;
     }
 

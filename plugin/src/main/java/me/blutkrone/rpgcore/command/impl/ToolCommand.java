@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.command.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -109,7 +110,7 @@ public class ToolCommand extends AbstractCommand {
                         .persist("tool-value", args[1] + " " + args[2])
                         .build();
             } else if (args[1].equalsIgnoreCase("npc")) {
-                item = ItemBuilder.of(TOOL_SPAWNER.clone())
+                item = ItemBuilder.of(TOOL_NPC.clone())
                         .name("§cTool: Node (NPC, " + args[2] + ")")
                         .persist("tool-value", args[1] + " " + args[2])
                         .build();
@@ -133,6 +134,28 @@ public class ToolCommand extends AbstractCommand {
             suggests.add("npc");
             suggests.removeIf(t -> !t.startsWith(args[1]));
             return suggests;
+        } else if (args.length == 3) {
+            EditorIndex index = null;
+            if (args[1].equalsIgnoreCase("collectible")) {
+                index = RPGCore.inst().getNodeManager().getIndexCollectible();
+            } else if (args[1].equalsIgnoreCase("box")) {
+                index = RPGCore.inst().getNodeManager().getIndexBox();
+            } else if (args[1].equalsIgnoreCase("spawner")) {
+                index = RPGCore.inst().getNodeManager().getIndexSpawner();
+            } else if (args[1].equalsIgnoreCase("npc")) {
+                index = RPGCore.inst().getNPCManager().getIndex();
+            }
+
+            if (index != null) {
+                List<String> options = new ArrayList<>();
+                for (Object o : index.getKeys()) {
+                    String id = (String) o;
+                    if (id.startsWith(args[2])) {
+                        options.add(id);
+                    }
+                }
+                return options;
+            }
         }
 
         return null;

@@ -29,7 +29,7 @@ public class ItemStylingRule {
     /**
      * Retrieve a texture which is defined by the styling rule.
      *
-     * @param pattern which texture to retrieve
+     * @param pattern  which texture to retrieve
      * @param position position of the texture
      * @return the texture we found
      */
@@ -42,7 +42,7 @@ public class ItemStylingRule {
      * Color a text within color specifications.
      *
      * @param pattern how to color the text
-     * @param text the text to be colored
+     * @param text    the text to be colored
      * @return the colored text
      */
     public String color(String pattern, String text) {

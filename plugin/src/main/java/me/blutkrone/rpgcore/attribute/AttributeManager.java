@@ -1,17 +1,7 @@
 package me.blutkrone.rpgcore.attribute;
 
-import com.google.gson.stream.JsonReader;
-import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.EditorAttribute;
-import me.blutkrone.rpgcore.util.io.FileUtil;
-import org.bukkit.Bukkit;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.other.EditorAttribute;
 
 /**
  * Manages attributes on the server, do note that despite everyone

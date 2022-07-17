@@ -51,7 +51,7 @@ public class FocusQueue {
             return;
         }
 
-        Focus peek = this.queue.get(this.queue.size()-1);
+        Focus peek = this.queue.get(this.queue.size() - 1);
         this.queue.add(new ListFocus(peek.bundle, list));
         this.scroll_offset = 0;
     }
@@ -66,7 +66,7 @@ public class FocusQueue {
             return;
         }
 
-        Focus peek = this.queue.get(this.queue.size()-1);
+        Focus peek = this.queue.get(this.queue.size() - 1);
         if (peek instanceof ScopedFocus) {
             return;
         }
@@ -82,7 +82,7 @@ public class FocusQueue {
      * @return the element we are focusing.
      */
     public Focus header() {
-        return this.queue.isEmpty() ? null : this.queue.get(this.queue.size()-1);
+        return this.queue.isEmpty() ? null : this.queue.get(this.queue.size() - 1);
     }
 
     /**
@@ -91,7 +91,7 @@ public class FocusQueue {
      */
     public void drop() {
         if (!this.queue.isEmpty()) {
-            this.queue.remove(this.queue.size()-1);
+            this.queue.remove(this.queue.size() - 1);
         }
     }
 

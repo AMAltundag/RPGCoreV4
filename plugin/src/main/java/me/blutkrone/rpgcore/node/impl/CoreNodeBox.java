@@ -3,7 +3,9 @@ package me.blutkrone.rpgcore.node.impl;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.activity.IActivity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeBox;
+import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeBox;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
@@ -25,9 +27,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CoreNodeBox extends AbstractNode {
@@ -35,7 +35,7 @@ public class CoreNodeBox extends AbstractNode {
     private static ItemStack NOTHING = ItemBuilder.of(Material.STONE_PICKAXE).model(0).build();
 
     // which items can spawn in the box
-    private Map<String, Double> weights = new HashMap<>();
+    private IndexAttachment<CoreItem, WeightedRandomMap<CoreItem>> item_choices;
     // how many items can spawn in the box
     private int total;
     // cooldown before using box again
@@ -47,11 +47,9 @@ public class CoreNodeBox extends AbstractNode {
     private ItemStack unavailable;
 
     public CoreNodeBox(String id, EditorNodeBox editor) {
-        super(id, editor.permission, (int) editor.radius);
+        super(id, (int) editor.radius);
 
-        editor.item_weight.forEach(w -> {
-            this.weights.merge(w.tag.toLowerCase(), w.weight, (a,b) -> a+b);
-        });
+        this.item_choices = EditorLoot.build(new ArrayList<>(editor.item_weight));
         this.total = (int) editor.item_total;
         this.cooldown = (int) editor.cooldown;
         this.collider_size = (int) editor.collide_size;
@@ -113,24 +111,9 @@ public class CoreNodeBox extends AbstractNode {
     }
 
     private void showBox(Player player, CorePlayer core_player) {
-        // generate a drop table for the node
-        WeightedRandomMap<CoreItem> items = new WeightedRandomMap<>();
-        for (CoreItem item : RPGCore.inst().getItemManager().getItemIndex().getAll()) {
-            // fetch the weight multiplier we got
-            double weight = 0d;
-            for (String tag : item.getTags()) {
-                weight += this.weights.getOrDefault(tag, 0d);
-            }
-            // do not roll with negative multiplier
-            if (weight <= 0d) {
-                continue;
-            }
-            // append the item to our choices
-            items.add(weight, item);
-        }
 
         // error in case no items could be discovered
-        if (items.isEmpty()) {
+        if (this.item_choices.get().isEmpty()) {
             player.sendMessage("§cUnexpected error (No items found!)");
             return;
         }
@@ -142,10 +125,10 @@ public class CoreNodeBox extends AbstractNode {
         }
 
         // inventory to populate with items
-        Inventory inventory = Bukkit.createInventory(null, 9*6, "");
+        Inventory inventory = Bukkit.createInventory(null, 9 * 6, "");
         for (int i = 0; i < total && !slots.isEmpty(); i++) {
             int slot = slots.remove(ThreadLocalRandom.current().nextInt(slots.size()));
-            CoreItem selected = items.next();
+            CoreItem selected = this.item_choices.get().next();
             inventory.setItem(slot, selected.acquire(core_player, 0d));
         }
 
@@ -173,7 +156,7 @@ public class CoreNodeBox extends AbstractNode {
         public BoxNodeData(World world, NodeActive node) {
             this.node_identifier = node.getID().toString();
             this.cooldown_until = 0;
-            this.where = new Location(world, node.getX(), node.getY(), node.getZ());
+            this.where = new Location(world, node.getX() + 0.5d, node.getY(), node.getZ() + 0.5d);
             this.visual = new WeakReference<>(null);
             this.collide = new WeakReference<>(null);
         }

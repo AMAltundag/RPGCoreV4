@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.effect.impl;
 
 import me.blutkrone.rpgcore.effect.CoreEffect;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorAudio;
+import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorAudio;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Location;
 import org.bukkit.Sound;

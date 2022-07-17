@@ -106,6 +106,18 @@ public class DataManager implements Listener {
         data_protocol.put("item", new ItemProtocol());
         data_protocol.put("editor", new EditorProtocol());
         data_protocol.put("menu", new MenuProtocol());
+        data_protocol.put("roster_bank", new RosterBankerProtocol());
+        data_protocol.put("roster_storage", new RosterStorageProtocol());
+        data_protocol.put("roster_refinement", new RosterRefinementProtocol());
+    }
+
+    /**
+     * Adapter that handles the low-level IO operations.
+     *
+     * @return adapter for low level processing
+     */
+    public IDataAdapter getDataAdapter() {
+        return data_adapter;
     }
 
     /**
@@ -131,9 +143,16 @@ public class DataManager implements Listener {
         // create an empty player instance.
         CorePlayer core_player = new CorePlayer(bukkit_player, this.player_provider, identity.getCharacter());
         // read up the data stored for this player
-        Map<String, DataBundle> loaded = data_adapter.loadCharacterData(identity.getUserId(), identity.getCharacter());
+        Map<String, DataBundle> loaded_character = data_adapter.loadCharacterData(identity.getUserId(), identity.getCharacter());
+        Map<String, DataBundle> loaded_roster = data_adapter.loadRosterData(identity.getUserId());
         // load the data we got on this character
-        data_protocol.forEach((id, protocol) -> protocol.load(core_player, loaded.getOrDefault(id, new DataBundle())));
+        data_protocol.forEach((id, protocol) -> {
+            if (protocol.isRosterData()) {
+                protocol.load(core_player, loaded_roster.getOrDefault(id, new DataBundle()));
+            } else {
+                protocol.load(core_player, loaded_character.getOrDefault(id, new DataBundle()));
+            }
+        });
         // offer up the created player
         return core_player;
     }
@@ -144,13 +163,20 @@ public class DataManager implements Listener {
      * @param player whose data to save.
      */
     public void savePlayer(CorePlayer player) throws IOException {
-        Map<String, DataBundle> raw_data = new HashMap<>();
+        Map<String, DataBundle> raw_data_character = new HashMap<>();
+        Map<String, DataBundle> raw_data_roster = new HashMap<>();
         data_protocol.forEach((id, protocol) -> {
             DataBundle bundle = new DataBundle();
             protocol.save(player, bundle);
-            raw_data.put(id, bundle);
+            if (protocol.isRosterData()) {
+                raw_data_roster.put(id, bundle);
+            } else {
+                raw_data_character.put(id, bundle);
+            }
         });
-        data_adapter.saveCharacterData(player.getUserId(), player.getCharacter(), raw_data);
+
+        data_adapter.saveCharacterData(player.getUserId(), player.getCharacter(), raw_data_character);
+        data_adapter.saveRosterData(player.getUserId(), raw_data_roster);
     }
 
     /**

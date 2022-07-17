@@ -66,12 +66,21 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
 
     // items in the equipment menu
     private Map<String, ItemStack> equipped = new HashMap<>();
-    
+
     // an index of recently edited elements
     private List<String> editor_history = new ArrayList<>();
 
     // item persistence for relevant menus
     private Map<String, ItemStack> menu_persistence = new HashMap<>();
+
+    // item ID mapped to banked quantity of it
+    private Map<String, Integer> banked_items = new HashMap<>();
+    // items stored as-is, can be a B64 string or an item list (up to 54)
+    private Map<String, String> stored_items = new HashMap<>();
+    private Map<String, Long> storage_unlocked = new HashMap<>();
+
+    // refinement timestamps for afk refinement
+    private Map<String, Long> refinement_timestamp = new HashMap<>();
 
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
@@ -87,6 +96,45 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
+     * Retrieve the storage unlocks.
+     *
+     * @return identifiers we've unlocked.
+     */
+    public Map<String, Long> getStorageUnlocked() {
+        return storage_unlocked;
+    }
+
+    /**
+     * Timestamps for refinement, this allows us to lazy-process refinement
+     * while the menu is closed.
+     *
+     * @return inventory identifier mapped to timestamp menu closed at.
+     */
+    public Map<String, Long> getRefinementTimestamp() {
+        return refinement_timestamp;
+    }
+
+    /**
+     * Banked items are identified by a 'bank' keyword, allowing them
+     * to be stored together as a quantitative value.
+     *
+     * @return items stored by quantity (via bank identifier.)
+     */
+    public Map<String, Integer> getBankedItems() {
+        return banked_items;
+    }
+
+    /**
+     * Items stored as actual items, do note that the items have to be
+     * encoded into a B64 string when loaded and un-loaded.
+     *
+     * @return items stored as their individual item.
+     */
+    public Map<String, String> getStoredItems() {
+        return stored_items;
+    }
+
+    /**
      * Persistent storage of items used by a menu, please use a prefix
      * to avoid namespace conflicts.
      *
@@ -99,7 +147,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     /**
      * A history of what was most recently edited by the user, do note that
      * this does not discriminate history of two elements sharing an ID.
-     * 
+     *
      * @return a list of what was most recently edited.
      */
     public List<String> getEditorHistory() {
@@ -175,8 +223,8 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * Update the given evolution, remove the evolution by updating
      * it to a null value.
      *
-     * @param skill which skill to update.
-     * @param position the position of the evolution.
+     * @param skill     which skill to update.
+     * @param position  the position of the evolution.
      * @param evolution which evolution to use
      */
     public void setEvolution(String skill, int position, String evolution) {
@@ -225,7 +273,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     /**
      * Check if the evolution slot was unlocked.
      *
-     * @param skill which skill to check
+     * @param skill    which skill to check
      * @param position which position to check
      * @return true if the slot is unlocked
      */
@@ -480,6 +528,13 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
 
     @Override
     public void remove() {
+        // this is a dupe preventing system, it should ensure that
+        // no player can logout during a menu interaction which is
+        // expecting to write to the player data.
+        Player player_handle = getEntity();
+        if (player_handle != null) {
+            player_handle.closeInventory();
+        }
         // basic entity handling
         super.remove();
         // request the data-handler to drop our data

@@ -36,7 +36,7 @@ public class ItemDataGeneric extends AbstractItemData {
     }
 
     public ItemDataGeneric(CoreItem item, double quality, CorePlayer player) throws IOException {
-        super(item, quality);
+        super(item, quality, 1);
 
         // remove the capacity to stack items.
         this.do_not_stack = item.isUnstackable() ? UUID.randomUUID() : ItemDataGeneric.EMPTY_UUID;

@@ -74,7 +74,7 @@ public interface ITextInput {
      * be called when the inventory is opened otherwise we may see the
      * fallback title.
      *
-     * @param title  the title presented
+     * @param title the title presented
      */
     void setTitle(BaseComponent[] title);
 

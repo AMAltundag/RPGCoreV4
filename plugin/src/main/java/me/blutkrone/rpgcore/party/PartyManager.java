@@ -15,12 +15,9 @@ import java.util.UUID;
  */
 public class PartyManager implements IPartyManager {
 
-    private int n = 0;
-
     @Override
     public IActiveParty getPartyOf(UUID player) {
-        if (n++ == 100) {
-            n = 0;
+        if (Math.random() <= 0.001d) {
             Bukkit.getLogger().severe("not implemented (get party)");
         }
         return null;

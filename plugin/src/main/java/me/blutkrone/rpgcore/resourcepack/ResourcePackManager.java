@@ -97,6 +97,18 @@ public class ResourcePackManager implements Listener {
             = FileUtil.directory("resourcepack/generated/lore/jewel");
     private static final File INPUT_ANIMATION_SLOT
             = FileUtil.directory("resourcepack/generated/animation/slot");
+    private static final File INPUT_CORTEX_SMALL
+            = FileUtil.directory("resourcepack/generated/cortex/small");
+    private static final File INPUT_CORTEX_MEDIUM
+            = FileUtil.directory("resourcepack/generated/cortex/medium");
+    private static final File INPUT_CORTEX_LARGE
+            = FileUtil.directory("resourcepack/generated/cortex/large");
+    private static final File INPUT_HOLOGRAM
+            = FileUtil.directory("resourcepack/generated/hologram");
+    private static final File INPUT_SCROLLER
+            = FileUtil.directory("resourcepack/generated/scroller");
+    private static final File INPUT_CURRENCY
+            = FileUtil.directory("resourcepack/generated/currency");
 
     private static final File OUTPUT_FONT
             = FileUtil.directory("resourcepack/working/assets/minecraft/textures/font");
@@ -616,6 +628,20 @@ public class ResourcePackManager implements Listener {
             // generate slot based menu animations
             indexed_fonts.putAll(AnimationGenerator.createSlotAnimation(INPUT_ANIMATION_SLOT));
             Bukkit.getLogger().info(String.format("Generated 'slot animation' font textures in %sms", clock.loop()));
+            // generate cortex menu textures
+            indexed_fonts.putAll(CortexGenerator.constructSmall(INPUT_CORTEX_SMALL));
+            indexed_fonts.putAll(CortexGenerator.constructMedium(INPUT_CORTEX_MEDIUM));
+            indexed_fonts.putAll(CortexGenerator.constructLarge(INPUT_CORTEX_LARGE));
+            Bukkit.getLogger().info(String.format("Generated 'cortex' font textures in %sms", clock.loop()));
+            // textures used by holograms
+            indexed_fonts.putAll(HologramGenerator.construct(INPUT_HOLOGRAM));
+            Bukkit.getLogger().info(String.format("Generated 'hologram' font textures in %sms", clock.loop()));
+            // textures used by scroller menu
+            indexed_fonts.putAll(ScrollerGenerator.construct(INPUT_SCROLLER));
+            Bukkit.getLogger().info(String.format("Generated 'scroller' font textures in %sms", clock.loop()));
+            // textures used by currencies
+            indexed_fonts.putAll(CurrencyGenerator.construct(INPUT_CURRENCY));
+            Bukkit.getLogger().info(String.format("Generated 'currency' font textures in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -951,6 +977,20 @@ public class ResourcePackManager implements Listener {
      */
     public IndexedTexture texture(String texture) throws NullPointerException {
         IndexedTexture result = indexed_fonts.get(texture);
+        if (result == null)
+            throw new NullPointerException("Could not find index of '" + texture + "' texture!");
+        return result;
+    }
+
+    /**
+     * Retrieve the texture mapped to a certain identifier.
+     *
+     * @param texture the texture we want to retrieve
+     * @return the resulting texture
+     * @throws NullPointerException fired instead of a null value
+     */
+    public IndexedTexture texture(String texture, String fallback) throws NullPointerException {
+        IndexedTexture result = indexed_fonts.getOrDefault(texture, indexed_fonts.get(fallback));
         if (result == null)
             throw new NullPointerException("Could not find index of '" + texture + "' texture!");
         return result;

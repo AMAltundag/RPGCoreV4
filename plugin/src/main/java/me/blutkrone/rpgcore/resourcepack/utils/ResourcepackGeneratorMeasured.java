@@ -35,6 +35,8 @@ public class ResourcepackGeneratorMeasured {
     public int marker_offset;
     public int portrait_offset;
     public int instruction_offset;
+    public int hud_notification;
+    public int hud_sidebar;
 
     /**
      * Rules on how to generate the resourcepack.
@@ -47,6 +49,7 @@ public class ResourcepackGeneratorMeasured {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         status_self_lower_offset = config.getInt("interface-offset.status-self-lower-offset");
         status_self_upper_offset = config.getInt("interface-offset.status-self-upper-offset");
         party_offset = config.getInt("interface-offset.party-offset");
@@ -70,18 +73,67 @@ public class ResourcepackGeneratorMeasured {
         minimap_offset = config.getInt("interface-offset.minimap-offset");
         marker_offset = config.getInt("interface-offset.marker-offset");
         portrait_offset = config.getInt("interface-offset.portrait-offset");
-
-        // generate fonts for the instruction frame
         instruction_offset = config.getInt("interface-offset.instruction-offset");
+        hud_notification = config.getInt("interface-offset.hud-notification");
+        hud_sidebar = config.getInt("interface-offset.hud-sidebar");
+
+        // generate default fonts to utilize
         for (int i = 0; i < 24; i++) {
-            text_offset.put("instruction_text_" + (i+1), (instruction_offset + (i*10)));
-            text_opacity.put("instruction_text_" + (i+1), 1d);
+            addFont("instruction_text_" + (i + 1), instruction_offset + (i * 10), 1d);
         }
-        // generate fonts for the nameplate text
-        for (int i = 0; i < 10; i++) {
-            text_offset.put("nameplate_" + i, 25+(i*10));
-            text_opacity.put("nameplate_" + i, 1d);
+        for (int i = 0; i < 24; i++) {
+            addFont("nameplate_" + i, 25 + (i * 10), 1d);
         }
+        for (int i = 0; i < 24; i++) {
+            addFont("hud_sidebar_" + (i + 1), hud_sidebar - (10 * i), 1d);
+        }
+        for (int i = 0; i < 16; i++) {
+            addFont("menu_text_" + (i + 1), i * (-10), 1d);
+        }
+
+        addFont("text_menu_title", 5, 1d);
+
+        addFont("hud_notification_1", hud_notification, 1d);
+        addFont("hud_notification_2", hud_notification + 10, 1d);
+        addFont("hud_notification_3", hud_notification + 20, 1d);
+        addFont("hud_notification_4", hud_notification + 30, 0.75d);
+        addFont("hud_notification_5", hud_notification + 40, 0.50d);
+        addFont("hud_notification_6", hud_notification + 50, 0.25d);
+
+        addFont("dialogue_choice_question", -12, 1d);
+        addFont("dialogue_choice_1", -47, 1d);
+        addFont("dialogue_choice_2", -65, 1d);
+        addFont("dialogue_choice_3", -83, 1d);
+        addFont("dialogue_choice_4", -101, 1d);
+
+        addFont("editor_viewport_1", -47, 1d);
+        addFont("editor_viewport_2", -65, 1d);
+        addFont("editor_viewport_3", -83, 1d);
+        addFont("editor_viewport_4", -101, 1d);
+
+        addFont("scroller_text_1", -11, 1d);
+        addFont("scroller_text_2", -29, 1d);
+        addFont("scroller_text_3", -47, 1d);
+        addFont("scroller_text_4", -65, 1d);
+        addFont("scroller_text_5", -83, 1d);
+        addFont("scroller_text_6", -101, 1d);
+
+        addFont("roster_create_info_1", -20, 1d);
+        addFont("roster_create_info_2", -29, 1d);
+        addFont("roster_create_info_3", -38, 1d);
+        addFont("roster_create_info_4", -47, 1d);
+
+        addFont("anvil_input_hint_1", -25, 1d);
+        addFont("anvil_input_hint_2", -35, 1d);
+        addFont("anvil_input_hint_3", -45, 1d);
+        addFont("anvil_input_hint_4", -55, 1d);
+
+        addFont("banked_text_0", -9, 1d);
+        addFont("banked_text_1", -27, 1d);
+        addFont("banked_text_2", -45, 1d);
+        addFont("banked_text_3", -63, 1d);
+        addFont("banked_text_4", -81, 1d);
+        addFont("banked_text_5", -99, 1d);
 
         // load up font specific information
         ConfigWrapper font_configs = config.getSection("font-permutation");
@@ -94,11 +146,24 @@ public class ResourcepackGeneratorMeasured {
                 text_opacity.put(identifier, 1d);
             }
         }
+
         // dupe each entry with their shadow
         Map<String, Integer> duped = new HashMap<>(this.text_offset);
         duped.forEach((font, offset) -> {
             text_offset.put(font + "_shadow", offset - 1);
             text_opacity.put(font + "_shadow", text_opacity.get(font));
         });
+    }
+
+    /*
+     * Add a font permutation to operate with.
+     *
+     * @param font
+     * @param offset
+     * @param opacity
+     */
+    private void addFont(String font, int offset, double opacity) {
+        text_offset.put(font, offset);
+        text_opacity.put(font, opacity);
     }
 }

@@ -6,6 +6,11 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 
 public class DisplayProtocol implements DataProtocol {
     @Override
+    public boolean isRosterData() {
+        return false;
+    }
+
+    @Override
     public void save(CorePlayer player, DataBundle bundle) {
         bundle.addString(player.getAlias());
         bundle.addString(player.getPortrait());

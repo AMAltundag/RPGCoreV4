@@ -30,8 +30,6 @@ import java.util.Map;
 /**
  * A menu dedicated to allow players customize their skillbar
  * and the behaviour of their selected skills.
- *
- *
  */
 public class SkillMenu {
     // control elements
@@ -182,7 +180,7 @@ public class SkillMenu {
             for (int i = 0; i < skills.size() && i < 35; i++) {
                 String id = skills.get(i);
                 CoreSkill skill = RPGCore.inst().getSkillManager().getIndex().get(id);
-                menu.setItemAt(1+i, skill.getItem());
+                menu.setItemAt(1 + i, skill.getItem());
             }
 
             InstructionBuilder instructions = new InstructionBuilder();
@@ -267,7 +265,7 @@ public class SkillMenu {
                     String fitted = core_player.getEvolution(skill.getId()).get(slot);
                     if (fitted != null) {
                         menu.setItemAt(slot, ItemBuilder.of(Material.DIAMOND)
-                                .name("§fEvolution:"+fitted)
+                                .name("§fEvolution:" + fitted)
                                 .persist("skill-evolution-stone", 1)
                                 .build());
                     } else {

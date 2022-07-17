@@ -9,6 +9,15 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
  * under any circumstances.
  */
 public interface DataProtocol {
+
+    /**
+     * If flagged as roster data, we will save/load from a
+     * pool of data shared across players.
+     *
+     * @return true if we are roster bound.
+     */
+    boolean isRosterData();
+
     /**
      * Save the data from the player to the bundle.
      *

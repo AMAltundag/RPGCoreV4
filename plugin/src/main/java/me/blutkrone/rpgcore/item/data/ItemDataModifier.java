@@ -4,14 +4,17 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.attribute.AttributeModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.item.CoreItem;
-import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.ItemManager;
+import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Tracks modifier specific information.
@@ -44,7 +47,7 @@ public class ItemDataModifier extends AbstractItemData {
     }
 
     public ItemDataModifier(CoreItem item, double quality) throws IOException {
-        super(item, quality);
+        super(item, quality, 1);
 
         ItemManager manager = RPGCore.inst().getItemManager();
 

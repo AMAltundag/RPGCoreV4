@@ -18,9 +18,8 @@ public abstract class AbstractNode {
     // maximum distance to 'tick' the node
     private int engage_radius;
 
-    public AbstractNode(String id, String permission, int radius) {
+    public AbstractNode(String id, int radius) {
         this.id = id;
-        this.permission = permission;
         this.engage_radius = radius;
     }
 
@@ -31,16 +30,6 @@ public abstract class AbstractNode {
      */
     public String getId() {
         return id;
-    }
-
-    /**
-     * What permission is necessary to engage with the
-     * node.
-     *
-     * @return the permission needed to engage.
-     */
-    public String getPermission() {
-        return permission;
     }
 
     /**
@@ -56,16 +45,16 @@ public abstract class AbstractNode {
     /**
      * Triggers regularly, may also trigger without players.
      *
-     * @param world the world the node is located in.
-     * @param active which node instance triggered this.
+     * @param world   the world the node is located in.
+     * @param active  which node instance triggered this.
      * @param players all players within radius.
-     * */
+     */
     public abstract void tick(World world, NodeActive active, List<Player> players);
 
     /**
      * Triggers when a player explicitly engages with the node.
      *
-     * @param world the world the node is located in.
+     * @param world  the world the node is located in.
      * @param active which node instance triggered this.
      * @param player who engaged with it
      */
@@ -74,7 +63,7 @@ public abstract class AbstractNode {
     /**
      * Triggers when a player explicitly engages with the node.
      *
-     * @param world the world the node is located in.
+     * @param world  the world the node is located in.
      * @param active which node instance triggered this.
      * @param player who engaged with it
      */

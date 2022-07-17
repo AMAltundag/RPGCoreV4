@@ -26,11 +26,6 @@ public class Design {
     private String name = "Unnamed Design";
     private String[] description = {};
 
-    @Override
-    public String toString() {
-        return String.format("Design{class=%s;categories=%s}", this.clazz.getSimpleName(), this.categories.size());
-    }
-
     /**
      * This is a wrapper class which extracts the annotation structure from
      * a class, and translates it into a format which the editor can use to
@@ -81,6 +76,11 @@ public class Design {
 
         // delete a category if it is empty
         this.categories.removeIf(c -> c.getElements().isEmpty());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Design{class=%s;categories=%s}", this.clazz.getSimpleName(), this.categories.size());
     }
 
     /**

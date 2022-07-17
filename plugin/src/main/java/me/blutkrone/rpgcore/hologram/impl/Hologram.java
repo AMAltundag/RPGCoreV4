@@ -16,6 +16,10 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+/**
+ * referenced https://github.com/unldenis/Hologram-Lib/blob/master/src/main/java/com/github/unldenis/hologram/packet/IPackets.java for
+ * establishing a protocol.
+ */
 public class Hologram {
 
     // data watchers to annotate entity metadata
@@ -41,6 +45,24 @@ public class Hologram {
         packet.getDoubles().write(0, where.getX());
         packet.getDoubles().write(1, where.getY());
         packet.getDoubles().write(2, where.getZ());
+
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(viewer, packet);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void spawn(Player viewer, double x, double y, double z) {
+        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
+        packet.getIntegers().write(0, this.id);
+        packet.getIntegers().write(1, 1); // entity type
+        packet.getIntegers().write(2, 1); // extra data
+
+        packet.getUUIDs().write(0, UUID.randomUUID());
+        packet.getDoubles().write(0, x);
+        packet.getDoubles().write(1, y);
+        packet.getDoubles().write(2, z);
 
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(viewer, packet);
@@ -100,7 +122,7 @@ public class Hologram {
         packet.getIntegers().write(0, this.id);
         packet.getDoubles().write(0, where.getX());
         packet.getDoubles().write(1, where.getY());
-        packet.getDoubles() .write(2, where.getZ());
+        packet.getDoubles().write(2, where.getZ());
         packet.getBytes().write(0, (byte) (where.getYaw() * 256F / 360F));
         packet.getBytes().write(1, (byte) (where.getPitch() * 256F / 360F));
         packet.getBooleans().write(0, false);
@@ -131,7 +153,7 @@ public class Hologram {
 
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
         packet.getIntegers().write(0, mount.getEntityId());
-        packet.getIntegerArrays().write(0, new int[] { this.id });
+        packet.getIntegerArrays().write(0, new int[]{this.id});
 
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(viewer, packet);
@@ -144,7 +166,7 @@ public class Hologram {
 
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
         packet.getIntegers().write(0, mount);
-        packet.getIntegerArrays().write(0, new int[] { this.id });
+        packet.getIntegerArrays().write(0, new int[]{this.id});
 
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(viewer, packet);

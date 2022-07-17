@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.EditorSkill;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.skill.activity.activities.FocusSkillActivity;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;

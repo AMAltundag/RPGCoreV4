@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.root.EditorSkill;
+import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
 import me.blutkrone.rpgcore.skill.behaviour.CorePattern;
 import me.blutkrone.rpgcore.skill.cost.CoreCost;

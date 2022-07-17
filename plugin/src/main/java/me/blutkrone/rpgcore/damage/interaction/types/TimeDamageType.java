@@ -3,21 +3,17 @@ package me.blutkrone.rpgcore.damage.interaction.types;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
-import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * To accommodate for performance issues, a DOT is unaffected by conversion
  * and partially the element scaling. Please handle that scaling before a
  * DOT instance is created.
- *
+ * <p>
  * <ul>
- *     <li>DOT_TAKEN_MULTIPLIER (Multiplier, Defender)</li>
+ * <li>DOT_TAKEN_MULTIPLIER (Multiplier, Defender)</li>
  * </ul>
  */
 public class TimeDamageType implements IDamageType {

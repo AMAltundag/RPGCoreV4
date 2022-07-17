@@ -7,6 +7,11 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 public class PositionProtocol implements DataProtocol {
 
     @Override
+    public boolean isRosterData() {
+        return false;
+    }
+
+    @Override
     public void save(CorePlayer player, DataBundle bundle) {
         if (player.getRespawnPosition() == null)
             return;

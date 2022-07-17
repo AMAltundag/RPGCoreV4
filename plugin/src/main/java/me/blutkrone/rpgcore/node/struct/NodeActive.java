@@ -20,9 +20,9 @@ public class NodeActive {
      * has a lazy addressing to respect editor mutability.
      *
      * @param uuid unique identifier of the node
-     * @param x position
-     * @param y position
-     * @param z position
+     * @param x    position
+     * @param y    position
+     * @param z    position
      * @param node type:id
      */
     public NodeActive(UUID uuid, int x, int y, int z, String node) {
@@ -67,7 +67,7 @@ public class NodeActive {
         } else if (id[0].equalsIgnoreCase("spawner")) {
             return node_manager.getIndexSpawner().get(id[1]);
         } else if (id[0].equalsIgnoreCase("npc")) {
-            return node_manager.getIndexNPC().get(id[1]);
+            return RPGCore.inst().getNPCManager().getIndex().get(id[1]);
         }
 
         throw new IllegalArgumentException("Bad node: '" + this.node + "'!");

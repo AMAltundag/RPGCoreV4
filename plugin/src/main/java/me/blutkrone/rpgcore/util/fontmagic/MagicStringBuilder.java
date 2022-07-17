@@ -34,6 +34,23 @@ public class MagicStringBuilder {
     }
 
     /**
+     * Compute the total number of symbols.
+     *
+     * @return total symbol count.
+     */
+    public int getSymbolCount() {
+        int counted = 0;
+        // count previous buffers
+        for (BaseComponent component : compiled) {
+            counted += component.toPlainText().length();
+        }
+        // count current buffer
+        counted += internal.length();
+        // offer up the total count
+        return counted;
+    }
+
+    /**
      * The "final length" refers to the length we are expected
      * to have, this measurement is applied BEFORE compiling.
      *
@@ -72,6 +89,33 @@ public class MagicStringBuilder {
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
+        return this;
+    }
+
+    /**
+     * Append text into the given workspace
+     *
+     * @param text the text to be rendered
+     */
+    public MagicStringBuilder append(String text, boolean obfuscate) {
+        if (text.isEmpty()) return this;
+
+        if (obfuscate) {
+            split();
+            int length = Utility.measureWidthExact(text);
+            this.internal.append(text);
+            this.pending_offset -= 1;
+            this.length += length;
+            split();
+            this.compiled.get(this.compiled.size() - 1).setObfuscated(true);
+        } else {
+            int length = Utility.measureWidthExact(text);
+            flush();
+            this.internal.append(text);
+            this.pending_offset -= 1;
+            this.length += length;
+        }
+
         return this;
     }
 

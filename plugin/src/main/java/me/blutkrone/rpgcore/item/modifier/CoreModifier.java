@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.item.modifier;
 
 import me.blutkrone.rpgcore.attribute.AttributeModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.root.EditorModifier;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @see EditorModifier for the editor implementation
  */
 public class CoreModifier {
@@ -31,7 +30,6 @@ public class CoreModifier {
     /**
      * A container for information on how the given item
      * is engaging with the server.
-     *
      */
     public CoreModifier(String id, EditorModifier editor) {
         this.id = id;

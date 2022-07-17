@@ -1,17 +1,20 @@
 package me.blutkrone.rpgcore.data.defaults;
 
-import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.BukkitSerialization;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class MenuProtocol  implements DataProtocol {
+public class MenuProtocol implements DataProtocol {
+    @Override
+    public boolean isRosterData() {
+        return false;
+    }
+
     @Override
     public void save(CorePlayer player, DataBundle bundle) {
         Map<String, ItemStack> persistence = player.getMenuPersistence();

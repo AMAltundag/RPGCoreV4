@@ -18,8 +18,6 @@ public class EntityManager {
     private Map<ChunkIdentifier, List<Player>> observation = new HashMap<>();
     // entities which are registered in the core
     private Map<UUID, CoreEntity> entity = new HashMap<>();
-    // character slot used by given players
-    private Map<UUID, Integer> player = new HashMap<>();
 
     public EntityManager() {
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
@@ -151,27 +149,5 @@ public class EntityManager {
      */
     public List<Player> getObserving(Location where) {
         return observation.getOrDefault(new ChunkIdentifier(where), Collections.emptyList());
-    }
-
-    /**
-     * Update the character choice of a player
-     *
-     * @param uniqueId  the unique ID of the player
-     * @param character the character we are running
-     */
-    public void setPlayerCharacter(UUID uniqueId, int character) {
-        if (character < 0) {
-            this.player.remove(uniqueId);
-        } else this.player.put(uniqueId, character);
-    }
-
-    /**
-     * The character the player is using
-     *
-     * @param uniqueId the unique ID of the player
-     * @return the character that is used
-     */
-    public int getPlayerCharacter(UUID uniqueId) {
-        return this.player.get(uniqueId);
     }
 }

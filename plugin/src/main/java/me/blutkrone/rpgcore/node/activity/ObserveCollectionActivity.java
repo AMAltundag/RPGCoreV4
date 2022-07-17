@@ -40,7 +40,7 @@ public class ObserveCollectionActivity implements IActivity {
     public double getProgress() {
         // apply a pseudo decay effect to hint at faster hitting
         double d = this.watching.getProgress();
-        return Math.max(0d, d - (0.2d*(1d-(0d+this.timer/40d))));
+        return Math.max(0d, d - (0.2d * (1d - (0d + this.timer / 40d))));
     }
 
     @Override

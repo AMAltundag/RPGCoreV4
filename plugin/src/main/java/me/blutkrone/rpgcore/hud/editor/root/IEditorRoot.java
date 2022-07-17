@@ -8,15 +8,11 @@ import java.io.IOException;
 public interface IEditorRoot<K> extends IEditorBundle {
 
     /**
-     * A root element must <b>always</b> be valid, whatever
-     * invalidity it has must be handled gracefully.
+     * Retrieve the file we are backed up by.
      *
-     * @return true
+     * @return the file we are backed by.
      */
-    @Override
-    default boolean isValid() {
-        return true;
-    }
+    File getFile();
 
     /**
      * Update the file which handles de/serialization of this.
@@ -24,13 +20,6 @@ public interface IEditorRoot<K> extends IEditorBundle {
      * @param file which file to de/serialize from
      */
     void setFile(File file);
-
-    /**
-     * Retrieve the file we are backed up by.
-     *
-     * @return the file we are backed by.
-     */
-    File getFile();
 
     /**
      * Dump the current state into the file we are linked to.

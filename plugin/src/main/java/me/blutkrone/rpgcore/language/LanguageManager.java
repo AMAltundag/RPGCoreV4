@@ -113,6 +113,28 @@ public class LanguageManager {
         return "";
     }
 
+    /**
+     * Format time by the greatest unit in milliseconds.
+     *
+     * @param time milliseconds to format
+     * @return formatted string.
+     */
+    public String formatMillis(long time) {
+        time = time / 1000;
+        if (time <= 60) {
+            return time + "s";
+        }
+        time = time / 60;
+        if (time <= 60) {
+            return time + "m";
+        }
+        time = time / 60;
+        if (time <= 24) {
+            return time + "h";
+        }
+        time = time / 24;
+        return time + "d";
+    }
 
     /**
      * Format a number so they are displayed in 3 letters, up to

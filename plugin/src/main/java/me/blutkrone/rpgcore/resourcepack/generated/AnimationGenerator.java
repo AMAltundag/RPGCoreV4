@@ -35,7 +35,7 @@ public class AnimationGenerator {
                             while (w < bi.getWidth()) {
                                 // slice up the texture and pool it
                                 BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                                sliced.add(new IndexedTexture.GeneratedTexture(c++, key, slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (18*i) - 3));
+                                sliced.add(new IndexedTexture.GeneratedTexture(c++, key, slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (18 * i) - 3));
                                 // move our pointer ahead
                                 w += Math.min(128, bi.getWidth());
                             }

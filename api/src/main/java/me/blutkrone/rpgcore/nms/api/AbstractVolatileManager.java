@@ -117,6 +117,7 @@ public abstract class AbstractVolatileManager {
      * @param size the size of the menu (1-6)
      * @return the menu that was created
      */
+    @Deprecated
     public abstract IChestMenu createMenu(int size, Player holder);
 
     /**

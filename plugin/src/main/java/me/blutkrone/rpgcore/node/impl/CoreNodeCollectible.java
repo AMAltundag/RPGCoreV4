@@ -4,8 +4,9 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.activity.IActivity;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorLoot;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeCollectible;
+import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
@@ -15,7 +16,10 @@ import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +35,7 @@ public class CoreNodeCollectible extends AbstractNode {
     private static ItemStack NOTHING = ItemBuilder.of(Material.STONE_PICKAXE).model(0).build();
 
     // which items can spawn in the box
-    private Map<String, Double> weights = new HashMap<>();
+    private IndexAttachment<CoreItem, WeightedRandomMap<CoreItem>> item_choices;
     // how many items can spawn in the box
     private int total;
     // restocking duration for the chest
@@ -50,7 +54,9 @@ public class CoreNodeCollectible extends AbstractNode {
     private String effect_collected;
 
     public CoreNodeCollectible(String id, EditorNodeCollectible editor) {
-        super(id, editor.permission, (int) editor.radius);
+        super(id, (int) editor.radius);
+
+        this.item_choices = EditorLoot.build(new ArrayList<>(editor.item_weight));
         this.total = (int) editor.item_total;
         this.cooldown = (int) editor.cooldown;
         this.available = ItemBuilder.of(editor.available_icon)
@@ -59,9 +65,6 @@ public class CoreNodeCollectible extends AbstractNode {
         this.unavailable = ItemBuilder.of(editor.unavailable_icon)
                 .model((int) editor.unavailable_model)
                 .build();
-        for (EditorLoot loot : editor.item_weight) {
-            this.weights.merge(loot.tag.toLowerCase(), loot.weight, (a,b) -> a+b);
-        }
         this.collider_size = (int) editor.collide_size;
         this.collect_volume = (int) editor.collect_volume;
         this.collect_attribute = editor.collect_attribute;
@@ -140,7 +143,7 @@ public class CoreNodeCollectible extends AbstractNode {
         if (RPGCore.inst().getTimestamp() >= data.collecting_expire) {
             data.have_collected = 0d;
         }
-        data.collecting_expire = RPGCore.inst().getTimestamp()+40;
+        data.collecting_expire = RPGCore.inst().getTimestamp() + 40;
         data.collecting.add(player.getUniqueId());
         double collection = 1d;
         if (!this.collect_attribute.equalsIgnoreCase("nothingness")) {
@@ -156,7 +159,7 @@ public class CoreNodeCollectible extends AbstractNode {
             for (int i = 0; i < 5; i++) {
                 // sample randomly around collider level
                 Location where = new Location(player.getWorld(), active.getX(), active.getY(), active.getZ());
-                where.add(new Vector(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).multiply((0d+this.collider_size) / 2));
+                where.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply((0d + this.collider_size) / 2));
                 // invoke the effect that we retrieved
                 effect.show(where, 1d, Collections.singletonList(player));
             }
@@ -175,7 +178,7 @@ public class CoreNodeCollectible extends AbstractNode {
             for (int i = 0; i < 5; i++) {
                 // sample randomly around collider level
                 Location where = new Location(player.getWorld(), active.getX(), active.getY(), active.getZ());
-                where.add(new Vector(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).multiply((0d+this.collider_size) / 2));
+                where.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply((0d + this.collider_size) / 2));
                 // invoke the effect that we retrieved
                 effect.show(where, 1d, Collections.singletonList(player));
             }
@@ -183,7 +186,7 @@ public class CoreNodeCollectible extends AbstractNode {
 
         for (int i = 0; i < 20; i++) {
             Location where = new Location(player.getWorld(), active.getX(), active.getY(), active.getZ());
-            where.add(new Vector(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).multiply(((0d+this.collider_size)/2)+2));
+            where.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply(((0d + this.collider_size) / 2) + 2));
             player.spawnParticle(Particle.BLOCK_CRACK, where, 7, Material.DIAMOND_ORE.createBlockData());
         }
 
@@ -191,29 +194,13 @@ public class CoreNodeCollectible extends AbstractNode {
         data.cooldown_until = RPGCore.inst().getTimestamp() + this.cooldown;
         data.update(unavailable);
 
-        // generate a drop table for the node
-        WeightedRandomMap<CoreItem> items = new WeightedRandomMap<>();
-        for (CoreItem item : RPGCore.inst().getItemManager().getItemIndex().getAll()) {
-            // fetch the weight multiplier we got
-            double weight = 0d;
-            for (String tag : item.getTags()) {
-                weight += this.weights.getOrDefault(tag, 0d);
-            }
-            // do not roll with negative multiplier
-            if (weight <= 0d) {
-                continue;
-            }
-            // append the item to our choices
-            items.add(weight, item);
-        }
-
         // scatter items from the node
-        if (!items.isEmpty()) {
+        if (!this.item_choices.get().isEmpty()) {
             Location scatter_point = new Location(world, active.getX(), active.getY(), active.getZ());
             for (int i = 0; i < this.total * Math.sqrt(data.collecting.size()); i++) {
-                ItemStack stack = items.next().acquire(core_player, 0d);
+                ItemStack stack = this.item_choices.get().next().acquire(core_player, 0d);
                 world.dropItem(scatter_point, stack, (item -> {
-                    item.setVelocity(new Vector(Math.random()*2-1, 0.5d, Math.random()*2-1).multiply(0.25d));
+                    item.setVelocity(new Vector(Math.random() * 2 - 1, 0.5d, Math.random() * 2 - 1).multiply(0.25d));
                 }));
             }
         }
@@ -253,7 +240,7 @@ public class CoreNodeCollectible extends AbstractNode {
          * @return the collection progress.
          */
         public double getProgress() {
-            return Math.max(0d, Math.min(1d, (0d+this.have_collected) / CoreNodeCollectible.this.collect_volume));
+            return Math.max(0d, Math.min(1d, (0d + this.have_collected) / CoreNodeCollectible.this.collect_volume));
         }
 
         /**

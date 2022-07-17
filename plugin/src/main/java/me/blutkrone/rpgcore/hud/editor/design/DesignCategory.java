@@ -26,11 +26,6 @@ public class DesignCategory {
     // a distinct unique ID of the category
     private UUID uuid = UUID.randomUUID();
 
-    @Override
-    public String toString() {
-        return String.format("DesignCategory{design=%s;elements=%s;name=%s}", this.container, this.elements.size(), this.name);
-    }
-
     /**
      * A category to group up multiple elements of one class.
      */
@@ -59,6 +54,11 @@ public class DesignCategory {
         }
         this.icon = builder.build();
         this.name = annotation.info()[0];
+    }
+
+    @Override
+    public String toString() {
+        return String.format("DesignCategory{design=%s;elements=%s;name=%s}", this.container, this.elements.size(), this.name);
     }
 
     /**

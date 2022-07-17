@@ -1,10 +1,9 @@
 package me.blutkrone.rpgcore.effect.impl;
 
 import me.blutkrone.rpgcore.effect.CoreEffect;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorParticleBrush;
+import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticleBrush;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,7 +35,7 @@ public class CoreParticleBrush implements CoreEffect.IEffectPart {
     // block data, in case it is available
     private BlockData block_data;
     // color used in case its an colored particle
-    private int color;
+    private Color color;
 
     public CoreParticleBrush(EditorParticleBrush editor) {
         this.weighting = editor.weighting;
@@ -45,7 +44,7 @@ public class CoreParticleBrush implements CoreEffect.IEffectPart {
         this.amount = (int) editor.amount;
         this.material = editor.material;
         this.model = (int) editor.model;
-        this.color = ChatColor.of("#" + editor.color).getColor().getRGB();
+        this.color = Color.fromRGB(Integer.parseInt(editor.color, 16));
         try {
             this.block_data = this.material.createBlockData();
         } catch (Exception e) {
@@ -56,26 +55,22 @@ public class CoreParticleBrush implements CoreEffect.IEffectPart {
     /**
      * Show this particle at the given location.
      *
-     * @param where location to emit particle at.
+     * @param where   location to emit particle at.
      * @param viewers who to present the particle to
      */
     public void show(Location where, Collection<Player> viewers) {
         for (Player viewer : viewers) {
             if (particle == Particle.REDSTONE) {
                 // Property: Color
-                Color color = Color.fromRGB(this.color);
                 viewer.spawnParticle(Particle.REDSTONE, where, amount, new Particle.DustOptions(color, 1));
             } else if (particle == Particle.SPELL_MOB) {
                 // Property: Color
-                Color color = Color.fromRGB(this.color);
                 viewer.spawnParticle(Particle.SPELL_MOB, where, 0, (double) color.getRed() / 255.0D, (double) color.getGreen() / 255.0D, (double) color.getBlue() / 255.0D, 1.0D);
             } else if (particle == Particle.SPELL_MOB_AMBIENT) {
                 // Property: Color
-                Color color = Color.fromRGB(this.color);
                 viewer.spawnParticle(Particle.SPELL_MOB_AMBIENT, where, 0, (double) color.getRed() / 255.0D, (double) color.getGreen() / 255.0D, (double) color.getBlue() / 255.0D, 1.0D);
             } else if (particle == Particle.NOTE) {
                 // Property: Color
-                Color color = Color.fromRGB(this.color);
                 viewer.spawnParticle(Particle.NOTE, where, 0, (double) color.getBlue() / 24.0D, 0.0D, 0.0D, 1.0D);
             } else if (particle == Particle.ITEM_CRACK) {
                 // Property: Direction, Material

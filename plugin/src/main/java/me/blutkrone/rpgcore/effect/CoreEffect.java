@@ -4,7 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.effect.impl.CoreParticleBrush;
 import me.blutkrone.rpgcore.effect.impl.CoreWait;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.root.EditorEffect;
+import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -42,8 +42,8 @@ public class CoreEffect {
     /**
      * Show an effect to the given entities.
      *
-     * @param where anchor within absolute space
-     * @param scale scale ratio of the effect
+     * @param where   anchor within absolute space
+     * @param scale   scale ratio of the effect
      * @param viewing who is viewing the effect
      * @return linked effect task
      */
@@ -95,9 +95,9 @@ public class CoreEffect {
         /**
          * Process a part of an effect.
          *
-         * @param where anchor within absolute space
-         * @param offset local displacement of effect
-         * @param scale effect scaling ratio
+         * @param where   anchor within absolute space
+         * @param offset  local displacement of effect
+         * @param scale   effect scaling ratio
          * @param viewing who is viewing the effect
          */
         void process(Location where, Vector offset, WeightedRandomMap<CoreParticleBrush> brush, double scale, List<Player> viewing);

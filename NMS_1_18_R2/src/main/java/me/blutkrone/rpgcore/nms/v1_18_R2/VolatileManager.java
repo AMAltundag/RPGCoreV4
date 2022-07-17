@@ -46,8 +46,6 @@ import java.util.UUID;
 
 public final class VolatileManager extends AbstractVolatileManager implements Listener {
 
-    private int entity_id = 300_000_000;
-
     private static final Gson gson = new GsonBuilder().
             registerTypeAdapter(BaseComponent.class, new ComponentSerializer()).
             registerTypeAdapter(TextComponent.class, new TextComponentSerializer()).
@@ -60,6 +58,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
             registerTypeAdapter(Item.class, new ItemSerializer()).
             registerTypeAdapter(ItemTag.class, new ItemTag.Serializer()).
             create();
+    private int entity_id = 300_000_000;
 
     /**
      * A manager dedicated to managing volatile code behaviour.
@@ -204,7 +203,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         item.setItemMeta(craftStack.getItemMeta());
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW)
     void onChestMenu(InventoryClickEvent event) {
         Inventory inventory = event.getView().getTopInventory();
         if (inventory instanceof VolatileChestMenu) {
@@ -217,7 +216,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW)
     void onChestMenu(InventoryOpenEvent event) {
         Inventory inventory = event.getView().getTopInventory();
         if (inventory instanceof VolatileChestMenu) {
@@ -225,7 +224,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW)
     void onChestMenu(InventoryCloseEvent event) {
         Inventory inventory = event.getView().getTopInventory();
         if (inventory instanceof VolatileChestMenu) {
@@ -236,7 +235,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW)
     void onChestMenu(InventoryDragEvent event) {
         Inventory inventory = event.getView().getTopInventory();
         if (inventory instanceof VolatileChestMenu) {
@@ -246,7 +245,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW)
     void onChestMenu(InventoryCreativeEvent event) {
         Inventory inventory = event.getView().getTopInventory();
         if (inventory instanceof VolatileChestMenu) {

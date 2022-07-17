@@ -35,7 +35,7 @@ public class CastSkillActivity implements ISkillActivity {
         this.stability = binding.stability.evalAsDouble(context);
         int cast_time = binding.cast_time.evalAsInt(context);
         double cast_faster = binding.cast_faster.evalAsDouble(context);
-        double action_speed = 1d+context.evaluateAttribute("ACTION_SPEED");
+        double action_speed = 1d + context.evaluateAttribute("ACTION_SPEED");
         this.time_want = Math.max(1d, cast_time / Math.max(0.1d, (1d + cast_faster) * action_speed));
 
         this.time_have = 0;

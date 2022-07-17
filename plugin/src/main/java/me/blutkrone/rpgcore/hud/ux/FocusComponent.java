@@ -74,9 +74,9 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
             workspace.bossbar().append(rpm.texture("skillbar_focused_" + prepared.skill_activity_icon));
 
             workspace.bossbar().shiftCentered(render_point + focus_skill_offset + 12 + 1, Utility.measureWidthExact(progress + "%"));
-            workspace.bossbar().shadow(progress + "%", "focus_cast_progress");
+            workspace.bossbar().shadow(progress + "%", "hud_focus_cast_progress");
             workspace.bossbar().shiftCentered(render_point + focus_skill_offset + 12, Utility.measureWidthExact(progress + "%"));
-            workspace.bossbar().append(progress + "%", "focus_cast_progress");
+            workspace.bossbar().append(progress + "%", "hud_focus_cast_progress");
         }
         // present the most recently updated status effects
         for (int i = 0; i < prepared.status_icons.size() && i < focus_status_viewport; i++) {
@@ -92,9 +92,9 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
         workspace.bossbar().append(rpm.texture("static_focus_front"));
         // draw the name atop the focus bar
         workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2 + 1, Utility.measureWidthExact(prepared.name));
-        workspace.bossbar().shadow(prepared.name, "focus_target_name");
+        workspace.bossbar().shadow(prepared.name, "hud_focus_target_name");
         workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2, Utility.measureWidthExact(prepared.name));
-        workspace.bossbar().append(prepared.name, "focus_target_name");
+        workspace.bossbar().append(prepared.name, "hud_focus_target_name");
     }
 
     /*

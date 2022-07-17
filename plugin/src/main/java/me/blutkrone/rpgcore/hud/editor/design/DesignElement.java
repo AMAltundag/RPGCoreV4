@@ -20,10 +20,10 @@ import java.util.UUID;
  * A singular element
  */
 public class DesignElement {
-    // which design is containing this element
-    private Design container;
     // which field is bound to this element
     private final Field field;
+    // which design is containing this element
+    private Design container;
     // rules on when to hide this element
     private boolean hide_when_invert = false;
     private String hide_when_field = "";
@@ -33,16 +33,11 @@ public class DesignElement {
     // a unique identifier for this element
     private UUID uuid = UUID.randomUUID();
 
-    @Override
-    public String toString() {
-        return String.format("DesignElement{field=%s;category=%s}", this.field.getName(), this.container);
-    }
-
     /**
      * An element of the container which can be edited.
      *
      * @param container which design contains this element.
-     * @param field the field to manipulate
+     * @param field     the field to manipulate
      * @throws IllegalArgumentException should the field not be editable.
      */
     public DesignElement(Design container, Field field) throws IllegalArgumentException {
@@ -72,6 +67,11 @@ public class DesignElement {
         } else {
             throw new UnsupportedOperationException("Field " + field.getName() + " in " + container.getClazz().getName() + " has no editor annotation!");
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("DesignElement{field=%s;category=%s}", this.field.getName(), this.container);
     }
 
     /**
@@ -106,8 +106,8 @@ public class DesignElement {
     /**
      * Open an editor bound to the given bundle.
      *
-     * @param bundle the object we are editing.
-     * @param viewer who will receive the editor.
+     * @param bundle   the object we are editing.
+     * @param viewer   who will receive the editor.
      * @param previous the preceding editor we came from.
      */
     public void edit(IEditorBundle bundle, Player viewer, IChestMenu previous) {
@@ -145,7 +145,7 @@ public class DesignElement {
      * A user-readable value of the given bundle.
      *
      * @param bundle the element we read from
-     * @return string-ified 
+     * @return string-ified
      */
     public String getDesignInfo(IEditorBundle bundle) {
         try {

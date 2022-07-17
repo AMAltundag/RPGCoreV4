@@ -2,14 +2,16 @@ package me.blutkrone.rpgcore.item;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
-import me.blutkrone.rpgcore.effect.EffectManager;
-import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.EditorItem;
-import me.blutkrone.rpgcore.hud.editor.root.EditorModifier;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorRefineRecipe;
+import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
 import me.blutkrone.rpgcore.item.data.*;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
+import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
 import me.blutkrone.rpgcore.item.styling.DefaultItemDescriptor;
 import me.blutkrone.rpgcore.item.styling.ItemStylingRule;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -33,7 +35,8 @@ import org.bukkit.persistence.PersistentDataType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Manages all itemization available across the core.
@@ -44,19 +47,24 @@ import java.util.*;
  */
 public class ItemManager implements Listener {
 
+    // indexes used by the item manager
     private EditorIndex<CoreItem, EditorItem> item_index;
     private EditorIndex<CoreModifier, EditorModifier> modifier_index;
+    private EditorIndex<CoreRefinerRecipe, EditorRefineRecipe> refine_index;
+    private EditorIndex<CoreCraftingRecipe, EditorCraftingRecipe> craft_index;
+
+    // factories used for tracking item data
     private Map<Class, Transformer<AbstractItemData>> data_factory = new HashMap<>();
 
+    // rules which process item design
     private Map<String, ItemStylingRule> styling_rules = new HashMap<>();
     private IItemDescriber describer;
-
-    private List<String> jewel_shatter_effect = new ArrayList<>();
-    private List<String> jewel_embed_effect = new ArrayList<>();
 
     public ItemManager() {
         this.item_index = new EditorIndex<>("item", EditorItem.class, EditorItem::new);
         this.modifier_index = new EditorIndex<>("modifier", EditorModifier.class, EditorModifier::new);
+        this.refine_index = new EditorIndex<>("refine", EditorRefineRecipe.class, EditorRefineRecipe::new);
+        this.craft_index = new EditorIndex<>("craft", EditorCraftingRecipe.class, EditorCraftingRecipe::new);
 
         this.data_factory.put(ItemDataGeneric.class, ItemDataGeneric::new);
         this.data_factory.put(ItemDataJewel.class, ItemDataJewel::new);
@@ -68,8 +76,6 @@ public class ItemManager implements Listener {
             configs.forEachUnder("style", (path, root) -> {
                 this.styling_rules.put(path.toLowerCase(), new ItemStylingRule(root.getSection(path)));
             });
-            this.jewel_shatter_effect = configs.getStringList("jewel-shatter-effect");
-            this.jewel_embed_effect = configs.getStringList("jewel-embed-effect");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -77,34 +83,6 @@ public class ItemManager implements Listener {
         this.describer = new DefaultItemDescriptor();
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
-    }
-
-    /**
-     * An effect meant to play when a player shattered a
-     * jewel on one of their items.
-     *
-     * @param player who has shattered the jewel.
-     */
-    public void playShatterEffect(Player player) {
-        EffectManager manager = RPGCore.inst().getEffectManager();
-        for (String effect : jewel_shatter_effect) {
-            CoreEffect core_effect = manager.getIndex().get(effect);
-            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
-        }
-    }
-
-    /**
-     * An effect meant to play once a player successfully
-     * embedded a jewel upon an item.
-     *
-     * @param player who has embedded the jewel.
-     */
-    public void playEmbedEffect(Player player) {
-        EffectManager manager = RPGCore.inst().getEffectManager();
-        for (String effect : jewel_embed_effect) {
-            CoreEffect core_effect = manager.getIndex().get(effect);
-            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
-        }
     }
 
     /**
@@ -156,9 +134,27 @@ public class ItemManager implements Listener {
     }
 
     /**
+     * The index of all refinement rules known to RPGCore.
+     *
+     * @return the index of refinement rules.
+     */
+    public EditorIndex<CoreRefinerRecipe, EditorRefineRecipe> getRefineIndex() {
+        return refine_index;
+    }
+
+    /**
+     * The index of all crafting rules known to RPGCore.
+     *
+     * @return the index of crafting rules.
+     */
+    public EditorIndex<CoreCraftingRecipe, EditorCraftingRecipe> getCraftIndex() {
+        return craft_index;
+    }
+
+    /**
      * Core data holds information only required by RPGCore.
      *
-     * @param item the item to read the data from
+     * @param item  the item to read the data from
      * @param clazz which data class to operate with
      * @return the item data that was retrieved
      */
@@ -231,6 +227,30 @@ public class ItemManager implements Listener {
      * @param item the item we are to describe.
      */
     public void describe(ItemStack item) {
+        if (item == null) {
+            return;
+        }
+        if (item.getType().isAir()) {
+            return;
+        }
+        if (!item.hasItemMeta()) {
+            return;
+        }
+
+        try {
+            this.describer.describe(item);
+        } catch (Exception e) {
+            Bukkit.getLogger().severe("Something went wrong while describing an item ...");
+        }
+    }
+
+    /**
+     * Generate an appropriate description for the item.
+     *
+     * @param item         the item we are to describe.
+     * @param unidentified scramble or hide information.
+     */
+    public void describe(ItemStack item, boolean unidentified) {
         if (item == null) {
             return;
         }

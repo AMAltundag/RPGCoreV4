@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.node.impl;
 
-import me.blutkrone.rpgcore.hud.editor.root.EditorNodeSpawner;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import org.bukkit.Bukkit;
@@ -12,7 +12,7 @@ import java.util.List;
 public class CoreNodeSpawner extends AbstractNode {
 
     public CoreNodeSpawner(String id, EditorNodeSpawner editor) {
-        super(id, editor.permission, (int) editor.radius);
+        super(id, (int) editor.radius);
 
         Bukkit.getLogger().severe("not implemented (spawner node)");
     }

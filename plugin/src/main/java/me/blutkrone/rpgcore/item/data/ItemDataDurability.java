@@ -20,7 +20,7 @@ public class ItemDataDurability extends AbstractItemData {
     }
 
     public ItemDataDurability(CoreItem item, double quality) throws IOException {
-        super(item, quality);
+        super(item, quality, 1);
 
         this.remaining_durability = Math.max(0, item.getMaximumDurability());
     }
@@ -28,6 +28,15 @@ public class ItemDataDurability extends AbstractItemData {
     @Override
     public void save(ObjectOutputStream buffer) throws IOException {
         buffer.writeInt(this.remaining_durability);
+    }
+
+    /**
+     * The amount of durability remaining on this item.
+     *
+     * @return current amount of durability.
+     */
+    public int getDurability() {
+        return this.remaining_durability;
     }
 
     /**
@@ -40,15 +49,6 @@ public class ItemDataDurability extends AbstractItemData {
         if (this.hasDurability() && durability >= 0) {
             this.remaining_durability = durability;
         }
-    }
-
-    /**
-     * The amount of durability remaining on this item.
-     *
-     * @return current amount of durability.
-     */
-    public int getDurability() {
-        return this.remaining_durability;
     }
 
     /**
@@ -68,7 +68,7 @@ public class ItemDataDurability extends AbstractItemData {
     public double getAsPercentage() {
         double maximum = this.getMaximumDurability();
         double current = this.getDurability();
-        return maximum > 0 ? (current/maximum) : 1d;
+        return maximum > 0 ? (current / maximum) : 1d;
     }
 
     /**

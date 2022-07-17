@@ -25,6 +25,7 @@ import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.job.JobManager;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.level.LevelManager;
+import me.blutkrone.rpgcore.mail.MailManager;
 import me.blutkrone.rpgcore.minimap.MinimapManager;
 import me.blutkrone.rpgcore.mob.MobManager;
 import me.blutkrone.rpgcore.mount.MountManager;
@@ -35,13 +36,16 @@ import me.blutkrone.rpgcore.party.PartyManager;
 import me.blutkrone.rpgcore.passive.PassiveManager;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.skill.SkillManager;
-import org.bukkit.Bukkit;
+import me.blutkrone.rpgcore.skin.SkinPool;
+import me.blutkrone.rpgcore.util.io.FileUtil;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +60,8 @@ public final class RPGCore extends JavaPlugin {
     private Gson gson;
     // delegate handlers for commands
     private Map<String, AbstractCommand> commands = new HashMap<>();
+    // skin handling
+    private SkinPool skin;
 
     // Managers providing low-level logic and functionality
     private AbstractVolatileManager volatile_manager;
@@ -73,12 +79,13 @@ public final class RPGCore extends JavaPlugin {
     private EffectManager effect_manager;
     private NodeManager node_manager;
     private NPCManager npc_manager;
-    // Managers providing high-level functionality for the server
+    private MailManager mail_manager;
     private SkillManager skill_manager;
+    private IPartyManager party_manager;
+    // Managers providing high-level functionality for the server
     private MobManager monster_manager;
     private MountManager mount_manager;
     private IGuildManager guild_manager;
-    private IPartyManager party_manager;
     private ISocialManager social_manager;
     private LevelManager level_manager;
     private DungeonManager dungeon_manager;
@@ -90,6 +97,45 @@ public final class RPGCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // copy our demo world if we got one
+        File demo_template = FileUtil.directory("demo_world");
+        File demo_current = new File(Bukkit.getWorldContainer().getAbsolutePath() + File.separator + "rpgcore_demo");
+        if (demo_template.exists() && !demo_current.exists()) {
+            org.bukkit.util.FileUtil.copy(demo_template, demo_current);
+        }
+        // load demo world if it is registered
+        if (demo_current.exists()) {
+            World demo = WorldCreator.name("rpgcore_demo")
+                    .type(WorldType.FLAT)
+                    .generateStructures(false)
+                    .createWorld();
+
+            if (demo != null) {
+                demo.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                demo.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                demo.setGameRule(GameRule.DO_ENTITY_DROPS, false);
+                demo.setGameRule(GameRule.DO_FIRE_TICK, false);
+                demo.setGameRule(GameRule.DO_MOB_LOOT, false);
+                demo.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                demo.setGameRule(GameRule.DO_TILE_DROPS, false);
+                demo.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                demo.setGameRule(GameRule.KEEP_INVENTORY, true);
+                demo.setGameRule(GameRule.MOB_GRIEFING, false);
+                demo.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
+                demo.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+                demo.setGameRule(GameRule.DISABLE_RAIDS, true);
+                demo.setGameRule(GameRule.DO_INSOMNIA, false);
+                demo.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, false);
+                demo.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
+                demo.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
+
+                demo.setKeepSpawnInMemory(true);
+                demo.setSpawnLocation(0, 130, 0);
+
+                Bukkit.getLogger().info("RPGCore 'demo' world was created!");
+            }
+        }
+
         // provide the gson access for other managers to use
         this.gson = new GsonBuilder()
                 .serializeNulls()
@@ -97,6 +143,8 @@ public final class RPGCore extends JavaPlugin {
                 .disableHtmlEscaping()
                 .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
                 .create();
+        // track the skin pool we work with
+        this.skin = new SkinPool();
 
         // volatile code implementation handling non-api code
         this.volatile_manager = AbstractVolatileManager.create(this);
@@ -104,24 +152,30 @@ public final class RPGCore extends JavaPlugin {
             throw new InitializationException("Could not create 'Volatile Manager' for this version!");
 
         // modules which make up the core
-        this.language_manager = new LanguageManager();
-        this.attribute_manager = new AttributeManager();
-        this.damage_manager = new DamageManager();
-        this.entity_manager = new EntityManager();
-        this.hologram_manager = new HologramManager();
         this.data_manager = new DataManager();
+        this.entity_manager = new EntityManager();
+        this.language_manager = new LanguageManager();
+        this.damage_manager = new DamageManager();
         this.resourcepack_manager = new ResourcePackManager();
-        this.hud_manager = new HUDManager();
+
+        this.attribute_manager = new AttributeManager();
+        this.job_manager = new JobManager();
         this.minimap_manager = new MinimapManager();
         this.item_manager = new ItemManager();
         this.skill_manager = new SkillManager();
         this.party_manager = new PartyManager();
-        this.job_manager = new JobManager();
         this.effect_manager = new EffectManager();
         this.node_manager = new NodeManager();
         this.npc_manager = new NPCManager();
 
+        this.mail_manager = new MailManager();
+        this.hud_manager = new HUDManager();
+        this.hologram_manager = new HologramManager();
+
         // initialize relevant commands
+        this.commands.put("storage", new UnlockStorageCommand());
+        this.commands.put("holoadd", new HologramAddCommand());
+        this.commands.put("holodel", new HologramDeleteCommand());
         this.commands.put("edit", new EditorCommand());
         this.commands.put("box", new AdminBoxCommand());
         this.commands.put("skill", new SkillCommand());
@@ -199,6 +253,15 @@ public final class RPGCore extends JavaPlugin {
      */
     public Map<String, AbstractCommand> getCommands() {
         return commands;
+    }
+
+    /**
+     * Get a utility meant to handle skin processing.
+     *
+     * @return pool of all skins.
+     */
+    public SkinPool getSkinPool() {
+        return skin;
     }
 
     @Override

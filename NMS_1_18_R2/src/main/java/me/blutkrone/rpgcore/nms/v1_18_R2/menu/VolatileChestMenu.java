@@ -16,9 +16,11 @@ import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.*;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -52,18 +54,39 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     private Map<String, Object> data = new HashMap<>();
     // ticker, only while menu is being viewed
     private Runnable ticking_handler;
+    // used to not send packets (interaction detection fails.)
+    private BaseComponent[] last_title = null;
 
     public VolatileChestMenu(JavaPlugin plugin, int size, Player player) {
         super(null, size, "opened without a title!");
         this.player = player;
         this.plugin = plugin;
-        this.click_event_handler = (event -> {});
-        this.drag_event_handler = (event -> event.setCancelled(true));
+        this.click_event_handler = (event -> {
+        });
+        this.drag_event_handler = (event -> {
+            // if a 1-slot drag, emulate as a click
+            if (event.getInventorySlots().size() == 1) {
+                InventoryView view = event.getView();
+                InventoryType.SlotType type = InventoryType.SlotType.CONTAINER;
+                int slot = event.getRawSlots().iterator().next();
+                ClickType click = event.getType() == DragType.EVEN ? ClickType.RIGHT : ClickType.LEFT;
+                InventoryClickEvent fake = new InventoryClickEvent(view, type, slot, click, InventoryAction.UNKNOWN);
+                this.on(fake);
+                if (fake.isCancelled()) {
+                    event.setCancelled(true);
+                }
+            } else {
+                event.setCancelled(true);
+            }
+        });
         this.open_event_handler = (event -> rebuild_handler.run());
-        this.close_event_handler = (event -> {});
+        this.close_event_handler = (event -> {
+        });
         this.creative_event_handler = (event -> event.setCancelled(true));
-        this.ticking_handler = (() -> {});
-        this.rebuild_handler = (() -> {});
+        this.ticking_handler = (() -> {
+        });
+        this.rebuild_handler = (() -> {
+        });
     }
 
     public void tick() {
@@ -112,6 +135,14 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
 
     @Override
     public void setTitle(BaseComponent[] title) {
+        // prevent update with same title, the client will
+        // not be able to detect any clicks when we do not
+        // provide any gaps.
+        if (Arrays.equals(this.last_title, title)) {
+            return;
+        }
+        this.last_title = title;
+
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.player == null)
                 return;

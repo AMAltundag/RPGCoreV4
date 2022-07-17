@@ -55,7 +55,7 @@ public class ItemDataJewel extends AbstractItemData {
     }
 
     public ItemDataJewel(CoreItem item, double quality) throws IOException {
-        super(item, quality);
+        super(item, quality, 1);
 
         this.jewel_attributes = new HashMap<>();
         this.jewel_items = new HashMap<>();
@@ -64,7 +64,7 @@ public class ItemDataJewel extends AbstractItemData {
             // one jewel socket is always available
             this.unlocked += 1;
             // roll a random number of jewel sockets
-            double chance = 0.2d + (1d - (1d/(1d+Math.sqrt(1d+quality))));
+            double chance = 0.2d + (1d - (1d / (1d + Math.sqrt(1d + quality))));
             for (int i = 1; i < item.getJewelMaximum(); i++) {
                 if (Math.random() <= chance) {
                     this.unlocked += 1;
@@ -102,9 +102,9 @@ public class ItemDataJewel extends AbstractItemData {
         for (ItemStack jewel : getItems().values()) {
             ItemDataModifier modifiers = manager.getItemData(jewel, ItemDataModifier.class);
             for (CoreModifier modifier : modifiers.getModifiers()) {
-                if (modifier.getType() == ModifierType.ITEM) {
+                if (modifier.getType() == ModifierType.ENTITY) {
                     modifier.getAttributeEffects().forEach((attribute, factor) -> {
-                        snapshot.merge(attribute, factor, (a,b) -> a+b);
+                        snapshot.merge(attribute, factor, (a, b) -> a + b);
                     });
                 }
             }
@@ -151,7 +151,7 @@ public class ItemDataJewel extends AbstractItemData {
             // one jewel socket is always available
             this.unlocked += 1;
             // roll a random number of jewel sockets
-            double chance = 0.2d + (1d - (1d/(1d+Math.sqrt(1d+quality))));
+            double chance = 0.2d + (1d - (1d / (1d + Math.sqrt(1d + quality))));
             for (int i = 1; i < this.item.getJewelMaximum(); i++) {
                 if (Math.random() <= chance) {
                     this.unlocked += 1;

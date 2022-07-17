@@ -5,8 +5,28 @@ import me.blutkrone.rpgcore.data.DataBundle;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface IDataAdapter {
+
+    /**
+     * Load, process and save the customized data, despite using a consumer
+     * we are instantly processed.
+     *
+     * @param uuid
+     * @param keyword
+     * @param process
+     */
+    void operateCustom(UUID uuid, String keyword, Consumer<Map<String, DataBundle>> process);
+
+    /**
+     * Load customized data
+     *
+     * @param uuid
+     * @param keyword
+     * @return
+     */
+    Map<String, DataBundle> loadCustom(UUID uuid, String keyword) throws IOException;
 
     /**
      * Load the roster information.
@@ -24,6 +44,15 @@ public interface IDataAdapter {
      * @return
      */
     Map<String, DataBundle> loadCharacterData(UUID uuid, int character) throws IOException;
+
+    /**
+     * Save customized data
+     *
+     * @param uuid
+     * @param keyword
+     * @param data
+     */
+    void saveCustom(UUID uuid, String keyword, Map<String, DataBundle> data) throws IOException;
 
     /**
      * Save roster specific information

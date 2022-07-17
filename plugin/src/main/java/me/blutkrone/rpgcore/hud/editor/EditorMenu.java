@@ -7,6 +7,7 @@ import me.blutkrone.rpgcore.hud.editor.design.Design;
 import me.blutkrone.rpgcore.hud.editor.design.DesignCategory;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
 import me.blutkrone.rpgcore.hud.editor.design.designs.DesignList;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
@@ -79,7 +80,7 @@ public class EditorMenu {
      * editor is allowed unrestricted access on the index.
      *
      * @param _player who will receive the editor
-     * @param _index the index we wish to edit.
+     * @param _index  the index we wish to edit.
      */
     public void edit(Player _player, EditorIndex _index) {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
@@ -129,16 +130,16 @@ public class EditorMenu {
                         IEditorRoot root = index.edit(id);
                         if (root != null) {
                             // write the menu-specific string down
-                            msb.shiftToExact(26).append(id, "editor_viewport_" + (i+1));
+                            msb.shiftToExact(26).append(id, "editor_viewport_" + (i + 1));
                             // left-most slot will get the full itemized variant
                             ItemStack preview = root.getPreview();
                             IChestMenu.setBrand(preview, RPGCore.inst(), "select_root", id);
-                            menu.setItemAt((i+2)*9, preview);
+                            menu.setItemAt((i + 2) * 9, preview);
                             // slots 2-8 are invisible for the sake of text
                             for (int j = 1; j < 8; j++) {
                                 ItemBuilder invisible = ItemBuilder.of(preview.clone());
                                 invisible.inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
-                                menu.setItemAt(((i+2)*9)+j, invisible.build());
+                                menu.setItemAt(((i + 2) * 9) + j, invisible.build());
                             }
                         }
                     }
@@ -157,7 +158,7 @@ public class EditorMenu {
                         Map.Entry<Integer, Object> entry = entries.get(i);
                         // write a readable version of the value
                         String readable = ((FocusQueue.ListFocus) focused).getList().getConstraint().getPreview(entry.getValue());
-                        msb.shiftToExact(26).append(readable, "editor_viewport_" + (i+1));
+                        msb.shiftToExact(26).append(readable, "editor_viewport_" + (i + 1));
                         // generate an itemization that can be interacted with
                         ItemStack icon = RPGCore.inst().getLanguageManager().getAsItem("invisible")
                                 .name(readable).build();
@@ -165,12 +166,12 @@ public class EditorMenu {
                         IChestMenu.setBrand(icon, RPGCore.inst(), "list_index", String.valueOf(entry.getKey()));
                         // offer the clickable elements on the relevant row
                         for (int j = 0; j < 7; j++) {
-                            menu.setItemAt((i+2)*9+j, icon);
+                            menu.setItemAt((i + 2) * 9 + j, icon);
                         }
                         // offer a button to delete the element at the index
                         ItemStack icon_delete = this.icon_list_remove.clone();
                         IChestMenu.setBrand(icon_delete, RPGCore.inst(), "delete_index", String.valueOf(entry.getKey()));
-                        menu.setItemAt((i+2)*9+7, icon_delete);
+                        menu.setItemAt((i + 2) * 9 + 7, icon_delete);
                     }
                     // offer instructions on the constraint of the list
                     IEditorConstraint constraint = ((FocusQueue.ListFocus) focused).getList().getConstraint();
@@ -191,17 +192,17 @@ public class EditorMenu {
                             // text about the relevant category
                             String left = viewport_element.getDesignName();
                             String right = viewport_element.getDesignInfo(focused.bundle);
-                            msb.shiftToExact(135 - Utility.measureWidthExact(right)).append(right, "editor_viewport_" + (i+1));
-                            msb.shiftToExact(27).append(left, "editor_viewport_" + (i+1)); // todo trim left text to not overlap
+                            msb.shiftToExact(135 - Utility.measureWidthExact(right)).append(right, "editor_viewport_" + (i + 1));
+                            msb.shiftToExact(27).append(left, "editor_viewport_" + (i + 1)); // todo trim left text to not overlap
                             // left-most slot will get the full itemized category
                             ItemStack preview = viewport_element.getDesignIcon(focused.bundle).clone();
                             IChestMenu.setBrand(preview, RPGCore.inst(), "select_element", viewport_element.getUUID().toString());
-                            menu.setItemAt((i+2)*9, preview);
+                            menu.setItemAt((i + 2) * 9, preview);
                             // slots 2-8 are invisible but retain their text
                             for (int j = 1; j < 8; j++) {
                                 ItemBuilder invisible = ItemBuilder.of(preview.clone());
                                 invisible.inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
-                                menu.setItemAt(((i+2)*9)+j, invisible.build());
+                                menu.setItemAt(((i + 2) * 9) + j, invisible.build());
                             }
                         }
                     }
@@ -223,7 +224,7 @@ public class EditorMenu {
                         DesignCategory viewport_category = viewport.get(i);
                         if (viewport_category != null) {
                             // text about the relevant category
-                            msb.shiftToExact(26).append(viewport_category.getName(), "editor_viewport_" + (i+1));
+                            msb.shiftToExact(26).append(viewport_category.getName(), "editor_viewport_" + (i + 1));
                             // left-most slot will get the full itemized category
                             ItemStack preview = viewport_category.getIcon().clone();
                             IChestMenu.setBrand(preview, RPGCore.inst(), "select_category", viewport_category.getUUID().toString());
@@ -271,24 +272,24 @@ public class EditorMenu {
                 this.addNewElement(menu, ((FocusQueue.ListFocus) focus.header()));
             } else if (this.scroll_up.isSimilar(event.getCurrentItem())) {
                 // update offset of viewport
-                focus.setOffset(Math.max(focus.getOffset()-1, 0));
-                menu.stalled(menu::rebuild);
+                focus.setOffset(Math.max(focus.getOffset() - 1, 0));
+                menu.rebuild();
             } else if (this.scroll_down.isSimilar(event.getCurrentItem())) {
                 // update offset of viewport
                 if (focus.header() == null) {
                     CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(menu.getViewer());
                     List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
                     filtered_history.removeIf(history -> !index.has(history));
-                    focus.setOffset(Math.min(focus.getOffset()+1, filtered_history.size()));
+                    focus.setOffset(Math.min(focus.getOffset() + 1, filtered_history.size()));
                 } else if (focus.header() instanceof FocusQueue.ScopedFocus) {
-                    focus.setOffset(Math.min(focus.getOffset()+1, ((FocusQueue.ScopedFocus) focus.header()).size()));
+                    focus.setOffset(Math.min(focus.getOffset() + 1, ((FocusQueue.ScopedFocus) focus.header()).size()));
                 } else if (focus.header() instanceof FocusQueue.ListFocus) {
-                    focus.setOffset(Math.min(focus.getOffset()+1, ((FocusQueue.ListFocus) focus.header()).size()));
+                    focus.setOffset(Math.min(focus.getOffset() + 1, ((FocusQueue.ListFocus) focus.header()).size()));
                 } else {
                     Design design = this.designs.computeIfAbsent(focus.header().bundle.getClass(), Design::new);
-                    focus.setOffset(Math.min(focus.getOffset()+1, design.getCategories().size()));
+                    focus.setOffset(Math.min(focus.getOffset() + 1, design.getCategories().size()));
                 }
-                menu.stalled(menu::rebuild);
+                menu.rebuild();
             } else if (this.icon_open.isSimilar(event.getCurrentItem())) {
                 // allow to select where we will edit
                 this.createOrLoad(menu);
@@ -592,7 +593,7 @@ public class EditorMenu {
                     if (current.length() < 1) {
                         msb.append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
                         hints.add("Input too short!");
-                    } else if (index.getKeys().contains(current)) {
+                    } else if (index.has(current)) {
                         msb.append(rpm.texture("menu_input_fine"), ChatColor.WHITE);
                         hints.add("Confirm to edit!");
                     } else {
@@ -629,7 +630,7 @@ public class EditorMenu {
                 if (current.isBlank()) {
                     // non-valid input (empty)
                     input.stalled(editor::open);
-                } else if (index.getKeys().contains(current)) {
+                } else if (index.has(current)) {
                     // load an existing element
                     IEditorRoot element = index.edit(current);
                     focus.focus(current, element);
@@ -718,7 +719,7 @@ public class EditorMenu {
                 } else {
                     // hint at having a valid input (red is bad)
                     List<String> hints = new ArrayList<>();
-                    if (current.length() < 1 || index.getKeys().contains(current)) {
+                    if (current.length() < 1 || index.has(current)) {
                         msb.append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
                         hints.add("Cannot use this ID!");
                     } else {
@@ -745,7 +746,7 @@ public class EditorMenu {
                 FocusQueue focus = editor.getData("focus");
                 EditorIndex index = editor.getData("index");
 
-                if (!current.isBlank() && !index.getKeys().contains(current)) {
+                if (!current.isBlank() && !index.has(current)) {
                     // create a clone of what we got open
                     IEditorRoot header = (IEditorRoot) focus.header().bundle;
                     File before = header.getFile();

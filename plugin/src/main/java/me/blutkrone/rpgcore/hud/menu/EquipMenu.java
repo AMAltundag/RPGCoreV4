@@ -292,6 +292,34 @@ public class EquipMenu implements Listener {
     }
 
     /*
+     * A convenient wrapper to easily place items into
+     * whatever vanilla slot was given.
+     */
+    enum BukkitSlot {
+        MAIN_HAND((p, i) -> p.getInventory().setItem(0, i)),
+        OFF_HAND((p, i) -> p.getInventory().setItemInOffHand(i)),
+        HELMET((p, i) -> p.getInventory().setHelmet(i)),
+        CHEST((p, i) -> p.getInventory().setChestplate(i)),
+        PANTS((p, i) -> p.getInventory().setLeggings(i)),
+        BOOTS((p, i) -> p.getInventory().setBoots(i)),
+        NONE((p, i) -> {
+        });
+
+        // functional interface to place an item on a player
+        final BiConsumer<Player, ItemStack> setSlotMethod;
+
+        /*
+         * A convenient wrapper to easily place items into
+         * whatever vanilla slot was given.
+         *
+         * @param setSlotMethod method to place item on a player
+         */
+        BukkitSlot(BiConsumer<Player, ItemStack> setSlotMethod) {
+            this.setSlotMethod = setSlotMethod;
+        }
+    }
+
+    /*
      * A slot where-in a player can equip an item.
      */
     class Slot {
@@ -344,33 +372,6 @@ public class EquipMenu implements Listener {
             }
             // if nothing fits, we cannot be equipped
             return false;
-        }
-    }
-
-    /*
-     * A convenient wrapper to easily place items into
-     * whatever vanilla slot was given.
-     */
-    enum BukkitSlot {
-        MAIN_HAND((p,i) -> p.getInventory().setItem(0, i)),
-        OFF_HAND((p,i) -> p.getInventory().setItemInOffHand(i)),
-        HELMET((p,i) -> p.getInventory().setHelmet(i)),
-        CHEST((p,i) -> p.getInventory().setChestplate(i)),
-        PANTS((p,i) -> p.getInventory().setLeggings(i)),
-        BOOTS((p,i) -> p.getInventory().setBoots(i)),
-        NONE((p,i) -> {});
-
-        // functional interface to place an item on a player
-        final BiConsumer<Player, ItemStack> setSlotMethod;
-
-        /*
-         * A convenient wrapper to easily place items into
-         * whatever vanilla slot was given.
-         *
-         * @param setSlotMethod method to place item on a player
-         */
-        BukkitSlot(BiConsumer<Player, ItemStack> setSlotMethod) {
-            this.setSlotMethod = setSlotMethod;
         }
     }
 }

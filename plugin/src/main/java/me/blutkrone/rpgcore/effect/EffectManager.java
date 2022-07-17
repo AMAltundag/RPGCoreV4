@@ -1,8 +1,7 @@
 package me.blutkrone.rpgcore.effect;
 
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.EditorMenu;
-import me.blutkrone.rpgcore.hud.editor.root.EditorEffect;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
 
 public class EffectManager {
     private EditorIndex<CoreEffect, EditorEffect> effect_index;

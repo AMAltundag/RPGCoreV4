@@ -7,9 +7,11 @@ import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
 import com.github.juliarn.npc.event.PlayerNPCShowEvent;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hologram.impl.Hologram;
-import me.blutkrone.rpgcore.hud.editor.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.EditorNPC;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.root.npc.EditorNPC;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
+import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -17,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,6 +34,7 @@ public class NPCManager implements Listener {
 
     private NPCPool pool;
     private EditorIndex<CoreNPC, EditorNPC> index;
+    private Map<String, StoragePage> storage = new HashMap<>();
 
     // NPC mapped to its hologram entity
     private Map<NPC, Hologram> hologram = new HashMap<>();
@@ -48,8 +52,27 @@ public class NPCManager implements Listener {
                 .build();
         // setup the index for the NPCs
         this.index = new EditorIndex<>("npc", EditorNPC.class, EditorNPC::new);
+        // load respective storage pages
+        try {
+            ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("storage.yml"));
+            config.forEachUnder("storages", (id, root) -> {
+                this.storage.put(id, new StoragePage(id, root.getSection(id)));
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        Bukkit.getPluginManager().registerEvents(this ,RPGCore.inst() );
+        Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+    }
+
+    /**
+     * Retrieve the relevant storage.
+     *
+     * @param id what storage to retrieve
+     * @return the storage we retrieved
+     */
+    public StoragePage getStorage(String id) {
+        return this.storage.get(id);
     }
 
     /**
@@ -85,7 +108,7 @@ public class NPCManager implements Listener {
     /**
      * Create an NPC at the given location.
      *
-     * @param npc the NPC we want to create
+     * @param npc   the NPC we want to create
      * @param where where to create the NPC
      * @return the created NPC instance
      */
@@ -99,8 +122,8 @@ public class NPCManager implements Listener {
     /**
      * Create an NPC at the given location.
      *
-     * @param npc the NPC we want to create
-     * @param where where to create the NPC
+     * @param npc    the NPC we want to create
+     * @param where  where to create the NPC
      * @param origin node that created the NPC
      * @return the created NPC instance
      */

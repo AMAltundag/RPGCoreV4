@@ -82,6 +82,7 @@ public final class DamageManager implements IDamageManager, Listener {
         }
 
         Bukkit.getLogger().severe("not implemented (vanilla migration)");
+        Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
     @Override
@@ -112,7 +113,7 @@ public final class DamageManager implements IDamageManager, Listener {
         for (DamageElement element : getElements()) {
             double remaining = interaction.getDamage(element);
             if (remaining <= 0d) continue;
-            interaction.setDamage(element, interaction.getDefender().getMana().damageBy(remaining*mana_as_life));
+            interaction.setDamage(element, interaction.getDefender().getMana().damageBy(remaining * mana_as_life));
         }
 
         // whatever remains should be tanked thorough life pool
@@ -179,11 +180,11 @@ public final class DamageManager implements IDamageManager, Listener {
         return types.stream().map(this::getType).collect(Collectors.toList());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     void onAutoAttackTransfer(EntityDamageByEntityEvent e) {
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     void onStopBukkitDamage(EntityDamageEvent e) {
         e.setCancelled(true);
 

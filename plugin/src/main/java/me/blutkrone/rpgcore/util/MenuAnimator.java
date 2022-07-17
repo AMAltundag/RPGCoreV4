@@ -20,7 +20,7 @@ public class MenuAnimator {
      * Queue an animation, the animation will NOT loop.
      *
      * @param animation which animation to query
-     * @param offset horizontal offset
+     * @param offset    horizontal offset
      */
     public void queue(String animation, int offset) {
         this.animations.add(new Animation(animation, offset));
