@@ -44,7 +44,7 @@ public class EditorLoot implements IEditorBundle {
             Map<String, Double> weights = new HashMap<>();
             for (IEditorBundle option : options) {
                 if (option instanceof EditorLoot) {
-                    weights.merge(((EditorLoot) option).tag, ((EditorLoot) option).weight, (a, b) -> a + b);
+                    weights.merge(((EditorLoot) option).tag.toLowerCase(), ((EditorLoot) option).weight, (a, b) -> a + b);
                 }
             }
 
@@ -91,6 +91,6 @@ public class EditorLoot implements IEditorBundle {
 
     @Override
     public String toString() {
-        return this.tag + "X" + this.weight;
+        return this.tag.toLowerCase() + "X" + this.weight;
     }
 }

@@ -1,7 +1,5 @@
 package me.blutkrone.rpgcore.hud.editor;
 
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
-
 import java.util.List;
 
 /**
@@ -118,15 +116,4 @@ public interface IEditorConstraint {
      * @return instructions on this constraint.
      */
     List<String> getInstruction();
-
-    /**
-     * Delegate the request to edit a value, this is primarily intended for
-     * something which is indirectly linked via an ID.
-     *
-     * @param source
-     * @param value
-     */
-    default void editDelegate(IChestMenu source, Object value) {
-        source.getViewer().sendMessage("§cThis type of value cannot be edited!");
-    }
 }

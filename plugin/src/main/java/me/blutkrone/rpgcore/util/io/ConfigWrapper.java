@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 public class ConfigWrapper {
 
@@ -211,6 +212,18 @@ public class ConfigWrapper {
         Vector have = getVector(path);
         if (have == null) have = def;
         return have;
+    }
+
+    public Supplier<Location> getLazyLocation(@NotNull String path) {
+        if (!isSet(path))
+            return null;
+        String world = getString(path + ".world", "undefined");
+        double x = getDouble(path + ".x");
+        double y = getDouble(path + ".y");
+        double z = getDouble(path + ".z");
+        float pitch = (float) getDouble(path + ".pitch");
+        float yaw = (float) getDouble(path + ".yaw");
+        return () -> new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
     }
 
     public Location getLocation(@NotNull String path) {

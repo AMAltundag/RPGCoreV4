@@ -20,6 +20,17 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixLimit", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixLimit");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorLoot", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAttributeAndFactor", "me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorBankerTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorBankerTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorCrafterTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorCrafterTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorDialogueTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorDialogueTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorEssenceTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorEssenceTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorGateTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorGateTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorMailTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorMailTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorQuestTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorQuestTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorRefinerTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorRefinerTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorStorageTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorStorageTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorTalkTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorTalkTrait");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorVendorTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorVendorTrait");
     }
 
     @Override

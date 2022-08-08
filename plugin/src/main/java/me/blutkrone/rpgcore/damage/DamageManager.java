@@ -4,6 +4,7 @@ package me.blutkrone.rpgcore.damage;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
+import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.ailments.AttributeAilment;
@@ -126,6 +127,8 @@ public final class DamageManager implements IDamageManager, Listener {
         // if we dipped to 0 life, the defender should die
         if (interaction.getDefender().getHealth().getCurrentAmount() <= 0d) {
             interaction.getDefender().die(interaction);
+            Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
+
             Bukkit.getLogger().severe("not implemented (kill trigger)");
             Bukkit.getLogger().severe("not implemented (died trigger)");
         }

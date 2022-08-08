@@ -168,16 +168,7 @@ public interface IChestMenu {
     /**
      * Rebuild the menu at the start of the next tick.
      */
-    void rebuild();
-
-    /**
-     * Write data to this interface, do note that the data will
-     * persist so long the <b>instance</b> hasn't changed.
-     *
-     * @param key   keying to be retrieved.
-     * @param value parameter that was saved.
-     */
-    void setData(String key, Object value);
+    void queryRebuild();
 
     /**
      * Rebuild the menu, fetching up-to-date data. This is intended for
@@ -186,30 +177,6 @@ public interface IChestMenu {
      * @param rebuilder how to rebuild the menu
      */
     void setRebuilder(Runnable rebuilder);
-
-    /**
-     * Retrieve the data stored to this interface, do note that
-     * the data will persist so long the <b>instance</b> hasn't
-     * changed.
-     * <p>
-     * Do note that the default value also will define the class
-     * constraint of the return value.
-     *
-     * @param key      keying to be retrieved
-     * @param defaults parameter to default to
-     * @return the data we had stored, or the default value.
-     */
-    <K> K getData(String key, K defaults);
-
-    /**
-     * Retrieve the data stored to this interface, do note that
-     * the data will persist so long the <b>instance</b> hasn't
-     * changed.
-     *
-     * @param key keying to be retrieved
-     * @return the data we had stored, or null
-     */
-    <K> K getData(String key);
 
     /**
      * Provide a certain title, do note that this method should always

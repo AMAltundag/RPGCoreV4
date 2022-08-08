@@ -109,6 +109,11 @@ public class ToolCommand extends AbstractCommand {
                         .name("§cTool: Node (Spawner, " + args[2] + ")")
                         .persist("tool-value", args[1] + " " + args[2])
                         .build();
+            } else if (args[1].equalsIgnoreCase("hotspot")) {
+                item = ItemBuilder.of(TOOL_SPAWNER.clone())
+                        .name("§cTool: Node (Hotspot, " + args[2] + ")")
+                        .persist("tool-value", args[1] + " " + args[2])
+                        .build();
             } else if (args[1].equalsIgnoreCase("npc")) {
                 item = ItemBuilder.of(TOOL_NPC.clone())
                         .name("§cTool: Node (NPC, " + args[2] + ")")
@@ -132,6 +137,7 @@ public class ToolCommand extends AbstractCommand {
             suggests.add("box");
             suggests.add("spawner");
             suggests.add("npc");
+            suggests.add("hotspot");
             suggests.removeIf(t -> !t.startsWith(args[1]));
             return suggests;
         } else if (args.length == 3) {
@@ -144,6 +150,8 @@ public class ToolCommand extends AbstractCommand {
                 index = RPGCore.inst().getNodeManager().getIndexSpawner();
             } else if (args[1].equalsIgnoreCase("npc")) {
                 index = RPGCore.inst().getNPCManager().getIndex();
+            } else if (args[1].equalsIgnoreCase("hotspot")) {
+                index = RPGCore.inst().getNodeManager().getIndexHotspot();
             }
 
             if (index != null) {

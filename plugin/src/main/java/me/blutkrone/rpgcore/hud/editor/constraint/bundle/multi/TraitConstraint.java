@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.root.npc.*;
+import me.blutkrone.rpgcore.hud.editor.bundle.npc.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

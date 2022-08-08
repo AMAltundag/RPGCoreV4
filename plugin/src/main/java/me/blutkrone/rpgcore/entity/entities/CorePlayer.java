@@ -9,6 +9,7 @@ import me.blutkrone.rpgcore.entity.focus.FocusTracker;
 import me.blutkrone.rpgcore.entity.tasks.PlayerFocusTask;
 import me.blutkrone.rpgcore.hud.menu.SettingsMenu;
 import me.blutkrone.rpgcore.item.ItemManager;
+import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.job.CoreJob;
@@ -82,6 +83,18 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // refinement timestamps for afk refinement
     private Map<String, Long> refinement_timestamp = new HashMap<>();
 
+    // tags used for quest processing
+    private List<String> active_quests = new ArrayList<>();
+    private Set<String> completed_quests = new HashSet<>();
+    private Map<String, Integer> progress_quests = new HashMap<>();
+
+    // persistent tags on the player
+    private Set<String> persistent_tags = new HashSet<>();
+
+    // a snapshot of carried items used by quests
+    private Map<String, Integer> quest_items_snapshot = null;
+    private long quest_items_timestamp = 0;
+
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
 
@@ -93,6 +106,68 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // the character which we represent
         this.character = character;
+    }
+
+    /**
+     * A snapshot map which slowly updates, tracking the items that
+     * may be demanded by quests.
+     *
+     * @return a (somewhat) up-to-date snapshot.
+     */
+    public Map<String, Integer> getSnapshotForQuestItems() {
+        // update the cache if necessary
+        if (System.currentTimeMillis() + 2000L > this.quest_items_timestamp || this.quest_items_snapshot == null) {
+            Map<String, Integer> quantified = new HashMap<>();
+            for (ItemStack item : this.getEntity().getInventory().getContents()) {
+                ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(item, ItemDataGeneric.class);
+                if (data != null) {
+                    quantified.merge(data.getItem().getId(), item.getAmount(), (a, b) -> a + b);
+                }
+            }
+            this.quest_items_snapshot = quantified;
+            this.quest_items_timestamp = System.currentTimeMillis();
+        }
+
+        return this.quest_items_snapshot;
+    }
+
+    /**
+     * Tags are permanently present on the player.
+     *
+     * @return the tags present on the player.
+     */
+    public Set<String> getPersistentTags() {
+        return persistent_tags;
+    }
+
+    /**
+     * Mapping a distinctive quest identifier to a decimal
+     * number which is used to track quest progress.
+     *
+     * @return identifier mapped to task progress.
+     */
+    public Map<String, Integer> getProgressQuests() {
+        return progress_quests;
+    }
+
+    /**
+     * Ids of quests which the player is actively engaging
+     * with, when adding to this list please ensure that it
+     * is a distinct collection.
+     *
+     * @return active quest ids.
+     */
+    public List<String> getActiveQuestIds() {
+        return this.active_quests;
+    }
+
+    /**
+     * Ids of all quests the player completed.
+     *
+     * @return completed quest ids.
+     */
+    public Set<String> getCompletedQuests() {
+        return completed_quests;
     }
 
     /**
@@ -410,7 +485,18 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * move to the respawn location instead.
      */
     public void moveToLoginPosition() {
-        getEntity().teleport(this.login_position);
+        try {
+            // attempt to recover login position
+            getEntity().teleport(this.login_position);
+        } catch (Exception e1) {
+            // attempt to recover to respawn position
+            try {
+                getEntity().teleport(this.respawn_position);
+            } catch (Exception e2) {
+                // kick from server (bad location)
+                getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Location!");
+            }
+        }
     }
 
     /**

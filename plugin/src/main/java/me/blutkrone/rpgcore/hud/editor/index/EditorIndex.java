@@ -101,6 +101,27 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
     }
 
     /**
+     * Drop all instances and load them again.
+     */
+    public void reload() {
+        // drop all tracked instances
+        this.indexed.clear();
+        // load them again from the disk
+        try {
+            for (File item_file : FileUtil.buildAllFiles(FileUtil.directory(this.directory))) {
+                String name = item_file.getName();
+                if (name.endsWith(".rpgcore")) {
+                    get(name.replace(".rpgcore", ""));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // ensure that we incremented version by at least one
+        this.version += 1;
+    }
+
+    /**
      * Retrieve all elements available, do note that newly added files will
      * be regularly re-indexed - hence caution should be exerted when we do
      * call this method.
@@ -256,11 +277,8 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
                     try {
                         editor = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(config_file)), this.editor_class);
                     } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-
-                    if (editor == null) {
-                        throw new NullPointerException("Editor instance from '" + config_file.getPath() + "' could not load!");
+                        Bukkit.getLogger().severe("Corrupted file: " + config_file.getPath() + "");
+                        editor = editor_factory.get();
                     }
                     editor.setFile(config_file);
                 } else {

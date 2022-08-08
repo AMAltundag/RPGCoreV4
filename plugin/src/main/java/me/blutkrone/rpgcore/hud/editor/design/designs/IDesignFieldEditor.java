@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
+import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import org.bukkit.entity.Player;
@@ -14,8 +15,9 @@ public interface IDesignFieldEditor {
      * @param bundle which bundle to edit
      * @param viewer who will do the editing
      * @param editor the editor menu that opens this field editor
+     * @param focus
      */
-    void edit(IEditorBundle bundle, Player viewer, IChestMenu editor);
+    void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus);
 
     /**
      * Fetch the name of this design element.

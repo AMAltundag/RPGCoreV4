@@ -18,6 +18,7 @@ import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -79,11 +80,25 @@ public class DataManager implements Listener {
 
                 if (!rpm.hasLoaded(player)) {
                     // re-teleport while waiting for resourcepack to load
-                    player.teleport(pre_login_position);
+                    try {
+                        if (player.getGameMode() != GameMode.ADVENTURE) {
+                            player.setGameMode(GameMode.ADVENTURE);
+                        }
+                        player.teleport(pre_login_position);
+                    } catch (Exception e) {
+                        player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                    }
                 } else if (em.getPlayer(player) == null) {
                     // re-teleport if moved before picking a character
                     if (Utility.distanceSqOrWorld(player, pre_login_position) > 1d) {
-                        player.teleport(pre_login_position);
+                        try {
+                            if (player.getGameMode() != GameMode.ADVENTURE) {
+                                player.setGameMode(GameMode.ADVENTURE);
+                            }
+                            player.teleport(pre_login_position);
+                        } catch (Exception e) {
+                            player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                        }
                     }
                     // present roster menu again if it was closed
                     if (player.getOpenInventory().getTopInventory().getType() == InventoryType.CRAFTING) {
@@ -92,7 +107,14 @@ public class DataManager implements Listener {
                 } else if (!hudm.getRosterMenu().hasInitiated(em.getPlayer(player))) {
                     // re-teleport if moved before picking a character
                     if (Utility.distanceSqOrWorld(player, pre_login_position) > 1d) {
-                        player.teleport(pre_login_position);
+                        try {
+                            if (player.getGameMode() != GameMode.ADVENTURE) {
+                                player.setGameMode(GameMode.ADVENTURE);
+                            }
+                            player.teleport(pre_login_position);
+                        } catch (Exception e) {
+                            player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                        }
                     }
                 }
             }
@@ -106,6 +128,8 @@ public class DataManager implements Listener {
         data_protocol.put("item", new ItemProtocol());
         data_protocol.put("editor", new EditorProtocol());
         data_protocol.put("menu", new MenuProtocol());
+        data_protocol.put("quest", new QuestProtocol());
+        data_protocol.put("tag", new TagProtocol());
         data_protocol.put("roster_bank", new RosterBankerProtocol());
         data_protocol.put("roster_storage", new RosterStorageProtocol());
         data_protocol.put("roster_refinement", new RosterRefinementProtocol());

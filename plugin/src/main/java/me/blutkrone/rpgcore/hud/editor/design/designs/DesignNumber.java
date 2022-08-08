@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
@@ -41,7 +42,7 @@ public class DesignNumber implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor) {
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
         editor.getViewer().closeInventory();
 
@@ -56,13 +57,13 @@ public class DesignNumber implements IDesignFieldEditor {
                 List<String> hints = new ArrayList<>();
                 if (updated.isBlank()) {
                     // failed since input value is too short
-                    msb.shiftToExact(-60).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
+                    msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
                 } else if (this.isValidNumber(updated)) {
                     // success since we are within constraint
-                    msb.shiftToExact(-60).append(rpm.texture("menu_input_fine"), ChatColor.WHITE);
+                    msb.shiftToExact(-260).append(rpm.texture("menu_input_fine"), ChatColor.WHITE);
                     hints.add("Value is fine");
                 } else {
-                    msb.shiftToExact(-60).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
+                    msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
                     hints.add("Value is illegal");
                 }
 
@@ -108,7 +109,7 @@ public class DesignNumber implements IDesignFieldEditor {
                 input.stalled(editor::open);
             });
             MagicStringBuilder msb = new MagicStringBuilder();
-            msb.shiftToExact(-60).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
+            msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
             msb.shiftToExact(-45).append(this.getName(), "text_menu_title");
             input.setTitle(msb.compile());
             input.open();

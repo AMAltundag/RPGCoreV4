@@ -44,10 +44,9 @@ public class DesignList implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor) {
-        FocusQueue focus = editor.getData("focus");
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
         focus.focus(this);
-        editor.rebuild();
+        editor.queryRebuild();
     }
 
     @Override

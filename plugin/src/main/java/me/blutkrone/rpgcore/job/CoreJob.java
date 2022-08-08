@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.job;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.root.job.EditorJob;
+import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -20,11 +21,12 @@ public class CoreJob {
         this.id = id;
         this.defaults = editor.defaults;
         this.emblem = RPGCore.inst().getLanguageManager()
-                .getAsItem(editor.lc_emblem)
-                .persist("job-id", getId()).build();
+                .getAsItem(editor.lc_emblem).build();
         this.weapon = RPGCore.inst().getLanguageManager()
                 .getAsItem(editor.lc_weapon)
                 .persist("job-id", getId()).build();
+        IChestMenu.setBrand(this.emblem, RPGCore.inst(), "job-id", getId());
+        IChestMenu.setBrand(this.weapon, RPGCore.inst(), "job-id", getId());
     }
 
     /**

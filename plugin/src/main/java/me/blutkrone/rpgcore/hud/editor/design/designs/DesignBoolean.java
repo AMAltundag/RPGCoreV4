@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
+import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
@@ -24,11 +25,11 @@ public class DesignBoolean implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor) {
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
         try {
             boolean value = Boolean.valueOf(field.get(bundle).toString());
             this.field.set(bundle, !value);
-            editor.rebuild();
+            editor.queryRebuild();
         } catch (IllegalAccessException e) {
             viewer.sendMessage("§cAn unexpected error occurred");
             e.printStackTrace();

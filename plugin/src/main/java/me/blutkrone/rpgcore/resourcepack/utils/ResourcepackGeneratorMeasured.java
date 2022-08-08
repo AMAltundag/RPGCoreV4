@@ -35,8 +35,11 @@ public class ResourcepackGeneratorMeasured {
     public int marker_offset;
     public int portrait_offset;
     public int instruction_offset;
+
     public int hud_notification;
     public int hud_sidebar;
+
+    public int quest_offset;
 
     /**
      * Rules on how to generate the resourcepack.
@@ -76,10 +79,11 @@ public class ResourcepackGeneratorMeasured {
         instruction_offset = config.getInt("interface-offset.instruction-offset");
         hud_notification = config.getInt("interface-offset.hud-notification");
         hud_sidebar = config.getInt("interface-offset.hud-sidebar");
+        quest_offset = config.getInt("interface-offset.quest-offset");
 
         // generate default fonts to utilize
         for (int i = 0; i < 24; i++) {
-            addFont("instruction_text_" + (i + 1), instruction_offset + (i * 10), 1d);
+            addFont("instruction_text_" + (i + 1), instruction_offset - (i * 10), 1d);
         }
         for (int i = 0; i < 24; i++) {
             addFont("nameplate_" + i, 25 + (i * 10), 1d);
@@ -134,6 +138,11 @@ public class ResourcepackGeneratorMeasured {
         addFont("banked_text_3", -63, 1d);
         addFont("banked_text_4", -81, 1d);
         addFont("banked_text_5", -99, 1d);
+
+        for (int i = 0; i < 5; i++) {
+            int displacement = party_offset - (party_distance * i) - party_name_offset;
+            addFont("hud_party_name_" + (i + 1), displacement, 1d);
+        }
 
         // load up font specific information
         ConfigWrapper font_configs = config.getSection("font-permutation");

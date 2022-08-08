@@ -20,6 +20,7 @@ public class ScrollerGenerator {
         textures.putAll(constructMenu(new File(directory, "mono.png")));
         textures.putAll(constructMenu(new File(directory, "dual.png")));
         textures.putAll(constructMenu(new File(directory, "navigated.png")));
+        textures.putAll(constructMenu(new File(directory, "question.png")));
         textures.putAll(constructPointers(new File(directory, "pointer_tiny.png")));
         textures.putAll(constructPointers(new File(directory, "pointer_small.png")));
         textures.putAll(constructPointers(new File(directory, "pointer_medium.png")));

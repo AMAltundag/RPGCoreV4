@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.hud.editor.design;
 
+import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorHideWhen;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.*;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
@@ -109,9 +110,10 @@ public class DesignElement {
      * @param bundle   the object we are editing.
      * @param viewer   who will receive the editor.
      * @param previous the preceding editor we came from.
+     * @param focus    a queue to track our scope
      */
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu previous) {
-        this.editor.edit(bundle, viewer, previous);
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu previous, FocusQueue focus) {
+        this.editor.edit(bundle, viewer, previous, focus);
     }
 
     /**

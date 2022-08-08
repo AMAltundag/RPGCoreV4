@@ -1,9 +1,10 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorRefinerTrait;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.npc.EditorRefinerTrait;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import org.bukkit.entity.Player;
 
@@ -48,7 +49,7 @@ public class CoreRefinerTrait extends AbstractCoreTrait {
     }
 
     @Override
-    public void engage(Player _player) {
+    public void engage(Player _player, CoreNPC npc) {
         RPGCore.inst().getHUDManager().getRefinerMenu().present(_player, this);
     }
 }

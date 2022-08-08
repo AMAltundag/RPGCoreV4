@@ -23,13 +23,12 @@ public class DesignBundle implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor) {
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
         try {
             IEditorBundle value = (IEditorBundle) this.field.get(bundle);
             if (value != null) {
-                FocusQueue focus = editor.getData("focus");
                 focus.focus(value);
-                editor.rebuild();
+                editor.queryRebuild();
             } else {
                 viewer.sendMessage("§cBad class structure (bundle cannot be null)");
             }

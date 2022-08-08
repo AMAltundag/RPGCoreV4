@@ -109,28 +109,13 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     }
 
     @Override
-    public void rebuild() {
+    public void queryRebuild() {
         Bukkit.getScheduler().runTask(this.plugin, () -> this.rebuild_handler.run());
-    }
-
-    @Override
-    public void setData(String key, Object value) {
-        this.data.put(key, value);
     }
 
     @Override
     public void setRebuilder(Runnable rebuilder) {
         this.rebuild_handler = rebuilder;
-    }
-
-    @Override
-    public <K> K getData(String key, K defaults) {
-        return (K) this.data.getOrDefault(key, defaults);
-    }
-
-    @Override
-    public <K> K getData(String key) {
-        return (K) this.data.get(key);
     }
 
     @Override
@@ -200,6 +185,7 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
 
     @Override
     public void open() {
+        this.last_title = null;
         this.player.openInventory(this);
     }
 
@@ -208,15 +194,13 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     }
 
     public void on(InventoryOpenEvent event) {
+        this.last_title = null;
         this.open_event_handler.accept(event);
     }
 
     public void on(InventoryCloseEvent event) {
+        this.last_title = null;
         this.close_event_handler.accept(event);
-        Object back = getData("back");
-        if (back instanceof VolatileChestMenu) {
-            stalled(((VolatileChestMenu) back)::open);
-        }
     }
 
     public void on(InventoryDragEvent event) {

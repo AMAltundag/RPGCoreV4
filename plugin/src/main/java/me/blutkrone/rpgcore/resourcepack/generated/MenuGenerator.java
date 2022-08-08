@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class MenuGenerator {
 
-    private static final int MENU_VERTICAL_OFFSET = 14 + 8;
+    public static final int MENU_VERTICAL_OFFSET = 14 + 8;
 
     public static Map<String, IndexedTexture> construct(File directory) {
         Map<String, IndexedTexture> textures = new HashMap<>();

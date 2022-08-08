@@ -2,15 +2,10 @@ package me.blutkrone.rpgcore.hud.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
-import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -43,12 +38,8 @@ import java.util.function.BiConsumer;
  */
 public class EquipMenu implements Listener {
 
-    // dummy for invisible items
-    private ItemStack invisible;
-    // slots available on the menu
-    private List<Slot> slots = new ArrayList<>();
-    // placeholder while nothing equipped
-    private ItemStack placeholder;
+    private final ItemStack placeholder;
+    public List<Slot> slots = new ArrayList<>();
 
     /**
      * A menu where the user can update their actual equipment, do note
@@ -56,14 +47,11 @@ public class EquipMenu implements Listener {
      */
     public EquipMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "equip.yml"));
-
-        this.placeholder = RPGCore.inst().getLanguageManager().getAsItem("equip_placeholder")
-                .persist("reflected-item", 1).build();
-        this.invisible = RPGCore.inst().getLanguageManager().getAsItem("invisible").build();
-
         config.forEachUnder("slots", (path, root) -> {
             this.slots.add(new Slot(path, root.getSection(path)));
         });
+
+        this.placeholder = RPGCore.inst().getLanguageManager().getAsItem("equip_placeholder").persist("reflected-item", 1).build();
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
@@ -71,94 +59,10 @@ public class EquipMenu implements Listener {
     /**
      * Open the menu for the given player.
      *
-     * @param _player who to present the menu to.
+     * @param player who to present the menu to.
      */
-    public void open(Player _player) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, _player);
-        menu.setRebuilder((() -> {
-            menu.clearItems();
-            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(menu.getViewer());
-            // populate with the appropriate slot items
-            for (Slot slot : this.slots) {
-                ItemStack item = core_player.getEquipped(slot.id);
-                if (item.getType().isAir()) {
-                    item = slot.empty;
-                }
-                menu.setItemAt(slot.slot, item);
-            }
-
-            // populate remaining slots with invisible item
-            for (int i = 0; i < 6 * 9; i++) {
-                ItemStack previous = menu.getItemAt(i);
-                if (previous == null || previous.getType().isAir()) {
-                    menu.setItemAt(i, this.invisible);
-                }
-            }
-
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_equipment"), ChatColor.WHITE);
-
-            InstructionBuilder instructions = new InstructionBuilder();
-            instructions.add(RPGCore.inst().getLanguageManager().getTranslationList("instruction_player_equip"));
-            instructions.apply(msb);
-
-            menu.setTitle(msb.compile());
-        }));
-        menu.setClickHandler((event -> {
-            if (event.getClick() == ClickType.LEFT) {
-                if (event.getClickedInventory() == event.getView().getTopInventory()) {
-                    Slot slot = this.slots.stream().filter(s -> s.slot == event.getSlot()).findAny().orElse(null);
-                    if (slot != null) {
-                        if (slot.empty.isSimilar(event.getCurrentItem())) {
-                            if (slot.isAccepted(event.getCursor(), menu.getViewer())) {
-                                // equip the item into an empty slot
-                                event.setCurrentItem(new ItemStack(Material.AIR));
-                            } else {
-                                // it is not compatible with slot
-                                event.setCancelled(true);
-                            }
-                        } else {
-                            if (event.getCursor() == null || event.getCursor().getType().isAir()) {
-                                // we want to remove an equipped item
-                                event.setCursor(event.getCurrentItem());
-                                event.setCurrentItem(slot.empty);
-                                event.setCancelled(true);
-                            } else if (!slot.isAccepted(event.getCursor(), menu.getViewer())) {
-                                // it is not compatible with slot
-                                event.setCancelled(true);
-                            } else {
-                                // swap with the equipped item
-                                event.setCancelled(false);
-                            }
-                        }
-                    } else {
-                        // prevent clicking on non-equip slots
-                        event.setCancelled(true);
-                    }
-                } else {
-                    // allow freely picking items to equip
-                    event.setCancelled(false);
-                }
-            } else {
-                event.setCancelled(true);
-            }
-        }));
-        menu.setCloseHandler((event -> {
-            // update equipment and reflect it
-            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getPlayer());
-            for (Slot slot : this.slots) {
-                if (!slot.empty.isSimilar(menu.getItemAt(slot.slot))) {
-                    core_player.setEquipped(slot.id, menu.getItemAt(slot.slot));
-                } else {
-                    core_player.setEquipped(slot.id, null);
-                }
-            }
-            // recover the items on the player
-            applyEquipChange(core_player);
-        }));
-        menu.open();
+    public void open(Player player) {
+        new me.blutkrone.rpgcore.menu.EquipMenu(this).finish(player);
     }
 
     /**
@@ -239,6 +143,11 @@ public class EquipMenu implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     void onEquipmentGameModeSwap(PlayerGameModeChangeEvent e) {
         Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(e.getPlayer());
+            if (core_player == null) {
+                return;
+            }
+
             GameMode mode = e.getPlayer().getGameMode();
             if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
                 // hide reflected items in creative mode
@@ -247,7 +156,7 @@ public class EquipMenu implements Listener {
                 }
             } else {
                 // recover reflected items when exiting creative
-                applyEquipChange(RPGCore.inst().getEntityManager().getPlayer(e.getPlayer()));
+                applyEquipChange(core_player);
             }
         });
     }
@@ -291,11 +200,11 @@ public class EquipMenu implements Listener {
         }
     }
 
-    /*
+    /**
      * A convenient wrapper to easily place items into
      * whatever vanilla slot was given.
      */
-    enum BukkitSlot {
+    public enum BukkitSlot {
         MAIN_HAND((p, i) -> p.getInventory().setItem(0, i)),
         OFF_HAND((p, i) -> p.getInventory().setItemInOffHand(i)),
         HELMET((p, i) -> p.getInventory().setHelmet(i)),
@@ -306,7 +215,7 @@ public class EquipMenu implements Listener {
         });
 
         // functional interface to place an item on a player
-        final BiConsumer<Player, ItemStack> setSlotMethod;
+        public final BiConsumer<Player, ItemStack> setSlotMethod;
 
         /*
          * A convenient wrapper to easily place items into
@@ -319,20 +228,20 @@ public class EquipMenu implements Listener {
         }
     }
 
-    /*
+    /**
      * A slot where-in a player can equip an item.
      */
-    class Slot {
+    public class Slot {
         // identifier for the slot
-        String id;
+        public String id;
         // item used while slot is empty
-        ItemStack empty;
+        public ItemStack empty;
         // position in the menu design
-        int slot;
+        public int slot;
         // vanilla slot to put item into
-        BukkitSlot target;
+        public BukkitSlot target;
         // tags on the item to equip
-        Set<String> accept;
+        public Set<String> accept;
 
         /*
          * A slot where-in a player can equip an item.
@@ -347,13 +256,13 @@ public class EquipMenu implements Listener {
             this.accept = new HashSet<>(config.getStringList("accept"));
         }
 
-        /*
+        /**
          * Check if the item is compatible with this slot.
          *
          * @param item which item to check
          * @return whether item is accepted by this slot
          */
-        boolean isAccepted(ItemStack item, Player player) {
+        public boolean isAccepted(ItemStack item, Player player) {
             // retrieve type and check for compatibility
             ItemDataGeneric item_data = RPGCore.inst().getItemManager().getItemData(item, ItemDataGeneric.class);
             // if this data does not exist, it is not a rpgcore item

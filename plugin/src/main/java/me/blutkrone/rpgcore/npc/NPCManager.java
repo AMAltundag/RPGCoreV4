@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.npc;
 
-import com.github.juliarn.npc.NPC;
-import com.github.juliarn.npc.NPCPool;
-import com.github.juliarn.npc.event.PlayerNPCHideEvent;
-import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
-import com.github.juliarn.npc.event.PlayerNPCShowEvent;
+import me.blutkrone.external.juliarn.npc.NPC;
+import me.blutkrone.external.juliarn.npc.NPCPool;
+import me.blutkrone.external.juliarn.npc.event.PlayerNPCHideEvent;
+import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
+import me.blutkrone.external.juliarn.npc.event.PlayerNPCShowEvent;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hologram.impl.Hologram;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
@@ -61,6 +61,20 @@ public class NPCManager implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // update NPC names per player once a second
+        Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
+            for (NPC npc : pool.getNPCs()) {
+                CoreNPC core_npc = design.get(npc);
+                if (core_npc != null) {
+                    Hologram hologram = this.hologram.get(npc);
+                    if (hologram != null) {
+                        for (Player player : npc.getSeeingPlayers()) {
+                            hologram.name(player, core_npc.describe(player));
+                        }
+                    }
+                }
+            }
+        }, 20, 20);
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
@@ -160,7 +174,7 @@ public class NPCManager implements Listener {
         hologram.spawn(e.getPlayer(), e.getNPC().getLocation());
         // construct an appropriate name
         CoreNPC core_npc = design.get(e.getNPC());
-        hologram.name(e.getPlayer(), core_npc.describe(e.getNPC()));
+        hologram.name(e.getPlayer(), core_npc.describe(e.getPlayer()));
         // attach it to the NPC
         hologram.mount(e.getPlayer(), e.getNPC().getEntityId());
     }

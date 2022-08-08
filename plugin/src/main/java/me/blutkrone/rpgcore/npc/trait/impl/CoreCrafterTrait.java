@@ -1,10 +1,11 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorCrafterTrait;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.npc.EditorCrafterTrait;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import org.bukkit.entity.Player;
 
@@ -47,7 +48,7 @@ public class CoreCrafterTrait extends AbstractCoreTrait {
     }
 
     @Override
-    public void engage(Player player) {
+    public void engage(Player player, CoreNPC npc) {
         RPGCore.inst().getHUDManager().getCrafterMenu().present(player, this);
     }
 }

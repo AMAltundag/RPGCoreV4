@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
-import me.blutkrone.rpgcore.hud.editor.root.npc.EditorGateTrait;
+import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorGateTrait;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import org.bukkit.entity.Player;
 
@@ -13,7 +14,7 @@ public class CoreGateTrait extends AbstractCoreTrait {
     }
 
     @Override
-    public void engage(Player player) {
+    public void engage(Player player, CoreNPC npc) {
 
     }
 }

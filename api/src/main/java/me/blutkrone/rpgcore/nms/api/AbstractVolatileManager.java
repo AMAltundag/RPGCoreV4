@@ -126,6 +126,7 @@ public abstract class AbstractVolatileManager {
      * @param holder who holds the input.
      * @return the input that was created.
      */
+    @Deprecated
     public abstract ITextInput createInput(Player holder);
 
     /**

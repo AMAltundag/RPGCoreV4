@@ -1,12 +1,12 @@
 package me.blutkrone.rpgcore.skin;
 
 import com.google.gson.stream.JsonReader;
+import me.blutkrone.external.inventive.mineskin.MineskinClient;
+import me.blutkrone.external.inventive.mineskin.data.Skin;
+import me.blutkrone.external.inventive.mineskin.data.Texture;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
-import org.mineskin.MineskinClient;
-import org.mineskin.data.Skin;
-import org.mineskin.data.Texture;
 
 import java.io.*;
 import java.nio.charset.Charset;

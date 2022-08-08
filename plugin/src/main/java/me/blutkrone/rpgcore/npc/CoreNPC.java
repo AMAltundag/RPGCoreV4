@@ -1,27 +1,28 @@
 package me.blutkrone.rpgcore.npc;
 
-import com.github.juliarn.npc.NPC;
-import com.github.juliarn.npc.NPCPool;
-import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
-import com.github.juliarn.npc.modifier.MetadataModifier;
-import com.github.juliarn.npc.profile.Profile;
+import me.blutkrone.external.juliarn.npc.NPC;
+import me.blutkrone.external.juliarn.npc.NPCPool;
+import me.blutkrone.external.juliarn.npc.modifier.MetadataModifier;
+import me.blutkrone.external.juliarn.npc.profile.Profile;
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.root.npc.AbstractEditorNPCTrait;
+import me.blutkrone.rpgcore.hud.editor.bundle.npc.AbstractEditorNPCTrait;
 import me.blutkrone.rpgcore.hud.editor.root.npc.EditorNPC;
-import me.blutkrone.rpgcore.language.LanguageManager;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.CortexMenu;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreQuestTrait;
+import me.blutkrone.rpgcore.quest.CoreQuest;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskDeliver;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.skin.CoreSkin;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -29,15 +30,16 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Entity meant for miscellaneous purposes.
  *
- * @see AbstractNode we implement a node, which allows the NPC to be directly
- * assigned to node - otherwise we would require a spawner
- * node to be setup separately.
+ * @see AbstractNode we implement a node to bypass the need for a separate spawner implementation
  */
 public class CoreNPC extends AbstractNode {
 
@@ -50,18 +52,25 @@ public class CoreNPC extends AbstractNode {
                     flag -> flag
             );
 
+    // language ID for NPC name
     private String lc_name;
+    // makes the npc look at a player
     private boolean staring;
+    // the string to use for the NPC
     private String skin = null;
-
+    // traits available for the NPC
+    private List<AbstractCoreTrait> traits;
+    // must have completed all quests
+    private List<String> quest_whitelist;
+    // cannot have any of these quests completed
+    private List<String> quest_blacklist;
+    // items to equip on NPC
     private ItemStack helmet;
     private ItemStack chestplate;
     private ItemStack pants;
     private ItemStack boots;
     private ItemStack mainhand;
     private ItemStack offhand;
-
-    private List<AbstractCoreTrait> traits;
 
     public CoreNPC(String id, EditorNPC editor) {
         super(id, 32);
@@ -77,28 +86,8 @@ public class CoreNPC extends AbstractNode {
         for (IEditorBundle trait : editor.traits) {
             this.traits.add(((AbstractEditorNPCTrait) trait).build());
         }
-    }
-
-    /*
-     * Fetch the first six traits which can be shown on
-     * a cortex menu.
-     *
-     * @return up to six cortex-able traits
-     */
-    private List<AbstractCoreTrait> getCortexTraits() {
-        // 1 trait is just directly used
-        if (this.traits.size() == 1) {
-            return new ArrayList<>(this.traits);
-        }
-        // pool only traits with icons
-        List<AbstractCoreTrait> cortexed = new ArrayList<>();
-        for (AbstractCoreTrait trait : this.traits) {
-            if (!trait.getSymbol().equalsIgnoreCase("default")) {
-                cortexed.add(trait);
-            }
-        }
-        // offer up our traits
-        return cortexed;
+        this.quest_whitelist = new ArrayList<>(editor.quest_required);
+        this.quest_blacklist = new ArrayList<>(editor.quest_forbidden);
     }
 
     @Override
@@ -151,7 +140,12 @@ public class CoreNPC extends AbstractNode {
      *
      * @return nameplate description
      */
-    public BaseComponent[] describe(NPC npc) {
+    public BaseComponent[] describe(Player player) {
+        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+        if (core_player == null) {
+            return new BaseComponent[0];
+        }
+
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
         MagicStringBuilder msb = new MagicStringBuilder();
 
@@ -169,58 +163,101 @@ public class CoreNPC extends AbstractNode {
             msb.shiftCentered(0, Utility.measureWidthExact(contents.get(i)));
             msb.append(contents.get(i), "nameplate_" + i);
         }
+        // special symbols for quests
+        List<AbstractCoreTrait> traits = getCortexTraits(core_player);
+        for (AbstractCoreTrait trait : traits) {
+            if (trait instanceof CoreQuestTrait) {
+                // identify a quest symbol to work with
+                IndexedTexture texture = null;
+                if (((CoreQuestTrait) trait).getQuestUnclaimed(player, this) != null) {
+                    texture = rpm.texture("static_reward_quest_icon");
+                } else if (((CoreQuestTrait) trait).getQuestDialogue(player, this) != null) {
+                    texture = rpm.texture("static_dialogue_quest_icon");
+                } else if (((CoreQuestTrait) trait).getQuestDelivery(player, this) != null) {
+                    texture = rpm.texture("static_delivery_quest_icon");
+                } else {
+                    List<CoreQuest> available = ((CoreQuestTrait) trait).getQuestAvailable(core_player);
+                    if (!available.isEmpty()) {
+                        texture = rpm.texture(available.get(0).getSymbol());
+                    }
+                }
+
+                // make sure we generated a texture
+                if (texture != null) {
+                    msb.shiftCentered(0, texture.width);
+                    msb.append(texture);
+                }
+            }
+        }
 
         return msb.shiftToExact(-2).compile();
     }
 
     /**
-     * A callback when an NPC created by this template is
-     * interacted with.
+     * The cortex allows to organize traits of an NPC into a single
+     * menu.
      *
-     * @param e the interaction
+     * @param player    who wants to view the cortex
+     * @param shortcuts jump to prioritized traits
      */
-    public void interact(PlayerNPCInteractEvent e) {
+    public void showCortex(Player player, boolean shortcuts) {
+        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+        if (core_player == null) {
+            return;
+        }
+        List<AbstractCoreTrait> traits = getCortexTraits(core_player);
+
         // interaction requires traits
-        if (this.traits.isEmpty()) {
+        if (traits.isEmpty()) {
             return;
         }
 
         // if we got a quest priority, flag it as such
-        for (AbstractCoreTrait trait : this.traits) {
-            if ((trait instanceof CoreQuestTrait)) {
-                if (((CoreQuestTrait) trait).isAvailable()) {
-                    trait.engage(e.getPlayer());
-                    return;
+        if (shortcuts) {
+            for (AbstractCoreTrait trait : traits) {
+                if ((trait instanceof CoreQuestTrait)) {
+                    CoreQuestTrait qt = (CoreQuestTrait) trait;
+
+                    // if we got a reward, we present that one
+                    CoreQuest reward = qt.getQuestUnclaimed(player, this);
+                    if (reward != null) {
+                        RPGCore.inst().getHUDManager().getQuestMenu().reward(reward, player, this);
+                        return;
+                    }
+
+                    // if we got dialogue, we present that one
+                    CoreQuestTaskTalk.QuestDialogue dialogue = qt.getQuestDialogue(player, this);
+                    if (dialogue != null) {
+                        RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, dialogue.task.getUniqueId() + "_" + dialogue.npc);
+                        return;
+                    }
+
+                    // if we got a delivery, we present that one
+                    CoreQuestTaskDeliver delivery = qt.getQuestDelivery(player, this);
+                    if (delivery != null) {
+                        RPGCore.inst().getHUDManager().getQuestMenu().delivery(delivery, player, this);
+                        return;
+                    }
                 }
             }
         }
 
-        List<AbstractCoreTrait> traits = getCortexTraits();
-        if (traits.size() == 0) {
-            // 0 traits, do nothing.
-            return;
-        } else if (traits.size() == 1) {
-            // 1 trait opens the menu directly
-            traits.get(0).engage(e.getPlayer());
+        if (traits.size() == 1) {
+            traits.get(0).engage(player, this);
         } else if (traits.size() == 2) {
-            // show a 2-piece cortex
-            createCortex2(e.getPlayer(), traits);
+            new CortexMenu.Cortex2(traits, this).finish(player);
         } else if (traits.size() == 3) {
-            // show a 3-trait cortex
-            createCortex3(e.getPlayer(), traits);
+            new CortexMenu.Cortex3(traits, this).finish(player);
         } else if (traits.size() == 4) {
-            // show a 4-trait cortex
-            createCortex4(e.getPlayer(), traits);
+            new CortexMenu.Cortex4(traits, this).finish(player);
         } else if (traits.size() == 5) {
-            // show a 5-trait cortex
-            createCortex5(e.getPlayer(), traits);
-        } else {
-            // show a 6-trait cortex
-            createCortex6(e.getPlayer(), traits);
+            new CortexMenu.Cortex5(traits, this).finish(player);
+        } else if (traits.size() >= 6) {
+            new CortexMenu.Cortex6(traits, this).finish(player);
         }
     }
 
-    /**
+    /*
      * Construct an instance of this NPC at the given
      * location.
      *
@@ -232,7 +269,6 @@ public class CoreNPC extends AbstractNode {
         // setup a profile including a skin
         Profile profile = new Profile(UUID.randomUUID());
         profile.setName("rpgcore" + ThreadLocalRandom.current().nextInt(1, 99999));
-        CoreSkin skin = RPGCore.inst().getSkinPool().get(this.skin);
 
         if (this.skin != null) {
             CoreSkin fetched = RPGCore.inst().getSkinPool().get(this.skin);
@@ -242,13 +278,35 @@ public class CoreNPC extends AbstractNode {
                 Bukkit.getLogger().severe("NPC was requested before skin has finished!");
             }
         }
+
         profile.complete();
         // configure the basic NPC settings
         NPC.Builder builder = NPC.builder();
         builder.profile(profile);
-        builder.imitatePlayer(false);
         builder.lookAtPlayer(this.staring);
         builder.location(location);
+        // apply visibility filtering
+        builder.visible((player -> {
+            // must have logged on to load NPC
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+            if (core_player == null) {
+                return false;
+            }
+            // cannot have completed any blacklist quests
+            for (String id : this.quest_blacklist) {
+                if (core_player.getCompletedQuests().contains(id)) {
+                    return false;
+                }
+            }
+            // must have completed all whitelist quests
+            for (String id : this.quest_whitelist) {
+                if (!core_player.getCompletedQuests().contains(id)) {
+                    return false;
+                }
+            }
+            // npc can be shown
+            return true;
+        }));
         // spawn preparation for the NPC
         builder.spawnCustomizer((npc, player) -> {
             // hide name of the NPC
@@ -261,288 +319,34 @@ public class CoreNPC extends AbstractNode {
     }
 
     /*
-     * Create a cortex menu for 2 traits.
+     * Fetch the first six traits which can be shown on
+     * a cortex menu.
      *
-     * @param player
+     * @return up to six cortex-able traits
      */
-    private void createCortex2(Player player, List<AbstractCoreTrait> traits) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        LanguageManager lpm = RPGCore.inst().getLanguageManager();
+    private List<AbstractCoreTrait> getCortexTraits(CorePlayer core_player) {
+        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
+        traits.removeIf((trait -> !trait.isAvailable(core_player)));
 
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, player);
-        menu.setRebuilder(() -> {
-            menu.clearItems();
+        // 1 trait is just directly used
+        if (traits.size() == 1) {
+            return traits;
+        }
 
-            // build basic background
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_cortex_2"), ChatColor.WHITE);
-
-            // extract traits we are working on
-            AbstractCoreTrait trait1 = traits.get(0);
-            AbstractCoreTrait trait2 = traits.get(1);
-
-            // update menu design
-            msb.shiftToExact(0).append(rpm.texture("cortex_large_" + trait1.getSymbol() + "_0", "cortex_large_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_large_" + trait2.getSymbol() + "_1", "cortex_large_default_1"), ChatColor.WHITE);
-
-            // place clickable items
-            Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)
-                    .forEach(i -> menu.setItemAt(i, trait1.getIcon(0)));
-            Arrays.asList(27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(1)));
-
-            menu.setTitle(msb.compile());
-        });
-        menu.setClickHandler(e -> {
-            e.setCancelled(true);
-            String brand = IChestMenu.getBrand(e.getCurrentItem(), RPGCore.inst(), "cortex-id", null);
-            if (brand != null) {
-                int parsed = Integer.parseInt(brand);
-                menu.stalled(() -> {
-                    menu.getViewer().closeInventory();
-                    this.traits.get(parsed).engage(menu.getViewer());
-                });
+        // other traits are only shown if they got icons
+        List<AbstractCoreTrait> cortexed = new ArrayList<>();
+        for (AbstractCoreTrait trait : this.traits) {
+            if (!trait.getSymbol().equalsIgnoreCase("default")) {
+                cortexed.add(trait);
             }
-        });
-        menu.open();
+        }
+
+        // offer up our traits
+        return cortexed;
     }
 
     /*
-     * Create a cortex menu for 3 traits.
-     *
-     * @param player
-     */
-    private void createCortex3(Player player, List<AbstractCoreTrait> traits) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        LanguageManager lpm = RPGCore.inst().getLanguageManager();
-
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, player);
-        menu.setRebuilder(() -> {
-            menu.clearItems();
-
-            // build basic background
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_cortex_3"), ChatColor.WHITE);
-
-            // extract traits we are working on
-            AbstractCoreTrait trait1 = traits.get(0);
-            AbstractCoreTrait trait2 = traits.get(1);
-            AbstractCoreTrait trait3 = traits.get(2);
-
-            // update menu design
-            msb.shiftToExact(0).append(rpm.texture("cortex_large_" + trait1.getSymbol() + "_0", "cortex_large_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_medium_" + trait2.getSymbol() + "_1", "cortex_medium_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_medium_" + trait3.getSymbol() + "_1", "cortex_medium_default_1"), ChatColor.WHITE);
-
-            // place clickable items
-            Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)
-                    .forEach(i -> menu.setItemAt(i, trait1.getIcon(0)));
-            Arrays.asList(27, 28, 29, 30, 36, 37, 38, 39, 45, 46, 47, 48)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(1)));
-            Arrays.asList(32, 33, 34, 35, 41, 42, 43, 44, 50, 51, 52, 53)
-                    .forEach(i -> menu.setItemAt(i, trait3.getIcon(2)));
-
-            menu.setTitle(msb.compile());
-        });
-        menu.setClickHandler(e -> {
-            e.setCancelled(true);
-            String brand = IChestMenu.getBrand(e.getCurrentItem(), RPGCore.inst(), "cortex-id", null);
-            if (brand != null) {
-                int parsed = Integer.parseInt(brand);
-                menu.stalled(() -> {
-                    menu.getViewer().closeInventory();
-                    this.traits.get(parsed).engage(menu.getViewer());
-                });
-            }
-        });
-        menu.open();
-    }
-
-    /*
-     * Create a cortex menu for 4 traits.
-     *
-     * @param player
-     */
-    private void createCortex4(Player player, List<AbstractCoreTrait> traits) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        LanguageManager lpm = RPGCore.inst().getLanguageManager();
-
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, player);
-        menu.setRebuilder(() -> {
-            menu.clearItems();
-
-            // build basic background
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_cortex_4"), ChatColor.WHITE);
-
-            // extract traits we are working on
-            AbstractCoreTrait trait1 = traits.get(0);
-            AbstractCoreTrait trait2 = traits.get(1);
-            AbstractCoreTrait trait3 = traits.get(2);
-            AbstractCoreTrait trait4 = traits.get(3);
-
-            // update menu design
-            msb.shiftToExact(0).append(rpm.texture("cortex_medium_" + trait1.getSymbol() + "_0", "cortex_medium_default_ß"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_medium_" + trait2.getSymbol() + "_0", "cortex_medium_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_medium_" + trait3.getSymbol() + "_1", "cortex_medium_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_medium_" + trait4.getSymbol() + "_1", "cortex_medium_default_1"), ChatColor.WHITE);
-
-            // place clickable items
-            Arrays.asList(0, 1, 2, 3, 9, 10, 11, 12, 18, 19, 20, 21)
-                    .forEach(i -> menu.setItemAt(i, trait1.getIcon(0)));
-            Arrays.asList(5, 6, 7, 8, 14, 15, 16, 17, 23, 24, 25, 26)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(1)));
-            Arrays.asList(27, 28, 29, 30, 36, 37, 38, 39, 45, 46, 47, 48)
-                    .forEach(i -> menu.setItemAt(i, trait3.getIcon(2)));
-            Arrays.asList(32, 33, 34, 35, 41, 42, 43, 44, 50, 51, 52, 53)
-                    .forEach(i -> menu.setItemAt(i, trait4.getIcon(3)));
-
-            menu.setTitle(msb.compile());
-        });
-        menu.setClickHandler(e -> {
-            e.setCancelled(true);
-            String brand = IChestMenu.getBrand(e.getCurrentItem(), RPGCore.inst(), "cortex-id", null);
-            if (brand != null) {
-                int parsed = Integer.parseInt(brand);
-                menu.stalled(() -> {
-                    menu.getViewer().closeInventory();
-                    this.traits.get(parsed).engage(menu.getViewer());
-                });
-            }
-        });
-        menu.open();
-    }
-
-    /*
-     * Create a cortex menu for 5 traits.
-     *
-     * @param player
-     */
-    private void createCortex5(Player player, List<AbstractCoreTrait> traits) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        LanguageManager lpm = RPGCore.inst().getLanguageManager();
-
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, player);
-        menu.setRebuilder(() -> {
-            menu.clearItems();
-
-            // build basic background
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_cortex_5"), ChatColor.WHITE);
-
-            // extract traits we are working on
-            AbstractCoreTrait trait1 = traits.get(0);
-            AbstractCoreTrait trait2 = traits.get(1);
-            AbstractCoreTrait trait3 = traits.get(2);
-            AbstractCoreTrait trait4 = traits.get(3);
-            AbstractCoreTrait trait5 = traits.get(4);
-
-            // update menu design
-            msb.shiftToExact(0).append(rpm.texture("cortex_medium_" + trait1.getSymbol() + "_0", "cortex_medium_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_medium_" + trait2.getSymbol() + "_1", "cortex_medium_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait3.getSymbol() + "_0", "cortex_small_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait4.getSymbol() + "_1", "cortex_small_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait5.getSymbol() + "_2", "cortex_small_default_2"), ChatColor.WHITE);
-
-            // place clickable items
-            Arrays.asList(0, 1, 2, 3, 9, 10, 11, 12, 18, 19, 20, 21)
-                    .forEach(i -> menu.setItemAt(i, trait1.getIcon(0)));
-            Arrays.asList(27, 28, 29, 30, 36, 37, 38, 39, 45, 46, 47, 48)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(1)));
-            Arrays.asList(5, 6, 7, 8, 14, 15, 16, 17)
-                    .forEach(i -> menu.setItemAt(i, trait3.getIcon(2)));
-            Arrays.asList(23, 24, 25, 26, 32, 33, 34, 35)
-                    .forEach(i -> menu.setItemAt(i, trait4.getIcon(3)));
-            Arrays.asList(41, 42, 43, 44, 50, 51, 52, 53)
-                    .forEach(i -> menu.setItemAt(i, trait5.getIcon(4)));
-
-            menu.setTitle(msb.compile());
-        });
-        menu.setClickHandler(e -> {
-            e.setCancelled(true);
-            String brand = IChestMenu.getBrand(e.getCurrentItem(), RPGCore.inst(), "cortex-id", null);
-            if (brand != null) {
-                int parsed = Integer.parseInt(brand);
-                menu.stalled(() -> {
-                    menu.getViewer().closeInventory();
-                    this.traits.get(parsed).engage(menu.getViewer());
-                });
-            }
-        });
-        menu.open();
-    }
-
-    /*
-     * Create a cortex menu for 6 traits.
-     *
-     * @param player
-     */
-    private void createCortex6(Player player, List<AbstractCoreTrait> traits) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        LanguageManager lpm = RPGCore.inst().getLanguageManager();
-
-        IChestMenu menu = RPGCore.inst().getVolatileManager().createMenu(6, player);
-        menu.setRebuilder(() -> {
-            menu.clearItems();
-
-            // build basic background
-            MagicStringBuilder msb = new MagicStringBuilder();
-            msb.retreat(8);
-            msb.append(rpm.texture("menu_cortex_6"), ChatColor.WHITE);
-
-            // extract traits we are working on
-            AbstractCoreTrait trait1 = traits.get(0);
-            AbstractCoreTrait trait2 = traits.get(1);
-            AbstractCoreTrait trait3 = traits.get(2);
-            AbstractCoreTrait trait4 = traits.get(3);
-            AbstractCoreTrait trait5 = traits.get(4);
-            AbstractCoreTrait trait6 = traits.get(5);
-
-            // update menu design
-            msb.shiftToExact(0).append(rpm.texture("cortex_small_" + trait1.getSymbol() + "_0", "cortex_small_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_small_" + trait2.getSymbol() + "_1", "cortex_small_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(0).append(rpm.texture("cortex_small_" + trait3.getSymbol() + "_2", "cortex_small_default_2"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait4.getSymbol() + "_0", "cortex_small_default_0"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait5.getSymbol() + "_1", "cortex_small_default_1"), ChatColor.WHITE);
-            msb.shiftToExact(81).append(rpm.texture("cortex_small_" + trait6.getSymbol() + "_2", "cortex_small_default_2"), ChatColor.WHITE);
-
-            // place clickable items
-            Arrays.asList(0, 1, 2, 3, 9, 10, 11, 12)
-                    .forEach(i -> menu.setItemAt(i, trait1.getIcon(0)));
-            Arrays.asList(18, 19, 20, 21, 27, 28, 29, 30)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(1)));
-            Arrays.asList(36, 37, 38, 39, 45, 46, 47, 48)
-                    .forEach(i -> menu.setItemAt(i, trait2.getIcon(2)));
-            Arrays.asList(5, 6, 7, 8, 14, 15, 16, 17)
-                    .forEach(i -> menu.setItemAt(i, trait3.getIcon(3)));
-            Arrays.asList(23, 24, 25, 26, 32, 33, 34, 35)
-                    .forEach(i -> menu.setItemAt(i, trait4.getIcon(4)));
-            Arrays.asList(41, 42, 43, 44, 50, 51, 52, 53)
-                    .forEach(i -> menu.setItemAt(i, trait5.getIcon(5)));
-
-            menu.setTitle(msb.compile());
-        });
-        menu.setClickHandler(e -> {
-            e.setCancelled(true);
-            String brand = IChestMenu.getBrand(e.getCurrentItem(), RPGCore.inst(), "cortex-id", null);
-            if (brand != null) {
-                int parsed = Integer.parseInt(brand);
-                menu.stalled(() -> {
-                    menu.getViewer().closeInventory();
-                    this.traits.get(parsed).engage(menu.getViewer());
-                });
-            }
-        });
-        menu.open();
-    }
-
-
-    /*
-     * Data used to track a spawned NPC
+     * A wrapper to help us keep track of NPC spawns.
      */
     private class NodeDataSpawnerNPC extends NodeData {
 

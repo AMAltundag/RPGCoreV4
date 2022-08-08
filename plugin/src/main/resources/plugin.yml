@@ -11,6 +11,7 @@ libraries:
 - "com.dropbox.core:dropbox-core-sdk:5.2.0"
 - "net.objecthunter:exp4j:0.4.8"
 - "org.mongodb:mongo-java-driver:3.12.7"
+- "org.jsoup:jsoup:1.15.2"
 softdepend: [ProtocolLib, WorldGuard, ModelEngine, BeautyQuests, AccountsPlugin, Citizens]
 
 commands:

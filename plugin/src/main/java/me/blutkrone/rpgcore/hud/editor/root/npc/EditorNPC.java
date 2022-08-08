@@ -10,6 +10,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.TraitConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ItemConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.QuestConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.npc.CoreNPC;
@@ -41,6 +42,20 @@ public class EditorNPC implements IEditorRoot<CoreNPC> {
     @EditorBoolean(name = "Staring")
     @EditorTooltip(tooltip = {"Stares at the player"})
     public boolean staring = false;
+    @EditorList(name = "Required", constraint = QuestConstraint.class)
+    @EditorTooltip(tooltip = {
+            "All quest IDs must have been completed.",
+            "Will hide and disable NPC for a player.",
+            "&cThis does NOT affect admin players!"
+    })
+    public List<String> quest_required = new ArrayList<>();
+    @EditorList(name = "Forbidden", constraint = QuestConstraint.class)
+    @EditorTooltip(tooltip = {
+            "No quest of this ID can be completed.",
+            "Will hide and disable NPC for a player.",
+            "&cThis does NOT affect admin players!"
+    })
+    public List<String> quest_forbidden = new ArrayList<>();
 
     @EditorCategory(icon = Material.IRON_CHESTPLATE, info = "Equipment")
     @EditorWrite(name = "Helmet", constraint = ItemConstraint.class)

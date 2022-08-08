@@ -34,6 +34,7 @@ import me.blutkrone.rpgcore.node.NodeManager;
 import me.blutkrone.rpgcore.npc.NPCManager;
 import me.blutkrone.rpgcore.party.PartyManager;
 import me.blutkrone.rpgcore.passive.PassiveManager;
+import me.blutkrone.rpgcore.quest.QuestManager;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.skin.SkinPool;
@@ -82,6 +83,7 @@ public final class RPGCore extends JavaPlugin {
     private MailManager mail_manager;
     private SkillManager skill_manager;
     private IPartyManager party_manager;
+    private QuestManager quest_manager;
     // Managers providing high-level functionality for the server
     private MobManager monster_manager;
     private MountManager mount_manager;
@@ -167,6 +169,7 @@ public final class RPGCore extends JavaPlugin {
         this.effect_manager = new EffectManager();
         this.node_manager = new NodeManager();
         this.npc_manager = new NPCManager();
+        this.quest_manager = new QuestManager();
 
         this.mail_manager = new MailManager();
         this.hud_manager = new HUDManager();
@@ -185,6 +188,7 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("logout", new LogoutCommand());
         this.commands.put("debug", new DebugCommand());
         this.commands.put("tool", new ToolCommand());
+        this.commands.put("reload", new ReloadCommand());
         this.commands.put("help", new HelpCommand());
 
         // task to update the timestamp
@@ -364,5 +368,9 @@ public final class RPGCore extends JavaPlugin {
 
     public NPCManager getNPCManager() {
         return npc_manager;
+    }
+
+    public QuestManager getQuestManager() {
+        return quest_manager;
     }
 }

@@ -9,7 +9,6 @@ import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -156,7 +155,6 @@ public class CoreRefinerRecipe {
 
         // nothing in case no items could be discovered
         if (items.isEmpty()) {
-            Bukkit.getLogger().severe(this.getId() + " has no possible reward!");
             return null;
         }
 

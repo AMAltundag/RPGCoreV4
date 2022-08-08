@@ -69,9 +69,12 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("job", RPGCore.inst().getJobManager().getIndex());
             this.indexes.put("skill", RPGCore.inst().getSkillManager().getIndex());
             this.indexes.put("collectible", RPGCore.inst().getNodeManager().getIndexCollectible());
+            this.indexes.put("hotspot", RPGCore.inst().getNodeManager().getIndexHotspot());
             this.indexes.put("spawner", RPGCore.inst().getNodeManager().getIndexSpawner());
             this.indexes.put("box", RPGCore.inst().getNodeManager().getIndexBox());
             this.indexes.put("npc", RPGCore.inst().getNPCManager().getIndex());
+            this.indexes.put("quest", RPGCore.inst().getQuestManager().getIndexQuest());
+            this.indexes.put("dialogue", RPGCore.inst().getQuestManager().getIndexDialogue());
         }
 
         return this.indexes;

@@ -48,6 +48,8 @@ public class HUDManager implements Listener {
     private RefinerMenu refiner_menu;
     private CrafterMenu crafter_menu;
     private VendorMenu vendor_menu;
+    private DialogueMenu dialogue_menu;
+    private QuestMenu quest_menu;
 
     public HUDManager() {
         // load the appropriate UX components
@@ -70,6 +72,8 @@ public class HUDManager implements Listener {
             this.refiner_menu = new RefinerMenu();
             this.crafter_menu = new CrafterMenu();
             this.vendor_menu = new VendorMenu();
+            this.dialogue_menu = new DialogueMenu();
+            this.quest_menu = new QuestMenu();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -157,6 +161,14 @@ public class HUDManager implements Listener {
 
     public VendorMenu getVendorMenu() {
         return vendor_menu;
+    }
+
+    public DialogueMenu getDialogueMenu() {
+        return dialogue_menu;
+    }
+
+    public QuestMenu getQuestMenu() {
+        return quest_menu;
     }
 
     /**

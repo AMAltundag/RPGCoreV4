@@ -23,19 +23,31 @@ public class LanguageManager {
     private Map<String, List<String>> translation = new HashMap<>();
 
     public LanguageManager() {
+        reload(); // initial loading of all translations
+    }
+
+    /**
+     * Flushes all translations and loads them from the disk.
+     */
+    public void reload() {
+        this.translation.clear();
+
         try {
             for (File file : FileUtil.buildAllFiles(FileUtil.directory("language"))) {
-                ConfigWrapper config = FileUtil.asConfigYML(file);
+                try {
+                    ConfigWrapper config = FileUtil.asConfigYML(file);
 
-
-                // read all language patterns from the files
-                config.forEachWithSelf((key, root) -> {
-                    if (root.isList(key)) {
-                        this.translation.put(key.toLowerCase(), root.getStringList(key));
-                    } else {
-                        this.translation.put(key.toLowerCase(), Lists.newArrayList(root.getString(key, "undefined")));
-                    }
-                });
+                    // read all language patterns from the files
+                    config.forEachWithSelf((key, root) -> {
+                        if (root.isList(key)) {
+                            this.translation.put(key.toLowerCase(), root.getStringList(key));
+                        } else {
+                            this.translation.put(key.toLowerCase(), Lists.newArrayList(root.getString(key, "undefined")));
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             // resolve color rules on all translations

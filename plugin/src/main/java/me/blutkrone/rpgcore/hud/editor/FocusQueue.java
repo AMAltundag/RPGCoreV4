@@ -150,6 +150,11 @@ public class FocusQueue {
         public IEditorBundle getBundle() {
             return bundle;
         }
+
+        @Override
+        public String toString() {
+            return String.format("BaserFocus{clazz=%s}", bundle.getClass());
+        }
     }
 
     /**
@@ -171,6 +176,11 @@ public class FocusQueue {
         public String getId() {
             return id;
         }
+
+        @Override
+        public String toString() {
+            return String.format("RootFocus{id=%s;clazz=%s}", id, bundle.getClass());
+        }
     }
 
     /**
@@ -183,6 +193,11 @@ public class FocusQueue {
         ListFocus(IEditorBundle bundle, DesignList list) {
             super(bundle);
             this.list = list;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("ListFocus{size=%s}", size());
         }
 
         /**

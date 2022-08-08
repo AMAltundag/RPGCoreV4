@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorColor;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
@@ -37,7 +38,7 @@ public class DesignColor implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor) {
+    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
         // close previous menu
         viewer.closeInventory();
         // fetch resourcepack manager
@@ -89,7 +90,7 @@ public class DesignColor implements IDesignFieldEditor {
         });
         // prepare default color setup
         MagicStringBuilder msb = new MagicStringBuilder();
-        msb.shiftToExact(-60).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
+        msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
         msb.shiftToExact(-45).append(this.getName(), "text_menu_title");
         input.setTitle(msb.compile());
         // focus on this element

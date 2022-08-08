@@ -18,6 +18,7 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -109,6 +111,12 @@ public class ResourcePackManager implements Listener {
             = FileUtil.directory("resourcepack/generated/scroller");
     private static final File INPUT_CURRENCY
             = FileUtil.directory("resourcepack/generated/currency");
+    private static final File INPUT_DIALOGUE
+            = FileUtil.directory("resourcepack/generated/dialogue");
+    private static final File INPUT_SELFIE
+            = FileUtil.directory("resourcepack/generated/selfie");
+    private static final File INPUT_QUEST
+            = FileUtil.directory("resourcepack/generated/quest");
 
     private static final File OUTPUT_FONT
             = FileUtil.directory("resourcepack/working/assets/minecraft/textures/font");
@@ -137,6 +145,10 @@ public class ResourcePackManager implements Listener {
     // index of all font-textures we got
     private Map<String, IndexedTexture.ConfigTexture> indexed_fonts = new HashMap<>();
     private Map<String, Double> indexed_parameter = new HashMap<>();
+    // base-line for symbol size tracking
+    private Map<Character, Integer> chars_measurement = null;
+    // cache of frequent requests
+    private Map<String, Integer> measure_cache = new ConcurrentHashMap<>();
 
     public ResourcePackManager() {
         // basic configuration for the RP manager
@@ -184,6 +196,9 @@ public class ResourcePackManager implements Listener {
             compile((file -> {
             }));
         }
+
+        // wipe cache once per 5 minutes
+        Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> this.measure_cache.clear(), 1, 6000);
     }
 
     /*
@@ -195,6 +210,48 @@ public class ResourcePackManager implements Listener {
         g.drawImage(bi, 0, 0, null);
         g.dispose();
         return b;
+    }
+
+    /**
+     * Measure basic text, this will <b>NOT</b> accommodate
+     *
+     * @param text the base text to translate
+     * @return the resulting length
+     */
+    public int measure(String text) {
+        // build the character measurement table
+        if (this.chars_measurement == null) {
+            Map<Character, Integer> computed = new HashMap<>();
+            this.indexed_parameter.forEach((key, value) -> {
+                if (key.startsWith("char_length_")) {
+                    char c = (char) Integer.parseInt(key.substring(12));
+                    computed.put(c, value.intValue());
+                }
+            });
+            this.chars_measurement = computed;
+            this.measure_cache = new ConcurrentHashMap<>();
+        }
+        // fetch from cache if applicable
+        text = ChatColor.translateAlternateColorCodes('&', text);
+        return measure_cache.computeIfAbsent(text, (string -> {
+            // measure the text within our specifics
+            int messagePxSize = 0;
+            boolean previousCode = false;
+            boolean isBold = false;
+            for (char c : string.toCharArray()) {
+                if (c == '§') {
+                    previousCode = true;
+                } else if (previousCode) {
+                    previousCode = false;
+                    isBold = c == 'l' || c == 'L';
+                } else {
+                    messagePxSize += this.chars_measurement.getOrDefault(c, 0) + ((isBold && c == ' ') ? 1 : 0);
+                    messagePxSize++;
+                }
+            }
+
+            return messagePxSize;
+        }));
     }
 
     /**
@@ -253,6 +310,14 @@ public class ResourcePackManager implements Listener {
             FileUtils.copyDirectory(TEMPLATE, WORKSPACE_WORKING);
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Preparing the working space in %sms", clock.loop()));
+        });
+        worker.add(true, () -> {
+            // reset the clock used to measure time
+            clock.loop();
+            TextGenerator.measurement(INPUT_TEXT).forEach((c, len) -> {
+                indexed_parameter.put("char_length_" + ((int) c), 0d + len);
+            });            // Notify about what've done
+            Bukkit.getLogger().info(String.format("Processed font measurements in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -360,82 +425,11 @@ public class ResourcePackManager implements Listener {
         worker.add(true, () -> {
             // reset the clock used to measure time
             clock.loop();
-            // on-the-fly computing for context-bound text
-            for (int i = 0; i < 5; i++) {
-                int displacement = rules.party_offset - (rules.party_distance * i) - rules.party_name_offset;
-                rules.text_offset.put("hud_party_name_" + (i + 1), displacement);
-                rules.text_opacity.put("hud_party_name_" + (i + 1), 1d);
-                rules.text_offset.put("hud_party_name_" + (i + 1) + "_shadow", displacement - 1);
-                rules.text_opacity.put("hud_party_name_" + (i + 1) + "_shadow", 1d);
-            }
             // prepare the respective font rendering pages
-            for (Map.Entry<String, Integer> font_data : rules.text_offset.entrySet()) {
-                String identifier = "generated_text_" + font_data.getKey();
-                double opacity = rules.text_opacity.get(font_data.getKey());
-                // buffer direct font based overrides received
-                File[] overrides = FileUtil.buildAllFiles(INPUT_TEXT);
-                for (File font_file : overrides) {
-                    // construct the offset font entry
-                    BufferedImage shifted_font = TextGenerator.construct(font_file, font_data.getValue(), opacity);
-                    ImageIO.write(shifted_font, "png", FileUtil.file(OUTPUT_FONT, identifier + ".png"));
-                    // construct the json index
-                    int start = 256 * Integer.parseInt(font_file.getName().substring(0, font_file.getName().length() - 4));
-                    List<String> addressed = new ArrayList<>();
-                    for (int i = 0; i < 16; i++) {
-                        StringBuilder builder = new StringBuilder();
-                        for (int j = 0; j < 16; j++)
-                            builder.append((char) (start + j + (i * 16)));
-                        addressed.add(builder.toString());
-                    }
-                    // track it in our generated character table
-                    List<ResourcePackFont> font = fonts.computeIfAbsent(identifier, (k -> {
-                        List<ResourcePackFont> generated = new ArrayList<>();
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -3, Collections.singletonList("\uF801")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -4, Collections.singletonList("\uF802")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -5, Collections.singletonList("\uF803")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -6, Collections.singletonList("\uF804")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -7, Collections.singletonList("\uF805")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -8, Collections.singletonList("\uF806")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -9, Collections.singletonList("\uF807")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -10, Collections.singletonList("\uF808")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -18, Collections.singletonList("\uF809")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -34, Collections.singletonList("\uF80a")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -66, Collections.singletonList("\uF80b")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -130, Collections.singletonList("\uF80c")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -258, Collections.singletonList("\uF80d")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -514, Collections.singletonList("\uF80e")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -1026, Collections.singletonList("\uF80f")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -0, Collections.singletonList("\uF821")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 1, Collections.singletonList("\uF821")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 2, Collections.singletonList("\uF822")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 3, Collections.singletonList("\uF823")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 3, Collections.singletonList("\uF824")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 4, Collections.singletonList("\uF825")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 5, Collections.singletonList("\uF826")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 6, Collections.singletonList("\uF827")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 7, Collections.singletonList("\uF828")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 15, Collections.singletonList("\uF829")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 31, Collections.singletonList("\uF82a")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 63, Collections.singletonList("\uF82b")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 127, Collections.singletonList("\uF82c")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 255, Collections.singletonList("\uF82d")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 511, Collections.singletonList("\uF82e")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 1023, Collections.singletonList("\uF82f")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32770, -32770, Collections.singletonList("\uF800")));
-                        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 32767, Collections.singletonList("\uF820")));
-                        return generated;
-                    }));
-                    if (font_data.getValue() <= 0) {
-                        // lowering can just be done with ascent
-                        font.add(new ResourcePackFont("bitmap", "minecraft:font/" + identifier + ".png",
-                                font_data.getValue(), shifted_font.getHeight() / 16, addressed));
-                    } else {
-                        // increasing was done by the graphic being bumped
-                        font.add(new ResourcePackFont("bitmap", "minecraft:font/" + identifier + ".png",
-                                (shifted_font.getHeight() / 16) - 8, shifted_font.getHeight() / 16, addressed));
-                    }
-                }
-            }
+            TextGenerator.construct(INPUT_TEXT, rules.text_offset, rules.text_opacity, OUTPUT_FONT)
+                    .forEach((id, list) -> {
+                        fonts.computeIfAbsent(id, (k -> new ArrayList<>())).addAll(list);
+                    });
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -619,7 +613,7 @@ public class ResourcePackManager implements Listener {
             // generate job portraits
             StaticGenerator.PooledSymbolSpace portrait_symbol_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_PORTRAIT)) {
-                indexed_fonts.putAll(StaticGenerator.construct(file, "job_portrait", "job_portrait", rules.portrait_offset, portrait_symbol_space));
+                indexed_fonts.putAll(StaticGenerator.construct(file, "portrait", "portrait", rules.portrait_offset, portrait_symbol_space));
             }
             Bukkit.getLogger().info(String.format("Generated 'portrait' font textures in %sms", clock.loop()));
             // generate frame wrappers
@@ -642,6 +636,22 @@ public class ResourcePackManager implements Listener {
             // textures used by currencies
             indexed_fonts.putAll(CurrencyGenerator.construct(INPUT_CURRENCY));
             Bukkit.getLogger().info(String.format("Generated 'currency' font textures in %sms", clock.loop()));
+            // textures used by dialogue
+            indexed_fonts.putAll(DialogueGenerator.construct(INPUT_DIALOGUE));
+            Bukkit.getLogger().info(String.format("Generated 'dialogue' font textures in %sms", clock.loop()));
+            // textures used by dialogue
+            StaticGenerator.PooledSymbolSpace selfie_symbol_space = new StaticGenerator.PooledSymbolSpace();
+            for (File file : FileUtil.buildAllFiles(INPUT_SELFIE)) {
+                indexed_fonts.putAll(StaticGenerator.construct(file, "dialogue_selfie", "selfie", MenuGenerator.MENU_VERTICAL_OFFSET, selfie_symbol_space));
+            }
+
+            Bukkit.getLogger().info(String.format("Generated 'selfie' font textures in %sms", clock.loop()));
+            // textures used by quests
+            StaticGenerator.PooledSymbolSpace quest_symbol_space = new StaticGenerator.PooledSymbolSpace();
+            for (File file : FileUtil.buildAllFiles(INPUT_QUEST)) {
+                indexed_fonts.putAll(StaticGenerator.construct(file, "quest_icon", "quest_icon", rules.quest_offset, quest_symbol_space));
+            }
+            Bukkit.getLogger().info(String.format("Generated 'quest' font textures in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -731,53 +741,6 @@ public class ResourcePackManager implements Listener {
             }
 
             Bukkit.getLogger().info(String.format("Built %s font textures in %sms", indexed_fonts.size(), clock.loop()));
-        });
-        worker.add(true, () -> {
-            // reset the clock used to measure time
-            clock.loop();
-            // already processed data should be offered now
-            indexed_fonts.putAll(self_indexed);
-            // allow the server to access the new index
-            this.indexed_fonts = new HashMap<>();
-            indexed_fonts.forEach((k, v) -> this.indexed_fonts.put(k, new IndexedTexture.ConfigTexture(v)));
-            this.indexed_parameter = indexed_parameter;
-            try {
-                // create index files if they do not exist
-                ResourcePackManager.INDEX_TEXTURE.getParentFile().mkdirs();
-                ResourcePackManager.INDEX_TEXTURE.createNewFile();
-
-                // track relevant persistence information
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                BukkitObjectOutputStream boos = new BukkitObjectOutputStream(stream);
-                // track data of the individual symbols we got
-                boos.writeInt(this.indexed_fonts.size());
-                this.indexed_fonts.forEach((id, value) -> {
-                    try {
-                        boos.writeUTF(id);
-                        boos.writeUTF(value.symbol);
-                        boos.writeUTF(value.table);
-                        boos.writeInt(value.width);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-                // track data of the parameters we have got
-                boos.writeInt(this.indexed_parameter.size());
-                this.indexed_parameter.forEach((id, value) -> {
-                    try {
-                        boos.writeUTF(id);
-                        boos.writeDouble(value);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-                boos.close();
-                FileUtils.writeByteArrayToFile(ResourcePackManager.INDEX_TEXTURE, stream.toByteArray());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // Notify about what've done
-            Bukkit.getLogger().info(String.format("Building font index in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -883,6 +846,52 @@ public class ResourcePackManager implements Listener {
         worker.add(true, () -> {
             // reset the clock used to measure time
             clock.loop();
+            // already processed data should be offered now
+            indexed_fonts.putAll(self_indexed);
+            // allow the server to access the new index
+            this.indexed_fonts = new HashMap<>();
+            indexed_fonts.forEach((k, v) -> this.indexed_fonts.put(k, new IndexedTexture.ConfigTexture(v)));
+            this.indexed_parameter = indexed_parameter;
+            try {
+                // create index files if they do not exist
+                ResourcePackManager.INDEX_TEXTURE.getParentFile().mkdirs();
+                ResourcePackManager.INDEX_TEXTURE.createNewFile();
+                // track relevant persistence information
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                BukkitObjectOutputStream boos = new BukkitObjectOutputStream(stream);
+                // track data of the individual symbols we got
+                boos.writeInt(this.indexed_fonts.size());
+                this.indexed_fonts.forEach((id, value) -> {
+                    try {
+                        boos.writeUTF(id);
+                        boos.writeUTF(value.symbol);
+                        boos.writeUTF(value.table);
+                        boos.writeInt(value.width);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                // track data of the parameters we have got
+                boos.writeInt(this.indexed_parameter.size());
+                this.indexed_parameter.forEach((id, value) -> {
+                    try {
+                        boos.writeUTF(id);
+                        boos.writeDouble(value);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                boos.close();
+                FileUtils.writeByteArrayToFile(ResourcePackManager.INDEX_TEXTURE, stream.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // Notify about what've done
+            Bukkit.getLogger().info(String.format("Building font index in %sms", clock.loop()));
+        });
+        worker.add(true, () -> {
+            // reset the clock used to measure time
+            clock.loop();
             // initialize the zipping task
             ZipFile zip_file = new ZipFile(OUTPUT_RESULT);
             // accumulate to zipping operation
@@ -922,6 +931,7 @@ public class ResourcePackManager implements Listener {
         worker.add(false, () -> {
             callback.accept(OUTPUT_RESULT);
             compiling = false;
+            chars_measurement = null;
         });
 
         worker.work();
@@ -1063,5 +1073,4 @@ public class ResourcePackManager implements Listener {
             event.getPlayer().sendMessage(RPGCore.inst().getLanguageManager().getTranslation("accepted_resourcepack"));
         }
     }
-
 }

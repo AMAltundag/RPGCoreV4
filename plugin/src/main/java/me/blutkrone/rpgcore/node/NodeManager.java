@@ -1,15 +1,17 @@
 package me.blutkrone.rpgcore.node;
 
-import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
 import com.google.gson.stream.JsonReader;
+import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.impl.ToolCommand;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeBox;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
+import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeHotspot;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.node.impl.CoreNodeBox;
 import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
+import me.blutkrone.rpgcore.node.impl.CoreNodeHotspot;
 import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
@@ -44,12 +46,14 @@ public class NodeManager implements Listener {
     private EditorIndex<CoreNodeBox, EditorNodeBox> index_box;
     private EditorIndex<CoreNodeSpawner, EditorNodeSpawner> index_spawner;
     private EditorIndex<CoreNodeCollectible, EditorNodeCollectible> index_collectible;
+    private EditorIndex<CoreNodeHotspot, EditorNodeHotspot> index_hotspot;
 
     public NodeManager() {
         // load all indexes in the world
         this.index_box = new EditorIndex<>("box", EditorNodeBox.class, EditorNodeBox::new);
         this.index_spawner = new EditorIndex<>("spawner", EditorNodeSpawner.class, EditorNodeSpawner::new);
         this.index_collectible = new EditorIndex<>("collectible", EditorNodeCollectible.class, EditorNodeCollectible::new);
+        this.index_hotspot = new EditorIndex<>("hotspot", EditorNodeHotspot.class, EditorNodeHotspot::new);
 
         // load all nodes which we got in memory (including of unloaded worlds.)
         try {
@@ -133,6 +137,15 @@ public class NodeManager implements Listener {
         return index_spawner;
     }
 
+    /**
+     * An index for nodes for quest progress
+     *
+     * @return an index to configure
+     */
+    public EditorIndex<CoreNodeHotspot, EditorNodeHotspot> getIndexHotspot() {
+        return index_hotspot;
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     void onCreateNodeWithTool(PlayerInteractEvent e) {
         // only admins can create a node
@@ -198,7 +211,7 @@ public class NodeManager implements Listener {
         // delegate the interaction of the node if we got one
         CoreNPC design = RPGCore.inst().getNPCManager().getDesign(e.getNPC());
         if (design != null) {
-            design.interact(e);
+            design.showCortex(e.getPlayer(), true);
         }
     }
 

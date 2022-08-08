@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
+import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
 import me.blutkrone.rpgcore.skill.behaviour.CorePattern;
 import me.blutkrone.rpgcore.skill.cost.CoreCost;
@@ -46,8 +47,9 @@ public class CoreSkill {
                 .getTranslation(editor.lc_name);
         this.item = RPGCore.inst().getLanguageManager()
                 .getAsItem(editor.lc_item)
-                .persist("skill-id", this.id)
                 .build();
+        IChestMenu.setBrand(this.item, RPGCore.inst(), "skill-id", id);
+
         this.binding = new SkillBindCast() {{
             this.skill = CoreSkill.this;
             this.icon = new CoreModifierString(editor.binding);

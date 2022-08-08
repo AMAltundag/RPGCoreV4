@@ -16,9 +16,9 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="9">
-      <module name="rpgcore-api" target="1.9" />
-      <module name="rpgcore-nms-1_18_R2" target="1.9" />
-      <module name="rpgcore-parent" target="1.9" />
+      <module name="rpgcore-api" target="1.8" />
+      <module name="rpgcore-nms-1_18_R2" target="1.8" />
+      <module name="rpgcore-parent" target="1.8" />
       <module name="rpgcore-plugin" target="1.8" />
     </bytecodeTargetLevel>
   </component>

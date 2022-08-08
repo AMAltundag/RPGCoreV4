@@ -25,7 +25,7 @@ public class LootConstraint extends AbstractMonoConstraint {
         Map<String, Double> merged = new HashMap<>();
         for (Object o : list) {
             EditorLoot eac = (EditorLoot) o;
-            merged.merge(eac.tag, eac.weight, (a, b) -> a + b);
+            merged.merge(eac.tag.toLowerCase(), eac.weight, (a, b) -> a + b);
         }
         List<String> output = new ArrayList<>();
         merged.forEach((k, v) -> {

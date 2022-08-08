@@ -27,6 +27,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -239,6 +240,12 @@ public class ItemManager implements Listener {
 
         try {
             this.describer.describe(item);
+
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.addItemFlags(ItemFlag.values());
+            }
+            item.setItemMeta(meta);
         } catch (Exception e) {
             Bukkit.getLogger().severe("Something went wrong while describing an item ...");
         }

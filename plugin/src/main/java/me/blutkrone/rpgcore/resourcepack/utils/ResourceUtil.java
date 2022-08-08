@@ -48,20 +48,21 @@ public class ResourceUtil {
      *
      * @param input  the texture for a specific font
      * @param bottom how much spacing from below
+     * @param height height of each symbol
      * @return the updated texture
      */
-    public static BufferedImage fontCopyPaddedBottom(BufferedImage input, int bottom, double opacity) {
-        BufferedImage out_texture = new BufferedImage(128, (8 + bottom) * 16, BufferedImage.TYPE_INT_ARGB);
+    public static BufferedImage fontCopyPaddedBottom(BufferedImage input, int bottom, double opacity, int height, int width) {
+        BufferedImage out_texture = new BufferedImage(16*width, (height + bottom) * (input.getHeight()/height), BufferedImage.TYPE_INT_ARGB);
 
         for (int charX = 0; charX < 16; charX++) {
-            for (int charY = 0; charY < 16; charY++) {
+            for (int charY = 0; charY < input.getHeight()/height; charY++) {
                 // starting point to draw from
-                int pixelStartX = charX * 8;
-                int pixelStartY = charY * (8 + bottom);
+                int pixelStartX = charX * width;
+                int pixelStartY = charY * (height + bottom);
                 // copy the raw texture
-                for (int pixelX = 0; pixelX < 8; pixelX++) {
-                    for (int pixelY = 0; pixelY < 8; pixelY++) {
-                        int raw = input.getRGB(charX * 8 + pixelX, charY * 8 + pixelY);
+                for (int pixelX = 0; pixelX < width; pixelX++) {
+                    for (int pixelY = 0; pixelY < height; pixelY++) {
+                        int raw = input.getRGB(charX * width + pixelX, charY * height + pixelY);
                         if ((raw & 0xFF000000) != 0) {
                             raw = raw & 0xFFFFFF | ((int) (255 * opacity) << 24);
                         }

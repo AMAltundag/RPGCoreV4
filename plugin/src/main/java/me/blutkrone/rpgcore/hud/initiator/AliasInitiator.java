@@ -43,7 +43,7 @@ public class AliasInitiator implements IRosterInitiator {
             input.setItemAt(0, ItemBuilder.of(this.input_icon.clone()).name("§f" + current).build());
 
             MagicStringBuilder msb = new MagicStringBuilder();
-            msb.shiftToExact(-60);
+            msb.shiftToExact(-260);
             if (current.isBlank() || current.toLowerCase().equals(input.getViewer().getName().toLowerCase())) {
                 msb.append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
             } else {
@@ -69,7 +69,7 @@ public class AliasInitiator implements IRosterInitiator {
         input.open();
         // provide the basic title
         MagicStringBuilder msb = new MagicStringBuilder();
-        msb.shiftToExact(-60);
+        msb.shiftToExact(-260);
         msb.append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
         input.setTitle(msb.compile());
         return true;

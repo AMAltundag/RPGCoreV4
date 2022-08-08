@@ -8,6 +8,7 @@ import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.blutkrone.rpgcore.RPGCore;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -97,6 +98,9 @@ public class Hologram {
     }
 
     public void name(Player viewer, BaseComponent[] message) {
+        if (message.length == 0) {
+            message = TextComponent.fromLegacyText("");
+        }
         Object nms_message = RPGCore.inst().getVolatileManager().adaptComponent(message);
 
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
