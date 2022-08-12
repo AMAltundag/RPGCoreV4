@@ -20,10 +20,10 @@ public class EditorItemPrice implements IEditorBundle {
     public String item = "NOTHINGNESS";
     @EditorWrite(name = "Currency", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = {"Only bank-able items can be used as currency", "Any denomination can be used"})
-    public String currency;
+    public String currency = "undefined";
     @EditorNumber(name = "Price", minimum = 1.0)
     @EditorTooltip(tooltip = "Total cost to purchase")
-    public double price;
+    public double price = 0d;
 
     public EditorItemPrice() {
     }

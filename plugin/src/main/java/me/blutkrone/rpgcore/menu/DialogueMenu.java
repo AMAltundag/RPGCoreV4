@@ -37,6 +37,7 @@ public class DialogueMenu extends AbstractCoreMenu {
     @Override
     public void rebuild() {
         this.getMenu().clearItems();
+        IndexedTexture portrait = null;
 
         MagicStringBuilder msb = new MagicStringBuilder();
 
@@ -77,8 +78,12 @@ public class DialogueMenu extends AbstractCoreMenu {
                 }
             }
 
-            // apply portrait if requested
+            // persist the portrait choice
             if (portrait != null) {
+                this.portrait = portrait;
+            }
+            // apply portrait if requested
+            if (this.portrait != null) {
                 msb.shiftToExact(-8 - 34);
                 msb.append(portrait);
             }
@@ -192,27 +197,16 @@ public class DialogueMenu extends AbstractCoreMenu {
 
             // remaining words are to be appended
             for (String word : words) {
-                // manually create a line-break
-                if (word.equalsIgnoreCase("new_page")) {
-                    // offer up previous line
+                // accumulate words until linebreak
+                int word_length = Utility.measureWidth(" " + word);
+                if ((length + word_length) > 234) {
                     output.add(sb.toString());
                     sb = new StringBuilder();
                     length = 0;
-                    // add line break
-                    contents.add("new_page");
-                    break;
-                } else {
-                    // accumulate words until linebreak
-                    int word_length = Utility.measureWidth(" " + word);
-                    if ((length + word_length) > 234) {
-                        output.add(sb.toString());
-                        sb = new StringBuilder();
-                        length = 0;
-                    }
-                    // pool the remaining words
-                    length += word_length;
-                    sb.append(" ").append(word);
                 }
+                // pool the remaining words
+                length += word_length;
+                sb.append(" ").append(word);
             }
             // pool remaining words
             if (length != 0) {

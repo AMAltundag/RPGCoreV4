@@ -92,16 +92,16 @@ public class HUDManager implements Listener {
                     return created;
                 }));
                 // players in creative mode are unaffected by the core
-                if (bukkit.getGameMode() == GameMode.CREATIVE) {
+                if (bukkit.getGameMode() == GameMode.CREATIVE || bukkit.getGameMode() == GameMode.SPECTATOR) {
                     RPGCore.inst().getVolatileManager().updateBossBar(active_bossbar, "You are unaffected by the core while in creative mode!");
-                    return;
+                    continue;
                 }
                 // players about to die should only see that
                 final int grave_timer = core.getGraveCounter();
                 if (grave_timer > 0) {
                     // keep the bossbar inactive
                     RPGCore.inst().getVolatileManager().updateBossBar(active_bossbar, String.format("§fYou will die in %s seconds!", grave_timer / 20));
-                    return;
+                    continue;
                 }
                 // prepare the info components we work with
                 Queue<Object> prepared = new LinkedList<>();

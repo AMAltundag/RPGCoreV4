@@ -12,8 +12,6 @@ import java.util.List;
  * to have multiple NPCs to steer the narrative.
  */
 public class CoreDialogue {
-    // which NPCs give this talk option
-    public String npc;
     // the entire dialogue we are getting (works with textures.)
     public String lc_dialogue_text;
     // the question to show atop the choices
