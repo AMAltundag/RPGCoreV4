@@ -35,9 +35,9 @@ public class EditorItemWithQuantityConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fItem With Quantity");
-        instruction.add("§fCheck if at-least the given quantity of the item");
-        instruction.add("§fIs available to use.");
+        instruction.add("Item With Quantity");
+        instruction.add("Check if at-least the given quantity of the item");
+        instruction.add("Is available to use.");
         return instruction;
     }
 }

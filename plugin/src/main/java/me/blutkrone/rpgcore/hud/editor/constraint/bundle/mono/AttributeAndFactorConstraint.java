@@ -37,7 +37,7 @@ public class AttributeAndFactorConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAttribute And Factor");
+        instruction.add("Attribute And Factor");
         instruction.add("Grant a certain amount of a given attribute");
         instruction.add("Modifiers to the same attribute always sum up");
         return instruction;

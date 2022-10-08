@@ -15,7 +15,10 @@ import me.blutkrone.rpgcore.damage.interaction.types.SpellDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.TimeDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.WeaponDamageType;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import me.blutkrone.rpgcore.entity.entities.CoreMob;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
@@ -29,10 +32,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,8 +88,29 @@ public final class DamageManager implements IDamageManager, Listener {
 
     @Override
     public void damage(DamageInteraction interaction) {
+        // do not process damage against friendlies
+        if (interaction.getAttacker() != null) {
+            if (interaction.getAttacker().isFriendly(interaction.getDefender())) {
+                return;
+            }
+        }
+
+        // do not process damage depending on immortality
+        if (interaction.getDefender() instanceof CoreMob) {
+            IEntityBase base = ((CoreMob) interaction.getDefender()).getBase();
+            // invoked final death sequence
+            if (base.isInDeathSequence()) {
+                return;
+            }
+        }
+
         // prepare the initial snapshot of the damage to inflict
         interaction.getType().process(interaction);
+
+        // if mob got a barrier phase absorb that
+        if (interaction.getDefender().soakForBarrier((int) interaction.getDamage())) {
+            return;
+        }
 
         // see if we got any ward to break
         EntityWard ward = interaction.getDefender().getWard();
@@ -110,11 +131,14 @@ public final class DamageManager implements IDamageManager, Listener {
         double mana_as_life = Math.max(0d, interaction.evaluateAttribute("MANA_AS_HEALTH", interaction.getDefender()));
         if (interaction.getAttacker() != null)
             mana_as_life += Math.max(0d, interaction.evaluateAttribute("MANA_BURN", interaction.getAttacker()));
-        mana_as_life = Math.min(1d, mana_as_life);
-        for (DamageElement element : getElements()) {
-            double remaining = interaction.getDamage(element);
-            if (remaining <= 0d) continue;
-            interaction.setDamage(element, interaction.getDefender().getMana().damageBy(remaining * mana_as_life));
+        if (mana_as_life > 0d) {
+            mana_as_life = Math.min(1d, mana_as_life);
+            for (DamageElement element : getElements()) {
+                double remaining = interaction.getDamage(element);
+                if (remaining <= 0d) continue;
+                double excess = interaction.getDefender().getMana().damageBy(remaining * mana_as_life);
+                interaction.setDamage(element, (remaining * (1d-mana_as_life)) + excess);
+            }
         }
 
         // whatever remains should be tanked thorough life pool
@@ -124,13 +148,49 @@ public final class DamageManager implements IDamageManager, Listener {
             interaction.setDamage(element, interaction.getDefender().getHealth().damageBy(remaining));
         }
 
+        // the attacker and their party is considered a contributor
+        if (interaction.getDefender() instanceof CoreMob) {
+            CoreEntity attacker = interaction.getAttacker();
+            while (attacker.getParent() != null) {
+                UUID parent = attacker.getParent();
+                CoreEntity candidate = RPGCore.inst().getEntityManager().getEntity(parent);
+                if (candidate != null) {
+                    attacker = candidate;
+                } else {
+                    break;
+                }
+            }
+
+            if (attacker instanceof CorePlayer) {
+                ((CoreMob) interaction.getDefender()).addContribution((CorePlayer) attacker);
+            }
+        }
+
         // if we dipped to 0 life, the defender should die
         if (interaction.getDefender().getHealth().getCurrentAmount() <= 0d) {
-            interaction.getDefender().die(interaction);
-            Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
+            if (interaction.getDefender() instanceof CoreMob) {
+                // immortality prevents death
+                if (((CoreMob) interaction.getDefender()).isDoNotDie()) {
+                    // fix at 1 health while not allowed to die
+                    interaction.getDefender().getHealth().setToExactUnsafe(1d);
+                } else {
+                    // core mobs may have a death routine
+                    ((CoreMob) interaction.getDefender()).getBase().doDeathSequence(() -> {
+                        ((CoreMob) interaction.getDefender()).giveDeathReward();
+                        interaction.getDefender().die(interaction);
+                        Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
 
-            Bukkit.getLogger().severe("not implemented (kill trigger)");
-            Bukkit.getLogger().severe("not implemented (died trigger)");
+
+                        Bukkit.getLogger().severe("not implemented (kill trigger)");
+                        Bukkit.getLogger().severe("not implemented (died trigger)");
+                    });
+                }
+            } else {
+                interaction.getDefender().die(interaction);
+                Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
+                Bukkit.getLogger().severe("not implemented (kill trigger)");
+                Bukkit.getLogger().severe("not implemented (died trigger)");
+            }
         }
 
         // zero damage inflicted for vanilla hurt effect
@@ -183,6 +243,11 @@ public final class DamageManager implements IDamageManager, Listener {
         return types.stream().map(this::getType).collect(Collectors.toList());
     }
 
+    @Override
+    public List<String> getTypeIds() {
+        return new ArrayList<>(this.damage_types.keySet());
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     void onAutoAttackTransfer(EntityDamageByEntityEvent e) {
     }
@@ -211,7 +276,14 @@ public final class DamageManager implements IDamageManager, Listener {
 
             // only inflict damage if both parties exist
             if (attacker != null && defender != null) {
+                // inflict weapon type damage on the entity
                 damage(getType("WEAPON").create(defender, attacker));
+                // update the rage on the given mob
+                if (defender instanceof CoreMob) {
+                    IEntityBase base = ((CoreMob) defender).getBase();
+                    double focus = attacker.evaluateAttribute("RAGE_FOCUS");
+                    base.enrage(attacker.getEntity(), 1d, 1d, focus, false);
+                }
             }
         }
     }

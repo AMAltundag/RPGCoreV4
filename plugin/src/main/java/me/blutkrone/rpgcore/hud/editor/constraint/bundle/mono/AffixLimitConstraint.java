@@ -37,7 +37,7 @@ public class AffixLimitConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAffix Limit");
+        instruction.add("Affix Limit");
         instruction.add("Caps affixes which share a given tag");
         instruction.add("Affix is capped based on lowest limit");
         return instruction;

@@ -45,8 +45,8 @@ public class InstructionBuilder {
 
         // append the lines we got
         for (int i = 0; i < this.lines.size() && i < 24; i++) {
-            String line = this.lines.get(i);
-            builder.shiftToExact(300).append(line, "instruction_text_" + (i + 1));
+            String line = "§f" + this.lines.get(i);
+            builder.shiftToExact(250).append(line, "instruction_text_" + (i + 1));
         }
     }
 }

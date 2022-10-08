@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
-import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskKill;
 import me.blutkrone.rpgcore.quest.CoreQuest;
@@ -15,7 +14,7 @@ import java.util.Map;
 /**
  * Kills tracked based on entity ID.
  */
-public class CoreQuestTaskKill extends AbstractQuestTask<CoreEntityKilledEvent> {
+public class CoreQuestTaskKill extends AbstractQuestTask<String> {
 
     public Map<String, Integer> hitlist = new HashMap<>();
 
@@ -58,13 +57,9 @@ public class CoreQuestTaskKill extends AbstractQuestTask<CoreEntityKilledEvent> 
     }
 
     @Override
-    public void updateQuest(CorePlayer player, CoreEntityKilledEvent param) {
-        if (param.getKilled() instanceof CorePlayer) {
-            if (hitlist.containsKey("player")) {
-                player.getProgressQuests().merge(this.getUniqueId() + "_player", 1, (a, b) -> a + b);
-            }
-        } else {
-            Bukkit.getLogger().severe("not implemented (quest tracker non-player)");
+    public void updateQuest(CorePlayer player, String param) {
+        if (hitlist.containsKey(param)) {
+            player.getProgressQuests().merge(this.getUniqueId() + "_" + param, 1, (a, b) -> a + b);
         }
     }
 

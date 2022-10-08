@@ -72,6 +72,11 @@ public class DataManager implements Listener {
             HUDManager hudm = RPGCore.inst().getHUDManager();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
+                if (pre_login_position.getWorld() == null) {
+                    player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                    continue;
+                }
+
                 Block block = pre_login_position.getBlock();
                 block = block.getRelative(BlockFace.DOWN);
                 if (block.isPassable()) {

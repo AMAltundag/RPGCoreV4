@@ -81,7 +81,7 @@ public class EditorAttribute implements IEditorRoot<CoreAttribute> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAttribute");
+        instruction.add("Attribute");
         instruction.add("An attribute is always read of the entity");
         instruction.add("You can create new attributes as you wish");
         return instruction;

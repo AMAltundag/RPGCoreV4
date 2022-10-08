@@ -82,7 +82,7 @@ public class EditorRefineRecipe implements IEditorRoot<CoreRefinerRecipe> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fRefinement Recipe");
+        instruction.add("Refinement Recipe");
         instruction.add("Establishes a processing path for collected resources.");
         return instruction;
     }

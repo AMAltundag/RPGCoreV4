@@ -129,8 +129,8 @@ public class QuestTaskConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fQuest Task");
-        instruction.add("§fA task within a quest that has to be completed.");
+        instruction.add("Quest Task");
+        instruction.add("A task within a quest that has to be completed.");
         return instruction;
     }
 }

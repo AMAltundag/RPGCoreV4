@@ -1,13 +1,12 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -21,6 +20,7 @@ import org.bukkit.inventory.meta.Repairable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DesignWrite implements IDesignFieldEditor {
     private final DesignElement element;
@@ -46,9 +46,9 @@ public class DesignWrite implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
+    public void edit(IEditorBundle bundle, Player viewer, EditorMenu editor) {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        editor.getViewer().closeInventory();
+        editor.getMenu().getViewer().closeInventory();
 
         try {
             String previous = this.constraint.toTypeOf(this.field.get(bundle));
@@ -86,7 +86,8 @@ public class DesignWrite implements IDesignFieldEditor {
                 }
 
                 InstructionBuilder instructions = new InstructionBuilder();
-                instructions.add(this.constraint.getInstruction());
+                instructions.add(this.constraint.getInstruction().stream()
+                        .map(ln -> "§f" + ln).collect(Collectors.toList()));
                 instructions.apply(msb);
 
                 msb.shiftToExact(-45).append(this.getName(), "text_menu_title");
@@ -122,7 +123,7 @@ public class DesignWrite implements IDesignFieldEditor {
                     input.getViewer().sendMessage("§cInput value invalid, update discarded!");
                 }
                 // recover to the preceding page
-                input.stalled(editor::open);
+                input.stalled(() -> editor.getMenu().open());
             });
             MagicStringBuilder msb = new MagicStringBuilder();
             msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);

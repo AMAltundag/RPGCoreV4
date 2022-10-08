@@ -1,82 +1,78 @@
 package me.blutkrone.rpgcore.util.collection;
 
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 
+/**
+ * Utility to help with random choices.
+ *
+ * @param <E>
+ */
 public class WeightedRandomMap<E> {
     private NavigableMap<Double, E> map = new TreeMap<>();
+    private Map<E, Double> reverse = new HashMap<>();
     private Random random;
     private double total = 0;
 
     public WeightedRandomMap() {
-        this(new Random());
+        this.random = new Random();
     }
 
-    public WeightedRandomMap(Random random) {
-        this.random = random;
+    /**
+     * Retrieve the weight from the map.
+     *
+     * @param object object to check
+     * @return weight of object
+     */
+    public double weight(E object) {
+        return this.reverse.getOrDefault(object, 0d);
     }
 
+    /**
+     * Check if no elements are in the map.
+     *
+     * @return true if we have no elements.
+     */
     public boolean isEmpty() {
         return map.isEmpty();
     }
 
-    public void clear() {
-        map = new TreeMap<>();
-        total = 0d;
-    }
-
-    public WeightedRandomMap<E> copy() {
-        WeightedRandomMap<E> copy = new WeightedRandomMap<>();
-        copy.map.putAll(this.map);
-        copy.total = this.total;
-        return copy;
-    }
-
+    /**
+     * Adds another choice to the map.
+     *
+     * @param weight
+     * @param object
+     */
     public void add(double weight, E object) {
         if (weight <= 0) return;
         total += weight;
         map.put(total, object);
+        reverse.put(object, weight);
     }
 
+    /**
+     * Adds another choice to the map.
+     *
+     * @param object
+     * @param weight
+     */
     public void add(E object, Double weight) {
         if (weight <= 0) return;
         total += weight;
         map.put(total, object);
+        reverse.put(object, weight);
     }
 
+    /**
+     * Random choice, null if no elements are listed.
+     *
+     * @return random choice.
+     */
     public E next() {
-        double value = (random.nextFloat() * total); // Can also use floating-point weights
-        return map.ceilingEntry(value).getValue();
-    }
-
-    public E nextSafe() {
         try {
-            double value = (random.nextFloat() * total); // Can also use floating-point weights
+            double value = (random.nextDouble() * total);
             return map.ceilingEntry(value).getValue();
         } catch (Exception ignored) {
             return null;
         }
-    }
-
-    public Map.Entry<Double, E> nextEntry() {
-        double value = (random.nextFloat() * total); // Can also use floating-point weights
-        return map.ceilingEntry(value);
-    }
-
-    public E next(Random random) {
-        double value = (random.nextFloat() * total); // Can also use floating-point weights
-        return map.ceilingEntry(value).getValue();
-    }
-
-    public E next(double random) {
-        double value = (random * total); // Can also use floating-point weights
-        return map.ceilingEntry(value).getValue();
-    }
-
-    public Map.Entry<Double, E> nextEntry(Random random) {
-        double value = (random.nextFloat() * total); // Can also use floating-point weights
-        return map.ceilingEntry(value);
     }
 }

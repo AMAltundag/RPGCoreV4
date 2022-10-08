@@ -34,26 +34,6 @@ public class SkillContext implements IContext, IOrigin {
     }
 
     /**
-     * The entity which owns this context.
-     *
-     * @return the entity which owns the cooldown.
-     */
-    public CoreEntity getOwner() {
-        return owner;
-    }
-
-    /**
-     * An attribute collection backed by this context, NOT by the
-     * owning entity.
-     *
-     * @param attribute the attribute to fetch.
-     * @return attributes backed by this context.
-     */
-    public AttributeCollection getAttribute(String attribute) {
-        return this.attribute.computeIfAbsent(attribute, (k -> new AttributeCollection(IContext.EMPTY)));
-    }
-
-    /**
      * Have this context acquire a tag.
      *
      * @param tag the tag to be acquired.
@@ -65,12 +45,17 @@ public class SkillContext implements IContext, IOrigin {
     @Override
     public double evaluateAttribute(String attribute) {
         return this.owner.evaluateAttribute(attribute)
-                + getAttribute(attribute).evaluate();
+                + this.attribute.computeIfAbsent(attribute, (k -> new AttributeCollection(IContext.EMPTY))).evaluate();
     }
 
     @Override
     public boolean checkForTag(String tag) {
         return this.tags.contains(tag) || this.owner.checkForTag(tag);
+    }
+
+    @Override
+    public CoreEntity getCoreEntity() {
+        return this.owner;
     }
 
     @Override

@@ -190,7 +190,7 @@ public class EditorItem implements IEditorRoot<CoreItem> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fItem");
+        instruction.add("Item");
         instruction.add("An item which can engage with core entities");
         return instruction;
     }

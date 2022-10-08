@@ -32,7 +32,7 @@ public class EditorTalkTrait extends AbstractEditorNPCTrait {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fTalk Trait");
+        instruction.add("Talk Trait");
         return instruction;
     }
 

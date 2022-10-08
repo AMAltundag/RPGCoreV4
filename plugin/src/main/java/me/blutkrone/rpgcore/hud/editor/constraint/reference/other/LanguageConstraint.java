@@ -120,9 +120,9 @@ public class LanguageConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fLanguage");
-        instruction.add("§fDo NOT write the actual translation value here, use");
-        instruction.add("§fan ID to configure a language element for it.");
+        instruction.add("Language");
+        instruction.add("Do NOT write the actual translation value here, use");
+        instruction.add("an ID to configure a language element for it.");
         instruction.add("§cLanguage has to be configured via config files");
         return instruction;
     }

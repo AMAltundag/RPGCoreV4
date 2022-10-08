@@ -34,4 +34,6 @@ public interface IDamageManager {
     List<IDamageType> getTypes();
 
     List<IDamageType> getTypes(List<String> types);
+
+    List<String> getTypeIds();
 }

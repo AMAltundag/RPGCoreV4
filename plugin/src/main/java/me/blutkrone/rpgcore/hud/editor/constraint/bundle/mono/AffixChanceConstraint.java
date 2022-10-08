@@ -36,7 +36,7 @@ public class AffixChanceConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAffix Chance");
+        instruction.add("Affix Chance");
         instruction.add("A chance for a certain affix tag to roll");
         instruction.add("Affixes without any tag cannot be rolled");
         return instruction;

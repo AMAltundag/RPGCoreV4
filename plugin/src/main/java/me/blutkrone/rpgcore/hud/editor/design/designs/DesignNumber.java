@@ -1,12 +1,11 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -42,9 +41,9 @@ public class DesignNumber implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
+    public void edit(IEditorBundle bundle, Player viewer, EditorMenu editor) {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        editor.getViewer().closeInventory();
+        editor.getMenu().getViewer().closeInventory();
 
         try {
             double previous = (double) field.get(bundle);
@@ -106,7 +105,7 @@ public class DesignNumber implements IDesignFieldEditor {
                     input.getViewer().sendMessage("§cInput value invalid, update discarded!");
                 }
                 // recover to the preceding page
-                input.stalled(editor::open);
+                input.stalled(() -> editor.getMenu().open());
             });
             MagicStringBuilder msb = new MagicStringBuilder();
             msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);

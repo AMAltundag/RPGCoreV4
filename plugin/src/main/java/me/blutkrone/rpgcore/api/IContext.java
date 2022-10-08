@@ -1,5 +1,7 @@
 package me.blutkrone.rpgcore.api;
 
+import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+
 /**
  * A context is used across various places, serving as a uniform
  * interface to provide limited logic. Usage includes, but isn't
@@ -22,6 +24,11 @@ public interface IContext {
         public boolean checkForTag(String tag) {
             return false;
         }
+
+        @Override
+        public CoreEntity getCoreEntity() {
+            return null;
+        }
     };
 
     /**
@@ -40,4 +47,11 @@ public interface IContext {
      * @return whether we have the tag or not.
      */
     boolean checkForTag(String tag);
+
+    /**
+     * Retrieve the entity which is associated with the context.
+     *
+     * @return who is the context related to.
+     */
+    CoreEntity getCoreEntity();
 }

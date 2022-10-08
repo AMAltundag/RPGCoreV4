@@ -1,19 +1,18 @@
 package me.blutkrone.rpgcore.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.bundle.binding.AbstractEditorSkillBinding;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorBehaviour;
 import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
-import me.blutkrone.rpgcore.skill.behaviour.CorePattern;
-import me.blutkrone.rpgcore.skill.cost.CoreCost;
-import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
-import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.skillbar.ISkillBind;
-import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindCast;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * The root class of a skill, containing all things that
@@ -35,7 +34,7 @@ public class CoreSkill {
     // skillbar specific parameters
     private ISkillBind binding;
     // behaviours held while skill is available
-    private CoreBehaviour[] behaviours;
+    private List<CoreBehaviour> behaviours;
     // which type of evolution menu to use
     private String evolution_type;
     // tag list used for evolution filter
@@ -43,27 +42,22 @@ public class CoreSkill {
 
     public CoreSkill(String id, EditorSkill editor) {
         this.id = id;
+        this.evolution_type = editor.evolution_type;
         this.name = RPGCore.inst().getLanguageManager()
                 .getTranslation(editor.lc_name);
         this.item = RPGCore.inst().getLanguageManager()
                 .getAsItem(editor.lc_item)
                 .build();
         IChestMenu.setBrand(this.item, RPGCore.inst(), "skill-id", id);
+        this.behaviours = new ArrayList<>();
+        for (IEditorBundle bundle : editor.behaviours) {
+            this.behaviours.add(((EditorBehaviour) bundle).build(this));
+        }
+        for (IEditorBundle bundle : editor.skill_binding) {
+            this.binding = ((AbstractEditorSkillBinding) bundle).build(this);
+        }
 
-        this.binding = new SkillBindCast() {{
-            this.skill = CoreSkill.this;
-            this.icon = new CoreModifierString(editor.binding);
-            this.cooldown_reduction = new CoreModifierNumber(0d);
-            this.cooldown_time = new CoreModifierNumber(100d);
-            this.cooldown_recovery = new CoreModifierNumber(0d);
-            this.cooldown_id = new CoreModifierString(UUID.randomUUID().toString());
-            this.stability = new CoreModifierNumber(0d);
-            this.cast_time = new CoreModifierNumber(60d);
-            this.cast_faster = new CoreModifierNumber(0d);
-            this.costs = new CoreCost[0];
-            this.patterns = new CorePattern[0];
-        }};
-        this.evolution_type = editor.evolution_type;
+        Bukkit.getLogger().severe("not implemented (passive behaviours are never assigned)");
     }
 
     /**
@@ -90,7 +84,7 @@ public class CoreSkill {
      *
      * @return behaviours of the skill.
      */
-    public CoreBehaviour[] getBehaviours() {
+    public List<CoreBehaviour> getBehaviours() {
         return behaviours;
     }
 

@@ -36,12 +36,12 @@ public class ItemPriceConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fItem With Price");
-        instruction.add("§fMeant for a vendor NPC, allows you to assign");
-        instruction.add("§fA price for purchase to an item.");
-        instruction.add("§f");
-        instruction.add("§fThe currency is a bank group, but it has to be");
-        instruction.add("§fItemized in the player inventory.");
+        instruction.add("Item With Price");
+        instruction.add("Meant for a vendor NPC, allows you to assign");
+        instruction.add("A price for purchase to an item.");
+        instruction.add("");
+        instruction.add("The currency is a bank group, but it has to be");
+        instruction.add("Itemized in the player inventory.");
         return instruction;
     }
 }

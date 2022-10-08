@@ -55,7 +55,7 @@ public class EditorQuestTaskKill extends AbstractEditorQuestTask {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("§bKill Task");
-        instruction.add("§fCounts kills for certain mob types.");
+        instruction.add("Counts kills for certain mob types.");
         return instruction;
     }
 }

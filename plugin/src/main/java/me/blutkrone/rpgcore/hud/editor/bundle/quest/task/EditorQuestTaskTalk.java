@@ -61,7 +61,7 @@ public class EditorQuestTaskTalk extends AbstractEditorQuestTask {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("§bTalk Task");
-        instruction.add("§fInteract with NPCs to present dialogue.");
+        instruction.add("Interact with NPCs to present dialogue.");
         return instruction;
     }
 }

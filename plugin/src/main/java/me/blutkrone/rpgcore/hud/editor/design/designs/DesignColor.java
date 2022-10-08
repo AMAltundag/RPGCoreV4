@@ -1,12 +1,11 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorColor;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -38,7 +37,7 @@ public class DesignColor implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
+    public void edit(IEditorBundle bundle, Player viewer, EditorMenu editor) {
         // close previous menu
         viewer.closeInventory();
         // fetch resourcepack manager
@@ -54,12 +53,15 @@ public class DesignColor implements IDesignFieldEditor {
             if (updated.length() == 6) {
                 try {
                     ChatColor color = ChatColor.of("#" + updated);
+                    msb.shiftToExact(-260).append(rpm.texture("menu_input_fine"), ChatColor.WHITE);
                     msb.shiftToExact(0).append("Color Preview", "anvil_input_hint_1", color);
                 } catch (Exception e) {
+                    msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
                     msb.shiftToExact(0).append("Bad Color Format", "anvil_input_hint_1");
                 }
             } else {
-                msb.shiftToExact(0).append("Expected 'RRGGBB' format", "anvil_input_hint_1");
+                msb.shiftToExact(-260).append(rpm.texture("menu_input_bad"), ChatColor.WHITE);
+                msb.shiftToExact(0).append("Bad Color Format", "anvil_input_hint_1");
             }
 
             InstructionBuilder instructions = new InstructionBuilder();
@@ -75,8 +77,10 @@ public class DesignColor implements IDesignFieldEditor {
             // apply color if applicable
             if (response.length() == 6) {
                 try {
+                    // verify input integrity
                     ChatColor color = ChatColor.of("#" + response);
-                    this.field.set(bundle, color.getColor().getRGB());
+                    // track within space
+                    this.field.set(bundle, response);
                     viewer.sendMessage("§aColor was updated to #" + response);
                 } catch (Exception e) {
                     viewer.sendMessage("§cBad color string, no changes apply.");
@@ -86,7 +90,7 @@ public class DesignColor implements IDesignFieldEditor {
             }
 
             // hop back to preceding menu
-            input.stalled(editor::open);
+            input.stalled(() -> editor.getMenu().open());
         });
         // prepare default color setup
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -100,13 +104,7 @@ public class DesignColor implements IDesignFieldEditor {
     @Override
     public String getInfo(IEditorBundle bundle) throws Exception {
         try {
-            int raw_color = (int) field.get(bundle);
-            if (raw_color < 0) {
-                raw_color = 0;
-            }
-            Color color = Color.fromRGB(raw_color);
-
-            return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+            return "#" + field.get(bundle);
         } catch (IllegalAccessException e) {
             return "???";
         }
@@ -119,15 +117,15 @@ public class DesignColor implements IDesignFieldEditor {
 
     @Override
     public ItemStack getIcon(IEditorBundle bundle) throws Exception {
-        int raw_color = (int) field.get(bundle);
+        String color_string = (String) field.get(bundle);
+        int raw_color = Integer.parseInt(color_string, 16);
         if (raw_color < 0) {
             raw_color = 0;
         }
         Color color = Color.fromRGB(raw_color);
-
         return ItemBuilder.of(Material.LEATHER_CHESTPLATE)
                 .name("§f" + this.getName())
-                .appendLore("§fColor: " + String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue()))
+                .appendLore("§fColor: #" + color_string)
                 .leatherColor(color)
                 .build();
     }

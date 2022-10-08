@@ -4,12 +4,15 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -147,13 +150,6 @@ public abstract class AbstractVolatileManager {
     public abstract Object adaptComponent(BaseComponent[] input);
 
     /**
-     * Offer the NMS class for chat messages.
-     *
-     * @return NMS chat message class
-     */
-    public abstract Class adaptedComponentClass();
-
-    /**
      * Override the lore of the item with the given components.
      *
      * @param item the item to be updated.
@@ -168,4 +164,23 @@ public abstract class AbstractVolatileManager {
      * @param name line to write into the name
      */
     public abstract void setItemName(ItemStack item, BaseComponent[] name);
+
+    /**
+     * Spawn an entity of the given type at the set location, the entity
+     * should spawn as a clean copy without any alteration.
+     *
+     * @param type which type of entity we spawn.
+     * @param location where to spawn the entity at.
+     * @return the entity that we've spawned.
+     */
+    public abstract IEntityBase spawnEntity(EntityType type, Location location);
+
+    /**
+     * Wraps an entity base, do note that this will initialize
+     * the entity to use core based AI.
+     *
+     * @param entity the entity to inspect
+     * @return the entity that we've spawned.
+     */
+    public abstract IEntityBase getEntity(LivingEntity entity);
 }

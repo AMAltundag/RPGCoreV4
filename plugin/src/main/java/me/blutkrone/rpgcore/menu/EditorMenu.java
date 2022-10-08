@@ -59,6 +59,14 @@ public class EditorMenu extends AbstractCoreMenu {
             .name("§aRemove From List")
             .appendLore("§fRemoves this element from the list")
             .build();
+    private ItemStack icon_list_up = ItemBuilder.of(Material.ARROW)
+            .name("§aMove Up")
+            .appendLore("§fShift click to top-most")
+            .build();
+    private ItemStack icon_list_down = ItemBuilder.of(Material.ARROW)
+            .name("§aMove Up Or Down")
+            .appendLore("§fShift click to bottom-most")
+            .build();
     private ItemStack invisible = RPGCore.inst().getLanguageManager()
             .getAsItem("invisible")
             .meta(meta -> ((Repairable) meta).setRepairCost(-1))
@@ -72,7 +80,6 @@ public class EditorMenu extends AbstractCoreMenu {
 
     // cached designs of editable classes
     private Map<Class, Design> designs = new HashMap<>();
-    private DesignCategory category = null;
 
     private EditorIndex index;
     private FocusQueue focus;
@@ -80,13 +87,19 @@ public class EditorMenu extends AbstractCoreMenu {
     public EditorMenu(EditorIndex<?, ?> index) {
         super(6);
         this.index = index;
-        this.focus = new FocusQueue();
+        this.focus = new FocusQueue(this);
+    }
 
-        // establish design specific format of editor
-        Design design = this.designs.computeIfAbsent(index.getEditorClass(), Design::new);
-        if (design.getCategories().size() > 0) {
-            this.category = design.getCategories().get(0);
-        }
+    public EditorIndex getIndex() {
+        return index;
+    }
+
+    public Map<Class, Design> getDesigns() {
+        return designs;
+    }
+
+    public FocusQueue getFocus() {
+        return focus;
     }
 
     @Override
@@ -103,16 +116,16 @@ public class EditorMenu extends AbstractCoreMenu {
         this.getMenu().setItemAt(26, this.scroll_up);
         this.getMenu().setItemAt(53, this.scroll_down);
         this.getMenu().setItemAt(8, this.icon_back);
+        // grab the element we're currently focused on
+        FocusQueue.AbstractFocus focused = focus.getHeader();
 
-        Bukkit.getLogger().severe("REBUILD LEN " + focus.size() + " FOCUS " + focus.header());
-
-        if (focus.header() == null) {
+        if (focused instanceof FocusQueue.NullFocus) {
             // since nothing is opened, offer from history.
             List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
             filtered_history.removeIf(history -> !index.has(history));
 
             if (!filtered_history.isEmpty()) {
-                List<String> viewport = IChestMenu.getViewport(focus.getOffset(), 4, filtered_history);
+                List<String> viewport = IChestMenu.getViewport(focused.getScrollOffset(), 4, filtered_history);
                 for (int i = 0; i < 4; i++) {
                     // retrieve which element we are operating on
                     String id = viewport.get(i);
@@ -137,56 +150,82 @@ public class EditorMenu extends AbstractCoreMenu {
                     }
                 }
             }
-        } else {
-            // build up further menu details
-            FocusQueue.Focus focused = focus.header();
-            if (focused instanceof FocusQueue.ListFocus) {
-                this.getMenu().setItemAt(0, this.icon_list_add);
-                // fetch the viewport of visible entries
-                Map<Integer, Object> viewport = ((FocusQueue.ListFocus) focused).getViewport(focus.getOffset(), 4);
-                List<Map.Entry<Integer, Object>> entries = new ArrayList<>(viewport.entrySet());
-                // render the viewport of our list
-                for (int i = 0; i < entries.size(); i++) {
-                    // make sure that the value actually exists
-                    Map.Entry<Integer, Object> entry = entries.get(i);
-                    // write a readable version of the value
-                    String readable = ((FocusQueue.ListFocus) focused).getList().getConstraint().getPreview(entry.getValue());
-                    msb.shiftToExact(26).append(readable, "editor_viewport_" + (i + 1));
-                    // generate an itemization that can be interacted with
-                    ItemStack icon = RPGCore.inst().getLanguageManager().getAsItem("invisible")
+        } else if (focused instanceof FocusQueue.ListFocus) {
+            FocusQueue.ListFocus casted = (FocusQueue.ListFocus) focused;
+
+            this.getMenu().setItemAt(0, this.icon_list_add);
+            // fetch the viewport of visible entries
+            Map<Integer, Object> viewport = casted.getViewport(casted.getScrollOffset(), 4);
+            List<Map.Entry<Integer, Object>> entries = new ArrayList<>(viewport.entrySet());
+            // render the viewport of our list
+            for (int i = 0; i < entries.size(); i++) {
+                // make sure that the value actually exists
+                Map.Entry<Integer, Object> entry = entries.get(i);
+                // write a readable version of the value
+                String readable = casted.getDesignList().getConstraint().getPreview(entry.getValue());
+                msb.shiftToExact(26).append(readable, "editor_viewport_" + (i + 1));
+                // generate an itemization that can be interacted with
+                ItemStack icon;
+                if (entry.getValue() instanceof IEditorBundle) {
+                    icon = ItemBuilder.of(((IEditorBundle) entry.getValue()).getPreview())
+                            .inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build())
+                            .build();
+                } else {
+                    icon = RPGCore.inst().getLanguageManager().getAsItem("invisible")
                             .name(readable).build();
-                    // track the index of this element in the real list
-                    IChestMenu.setBrand(icon, RPGCore.inst(), "list_index", String.valueOf(entry.getKey()));
-                    // offer the clickable elements on the relevant row
-                    for (int j = 0; j < 7; j++) {
-                        this.getMenu().setItemAt((i + 2) * 9 + j, icon);
-                    }
-                    // offer a button to delete the element at the index
-                    ItemStack icon_delete = this.icon_list_remove.clone();
-                    IChestMenu.setBrand(icon_delete, RPGCore.inst(), "delete_index", String.valueOf(entry.getKey()));
-                    this.getMenu().setItemAt((i + 2) * 9 + 7, icon_delete);
                 }
-                // offer instructions on the constraint of the list
-                IEditorConstraint constraint = ((FocusQueue.ListFocus) focused).getList().getConstraint();
-                InstructionBuilder instructions = new InstructionBuilder();
+                // track the index of this element in the real list
+                IChestMenu.setBrand(icon, RPGCore.inst(), "list_index", String.valueOf(entry.getKey()));
+                // offer the clickable elements on the relevant row
+                for (int j = 0; j < 6; j++) {
+                    this.getMenu().setItemAt((i + 2) * 9 + j, icon);
+                }
+                // offer a button to delete the element at the index
+                ItemStack icon_delete = this.icon_list_remove.clone();
+                IChestMenu.setBrand(icon_delete, RPGCore.inst(), "delete_index", String.valueOf(entry.getKey()));
+                this.getMenu().setItemAt((i + 2) * 9 + 7, icon_delete);
+                // offer a button to shift up/down on the list
+                ItemStack icon_move_up = this.icon_list_up.clone();
+                IChestMenu.setBrand(icon_move_up, RPGCore.inst(), "move_up", String.valueOf(entry.getKey()));
+                this.getMenu().setItemAt((i + 2) * 9 + 6, icon_move_up);
+                // offer a button to shift up/down on the list
+                ItemStack icon_move_down = this.icon_list_down.clone();
+                IChestMenu.setBrand(icon_move_down, RPGCore.inst(), "move_down", String.valueOf(entry.getKey()));
+                this.getMenu().setItemAt((i + 2) * 9 + 5, icon_move_down);
+            }
+            // offer instructions on the constraint of the list
+            IEditorConstraint constraint = casted.getDesignList().getConstraint();
+            InstructionBuilder instructions = new InstructionBuilder();
+            List<String> instruction = constraint.getInstruction();
+            if (instruction != null) {
                 instructions.add(constraint.getInstruction());
                 instructions.apply(msb);
-            } else if (focused instanceof FocusQueue.ScopedFocus) {
+            }
+        } else if (focused instanceof FocusQueue.ElementFocus) {
+            FocusQueue.ElementFocus casted = (FocusQueue.ElementFocus) focused;
+
+            // save/clone only for non-categorized root element
+            if (casted.isRootInFullView()) {
+                this.getMenu().setItemAt(1, this.icon_save);
+                this.getMenu().setItemAt(2, this.icon_clone);
+            }
+
+            if (casted.getCategory() != null) {
                 // identify which elements are viewable by the player
-                List<DesignElement> elements = new ArrayList<>(((FocusQueue.ScopedFocus) focused).getCategory().getElements());
-                elements.removeIf(ele -> ele.isHidden(focused.getBundle()));
-                List<DesignElement> viewport = IChestMenu.getViewport(focus.getOffset(), 4, elements);
+                List<DesignElement> elements = new ArrayList<>(casted.getCategory().getElements());
+                elements.removeIf(ele -> ele.isHidden(casted.getBundle()));
+                List<DesignElement> viewport = IChestMenu.getViewport(casted.getScrollOffset(), 4, elements);
                 // write the relevant fields to be viewed
                 for (int i = 0; i < 4; i++) {
                     DesignElement viewport_element = viewport.get(i);
                     if (viewport_element != null) {
                         // text about the relevant category
                         String left = viewport_element.getDesignName();
-                        String right = viewport_element.getDesignInfo(focused.getBundle());
+                        String right = viewport_element.getDesignInfo(casted.getBundle());
                         msb.shiftToExact(135 - Utility.measureWidthExact(right)).append(right, "editor_viewport_" + (i + 1));
                         msb.shiftToExact(27).append(left, "editor_viewport_" + (i + 1)); // todo trim left text to not overlap
                         // left-most slot will get the full itemized category
-                        ItemStack preview = viewport_element.getDesignIcon(focused.getBundle()).clone();
+                        ItemStack preview = viewport_element.getDesignIcon(casted.getBundle()).clone();
                         IChestMenu.setBrand(preview, RPGCore.inst(), "select_element", viewport_element.getUUID().toString());
                         this.getMenu().setItemAt((i + 2) * 9, preview);
                         // slots 2-8 are invisible but retain their text
@@ -198,18 +237,10 @@ public class EditorMenu extends AbstractCoreMenu {
                     }
                 }
             } else {
-                // save/clone only with root elements
-                if (focused instanceof FocusQueue.RootFocus) {
-                    this.getMenu().setItemAt(1, this.icon_save);
-                    this.getMenu().setItemAt(2, this.icon_clone);
-                }
-
-                // from the bundle, narrow the scope to a category
-                Design design = designs.computeIfAbsent(focused.getBundle().getClass(), Design::new);
                 // identify which categories are viewable by the player
-                List<DesignCategory> categories = new ArrayList<>(design.getCategories());
-                categories.removeIf(cat -> cat.isHidden(focused.getBundle()));
-                List<DesignCategory> viewport = IChestMenu.getViewport(focus.getOffset(), 4, categories);
+                List<DesignCategory> categories = new ArrayList<>(casted.getCategories());
+                categories.removeIf(cat -> cat.isHidden(casted.getBundle()));
+                List<DesignCategory> viewport = IChestMenu.getViewport(casted.getScrollOffset(), 4, categories);
                 // write the relevant fields to be viewed
                 for (int i = 0; i < 4; i++) {
                     DesignCategory viewport_category = viewport.get(i);
@@ -230,9 +261,15 @@ public class EditorMenu extends AbstractCoreMenu {
                 }
             }
 
+            // offer instructions on the element we have focused
             InstructionBuilder instructions = new InstructionBuilder();
-            instructions.add(focused.getBundle().getInstruction());
-            instructions.apply(msb);
+            List<String> instruction = casted.getBundle().getInstruction();
+            if (instruction != null) {
+                instructions.add(instruction);
+                instructions.apply(msb);
+            }
+        } else {
+            throw new UnsupportedOperationException("Unknown focus: " + focused);
         }
 
         // inform about the updated title
@@ -251,28 +288,18 @@ public class EditorMenu extends AbstractCoreMenu {
             return;
         }
 
+        // the element we've focused on
+        FocusQueue.AbstractFocus focused = focus.getHeader();
+
         if (this.icon_list_add.isSimilar(event.getCurrentItem())) {
             // add element to list
             this.actionAddToList();
         } else if (this.scroll_up.isSimilar(event.getCurrentItem())) {
             // update offset of viewport
-            focus.setOffset(Math.max(focus.getOffset() - 1, 0));
+            focused.setScrollOffset(Math.max(0, focused.getScrollOffset() - 1));
             this.getMenu().queryRebuild();
         } else if (this.scroll_down.isSimilar(event.getCurrentItem())) {
-            // update offset of viewport
-            if (focus.header() == null) {
-                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(this.getMenu().getViewer());
-                List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
-                filtered_history.removeIf(history -> !index.has(history));
-                focus.setOffset(Math.min(focus.getOffset() + 1, filtered_history.size()));
-            } else if (focus.header() instanceof FocusQueue.ScopedFocus) {
-                focus.setOffset(Math.min(focus.getOffset() + 1, ((FocusQueue.ScopedFocus) focus.header()).size()));
-            } else if (focus.header() instanceof FocusQueue.ListFocus) {
-                focus.setOffset(Math.min(focus.getOffset() + 1, ((FocusQueue.ListFocus) focus.header()).size()));
-            } else {
-                Design design = this.designs.computeIfAbsent(focus.header().getBundle().getClass(), Design::new);
-                focus.setOffset(Math.min(focus.getOffset() + 1, design.getCategories().size()));
-            }
+            focused.setScrollOffset(Math.min(focused.getSize(), focused.getScrollOffset() + 1));
             this.getMenu().queryRebuild();
         } else if (this.icon_open.isSimilar(event.getCurrentItem())) {
             // allow to select where we will edit
@@ -285,15 +312,7 @@ public class EditorMenu extends AbstractCoreMenu {
             this.actionCreateClone();
         } else if (this.icon_back.isSimilar(event.getCurrentItem())) {
             // return back to previous editing element
-            if (focus.size() == 1) {
-                if (event.getClick() == ClickType.SHIFT_LEFT) {
-                    this.actionBackToPrevious();
-                } else {
-                    event.getWhoClicked().sendMessage("§cShift-Click to exit root element without saving changes!");
-                }
-            } else {
-                this.actionBackToPrevious();
-            }
+            this.actionBackToPrevious(event);
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_category", "").isEmpty()) {
             // enter a category of the top-most current bundle
             String category = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_category", "");
@@ -307,21 +326,67 @@ public class EditorMenu extends AbstractCoreMenu {
             String id = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_root", "");
             IEditorRoot root = index.edit(id);
             this.getMenu().stalled(() -> {
-                focus.focus(id, root);
+                focus.clearFocus();
+                focus.setFocusToRoot(id, root);
                 this.getMenu().queryRebuild();
             });
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "list_index", "").isEmpty()) {
             // edit the value at the given field
             int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "list_index", ""));
-            setFocusToList(i);
+            setFocusInList(i);
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "delete_index", "").isEmpty()) {
-            Bukkit.getLogger().severe("DROP ELEMENT!");
             // delete the value in the given position of the list
             int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "delete_index", ""));
             this.getMenu().stalled(() -> {
-                FocusQueue.ListFocus header = (FocusQueue.ListFocus) focus.header();
-                List<Object> container = header.getValues();
-                container.remove(i);
+                ((FocusQueue.ListFocus) focused).getValues().remove(i);
+                this.getMenu().queryRebuild();
+            });
+        } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_up", "").isEmpty()) {
+            // delete the value in the given position of the list
+            int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_up", ""));
+            this.getMenu().stalled(() -> {
+                // cannot move if already at top
+                if (i <= 0) {
+                    return;
+                }
+                // move up by one slot
+                FocusQueue.ListFocus casted = (FocusQueue.ListFocus) focused;
+                List<Object> values = casted.getValues();
+                if (event.getClick() == ClickType.LEFT) {
+                    // move element up by one slot
+                    Object a = values.get(i);
+                    Object b = values.get(i-1);
+                    values.set(i, b);
+                    values.set(i-1, a);
+                } else {
+                    // move element to the top of the list
+                    values.add(0, values.remove(i));
+                }
+
+                this.getMenu().queryRebuild();
+            });
+        } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_down", "").isEmpty()) {
+            // delete the value in the given position of the list
+            int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_down", ""));
+            this.getMenu().stalled(() -> {
+                // move up by one slot
+                FocusQueue.ListFocus casted = (FocusQueue.ListFocus) focused;
+                List<Object> values = casted.getValues();
+                // cannot move if already at top
+                if (i >= values.size()-1) {
+                    return;
+                }
+                if (event.getClick() == ClickType.LEFT) {
+                    // move element down by one slot
+                    Object a = values.get(i);
+                    Object b = values.get(i+1);
+                    values.set(i, b);
+                    values.set(i+1, a);
+                } else {
+                    // move element to the bottom of the list
+                    values.add(values.remove(i));
+                }
+
                 this.getMenu().queryRebuild();
             });
         }
@@ -329,16 +394,26 @@ public class EditorMenu extends AbstractCoreMenu {
 
     @Override
     public void close(InventoryCloseEvent event) {
-        // do not close while we got anything in our header
+        // editor cannot be closed at-will
         this.getMenu().stalled(() -> {
             Player viewer = this.getMenu().getViewer();
-            if (viewer.getOpenInventory().getType() == InventoryType.CRAFTING) {
-                if (focus.size() != 0) {
-                    this.getMenu().open();
-                    event.getPlayer().sendMessage("§cClose your current element before doing this!");
-                    this.getMenu().stalled(() -> this.getMenu().queryRebuild());
-                }
+            // player might have died or quit
+            if (!viewer.isValid()) {
+                return;
             }
+            // ignore if another menu covered us up
+            if (viewer.getOpenInventory().getType() != InventoryType.CRAFTING) {
+                return;
+            }
+            // without a focus, we are allowed to close
+            if (focus.getHeader() instanceof FocusQueue.NullFocus) {
+                return;
+            }
+            // warning about needing to close the editor
+            event.getPlayer().sendMessage("§cClose your current element before doing this!");
+            // open the menu and rebuild the changes
+            this.getMenu().open();
+            this.getMenu().queryRebuild();
         });
     }
 
@@ -347,10 +422,47 @@ public class EditorMenu extends AbstractCoreMenu {
      *
      * @param editor which menu to implement logic on
      */
-    private void actionBackToPrevious() {
-        // retreat by one layer
-        focus.drop();
-        // rebuild from the new layer
+    private void actionBackToPrevious(InventoryClickEvent event) {
+        FocusQueue.AbstractFocus header = this.focus.getHeader();
+        if (header instanceof FocusQueue.NullFocus) {
+            // cannot drop null element
+            getMenu().getViewer().sendMessage("§cCannot go back further!");
+        } else if (header instanceof FocusQueue.ListFocus) {
+            // exit the list view
+            this.focus.drop();
+            getMenu().queryRebuild();
+        } else if (header instanceof FocusQueue.ElementFocus) {
+            FocusQueue.ElementFocus casted = (FocusQueue.ElementFocus) header;
+            if (casted.getCategory() != null) {
+                // exit the category if we got one
+                casted.setCategory(null);
+                // 1 element focus can exit directly
+                if (casted.getCategories().size() == 1) {
+                    if (casted.isRootElement()) {
+                        // root elements need additional confirmation
+                        if (event.getClick() == ClickType.SHIFT_LEFT) {
+                            this.focus.drop();
+                        } else {
+                            event.getWhoClicked().sendMessage("§cShift-Click to exit root element without saving changes!");
+                        }
+                    } else {
+                        // bundles can just directly exit
+                        this.focus.drop();
+                    }
+                }
+            } else if (casted.isRootElement()) {
+                // root elements need additional confirmation
+                if (event.getClick() == ClickType.SHIFT_LEFT) {
+                    this.focus.drop();
+                } else {
+                    event.getWhoClicked().sendMessage("§cShift-Click to exit root element without saving changes!");
+                }
+            } else {
+                // bundle without category exits directly
+                this.focus.drop();
+            }
+        }
+        // rebuild respecting the new focused element
         getMenu().queryRebuild();
     }
 
@@ -361,28 +473,41 @@ public class EditorMenu extends AbstractCoreMenu {
      * @param editor which menu to implement logic on
      */
     private void actionSaveToDisk() {
-        FocusQueue.Focus header = focus.header();
-        if (header instanceof FocusQueue.RootFocus) {
-            String id = ((FocusQueue.RootFocus) header).getId();
-            // allow in-memory version to be processed
-            index.update(id, ((IEditorRoot) header.getBundle()).build(id));
-            // save changes to disk
-            try {
-                // todo keep a version control of our changes
-                Bukkit.getLogger().severe("not implemented (backup before save)");
-                // apply the actual saving
-                ((IEditorRoot) header.getBundle()).save();
-                // drop an element and attempt to save
-                focus.drop();
-                getMenu().queryRebuild();
-                // inform about having saved
-                getMenu().getViewer().sendMessage("§aSaved '" + id + "' to disk!");
-            } catch (IOException e) {
-                getMenu().getViewer().sendMessage("§cSomething went wrong while saving!");
-                e.printStackTrace();
-            }
-        } else {
+        // check if we've got an element focused
+        FocusQueue.AbstractFocus focused = focus.getHeader();
+        if (!(focused instanceof FocusQueue.ElementFocus)) {
             getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
+            return;
+        }
+        // check if we are a root focus
+        FocusQueue.ElementFocus casted = (FocusQueue.ElementFocus) focused;
+        if (!casted.isRootElement()) {
+            getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
+            return;
+        }
+        // apply our changes to the focused element
+        IEditorRoot root = (IEditorRoot) casted.getBundle();
+        String id = casted.getId().orElse(null);
+        if (id == null) {
+            getMenu().getViewer().sendMessage("§cMissing an ID to save to!");
+            return;
+        }
+        // save the changes we did
+        index.update(id, root.build(id));
+        // save changes to disk
+        try {
+            // todo keep a version control of our changes
+            Bukkit.getLogger().severe("not implemented (backup before save)");
+            // apply the actual saving
+            root.save();
+            // drop an element and attempt to save
+            focus.drop();
+            getMenu().queryRebuild();
+            // inform about having saved
+            getMenu().getViewer().sendMessage("§aSaved '" + id + "' to disk!");
+        } catch (IOException e) {
+            getMenu().getViewer().sendMessage("§cSomething went wrong while saving!");
+            e.printStackTrace();
         }
     }
 
@@ -395,19 +520,21 @@ public class EditorMenu extends AbstractCoreMenu {
      * @param container
      */
     private void actionAddToList() {
-        FocusQueue.ListFocus header = (FocusQueue.ListFocus) focus.header();
-        DesignList design_list = header.getList();
-        List<Object> container = header.getValues();
+        FocusQueue.ListFocus focused = (FocusQueue.ListFocus) focus.getHeader();
+
+        DesignList design_list = focused.getDesignList();
+        List<Object> container = focused.getValues();
 
         // do not add new elements if capped
         if (design_list.isSingleton() && container.size() != 0) {
             getMenu().getViewer().sendMessage("§cList cannot have multiple elements!");
             return;
         }
+
         // if we are a mono type, no need to type inquire
         if (design_list.getConstraint().isMonoType()) {
             design_list.getConstraint().addElement(container, "mono_type");
-            focus.setOffset(container.size());
+            focused.setScrollOffset(container.size());
             getMenu().getViewer().sendMessage("§aA value was created and added to the list!");
             getMenu().queryRebuild();
             return;
@@ -444,23 +571,12 @@ public class EditorMenu extends AbstractCoreMenu {
      *
      * @param index Which index was interacted with on the current list focus
      */
-    private void setFocusToList(int index) {
-        // ensure we've got a list-focus
-        if (!(focus.header() instanceof FocusQueue.ListFocus)) {
-            getMenu().getViewer().sendMessage("§cFocus is not a ListFocus!");
-            return;
+    private void setFocusInList(int index) {
+        FocusQueue.ListFocus focused = (FocusQueue.ListFocus) focus.getHeader();
+        Object element = focused.getValues().get(index);
+        if (!focused.getDesignList().getConstraint().doListFocus(this, element)) {
+            getMenu().getViewer().sendMessage("§cCannot focus this type of element!");
         }
-        // ensure the element is something we can edit
-        FocusQueue.ListFocus header = (FocusQueue.ListFocus) focus.header();
-        List<Object> container = header.getValues();
-        if (!(container.get(index) instanceof IEditorBundle)) {
-            getMenu().getViewer().sendMessage("§cElement is not a IEditorBundle!");
-            return;
-        }
-        // update the focus to the said element
-        focus.focus((IEditorBundle) container.get(index));
-        // rebuild the editor with the updated focus
-        getMenu().queryRebuild();
     }
 
     /*
@@ -469,11 +585,15 @@ public class EditorMenu extends AbstractCoreMenu {
      * @param category_uuid Unique identifier for a category
      */
     private void setFocusToCategory(String category_uuid) {
-        FocusQueue.Focus header = focus.header();
+        FocusQueue.AbstractFocus focused = focus.getHeader();
+        if (!(focused instanceof FocusQueue.ElementFocus)) {
+            return;
+        }
+
         UUID uuid = UUID.fromString(category_uuid);
 
         // search for the category we picked
-        Design design = designs.computeIfAbsent(header.getBundle().getClass(), Design::new);
+        Design design = ((FocusQueue.ElementFocus) focused).getDesign();
         DesignCategory match = null;
         for (DesignCategory category : design.getCategories()) {
             if (category.getUUID().equals(uuid)) {
@@ -488,7 +608,7 @@ public class EditorMenu extends AbstractCoreMenu {
         }
 
         // narrow the scope on this focus
-        focus.scope(match);
+        ((FocusQueue.ElementFocus) focused).setCategory(match);
         // re-populate based of the focus
         getMenu().queryRebuild();
     }
@@ -500,12 +620,12 @@ public class EditorMenu extends AbstractCoreMenu {
      * @param element which element to focus on
      */
     private void setFocusToElement(String _uuid) {
-        FocusQueue.ScopedFocus header = (FocusQueue.ScopedFocus) focus.header();
+        FocusQueue.ElementFocus focused = (FocusQueue.ElementFocus) focus.getHeader();
         UUID uuid = UUID.fromString(_uuid);
 
         // search for the category we picked
         DesignElement match = null;
-        for (DesignElement element : header.getCategory().getElements()) {
+        for (DesignElement element : focused.getCategory().getElements()) {
             if (element.getUUID().equals(uuid)) {
                 match = element;
             }
@@ -520,7 +640,7 @@ public class EditorMenu extends AbstractCoreMenu {
         // present the editor for the given element
         DesignElement final_match = match;
         getMenu().stalled(() -> {
-            final_match.edit(header.getBundle(), getMenu().getViewer(), getMenu(), focus);
+            final_match.edit(focused.getBundle(), getMenu().getViewer(), this);
         });
     }
 
@@ -549,7 +669,7 @@ public class EditorMenu extends AbstractCoreMenu {
                 // add a clean value to the container
                 design_list.getConstraint().addElement(container, text);
                 // scroll down so the added value is visible
-                focus.setOffset(container.size());
+                focus.getHeader().setScrollOffset(container.size());
                 // inform about the successful operation
                 getMenu().getViewer().sendMessage("§aA value was added to the list!");
             } else if (design_list.getConstraint().canExtend()) {
@@ -558,7 +678,7 @@ public class EditorMenu extends AbstractCoreMenu {
                 // add a clean value to the container
                 design_list.getConstraint().addElement(container, text);
                 // scroll down so the added value is visible
-                focus.setOffset(container.size());
+                focus.getHeader().setScrollOffset(container.size());
                 // inform about the successful operation
                 getMenu().getViewer().sendMessage("§aA value was created and added to the list!");
             } else {
@@ -625,7 +745,10 @@ public class EditorMenu extends AbstractCoreMenu {
             } else if (index.has(text)) {
                 // load an existing element
                 IEditorRoot element = index.edit(text);
-                focus.focus(text, element);
+                // set it into the focus queue
+                focus.clearFocus();
+                focus.setFocusToRoot(text, element);
+                // inform and recover to previous menu
                 suggestOpen(parent);
                 getMenu().getViewer().sendMessage("§cEditing existing element '" + text + "'!");
                 // update editor history
@@ -634,10 +757,11 @@ public class EditorMenu extends AbstractCoreMenu {
                 player.getEditorHistory().add(text);
             } else {
                 // create a new element
-                focus.clear();
                 IEditorRoot element = (IEditorRoot) index.getEditorFactory().get();
                 element.setFile(FileUtil.file(index.getDirectory(), text + ".rpgcore"));
-                focus.focus(text, element);
+                // set it into the focus queue
+                focus.clearFocus();
+                focus.setFocusToRoot(text, element);
                 // inform and recover to previous menu
                 suggestOpen(parent);
                 getMenu().getViewer().sendMessage("§cCreated new element '" + text + "'!");
@@ -703,18 +827,18 @@ public class EditorMenu extends AbstractCoreMenu {
         public void response(String text) {
             if (!text.isBlank() && !index.has(text)) {
                 // create a clone of what we got open
-                IEditorRoot header = (IEditorRoot) focus.header().getBundle();
-                File before = header.getFile();
+                IEditorRoot root = (IEditorRoot) ((FocusQueue.ElementFocus) focus.getHeader()).getBundle();
+                File before = root.getFile();
                 try {
-                    header.setFile(FileUtil.file(index.getDirectory(), text + ".rpgcore"));
-                    header.save();
-                    focus.focus(text, header);
+                    root.setFile(FileUtil.file(index.getDirectory(), text + ".rpgcore"));
+                    root.save();
+                    focus.setFocusToRoot(text, root);
                     suggestOpen(parent);
                     getMenu().getViewer().sendMessage("§cEditing existing element '" + text + "'!");
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
-                header.setFile(before);
+                root.setFile(before);
             }
         }
 

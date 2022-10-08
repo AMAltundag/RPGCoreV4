@@ -51,7 +51,7 @@ public class VolatileVisualEntity extends EntityArmorStand implements IEntityVis
 
     @Override
     public void remove() {
-        super.dr();
+        super.ah();
     }
 
     @Override

@@ -6,6 +6,13 @@ import me.blutkrone.rpgcore.skill.SkillContext;
 public interface ISkillBind {
 
     /**
+     * Name of the skill that backs up the skill.
+     *
+     * @return name of the skill
+     */
+    String getName();
+
+    /**
      * The icon to use for the skill-bind.
      *
      * @param context the context to invoke the skill in.

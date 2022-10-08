@@ -73,7 +73,7 @@ public class StringConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fString");
+        instruction.add("String");
         instruction.add("Text without any requirement.");
         return instruction;
     }

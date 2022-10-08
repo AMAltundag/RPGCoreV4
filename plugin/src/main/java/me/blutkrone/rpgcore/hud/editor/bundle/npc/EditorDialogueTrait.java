@@ -55,7 +55,7 @@ public class EditorDialogueTrait extends AbstractEditorNPCTrait {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fDialogue Trait");
+        instruction.add("Dialogue Trait");
         return instruction;
     }
 

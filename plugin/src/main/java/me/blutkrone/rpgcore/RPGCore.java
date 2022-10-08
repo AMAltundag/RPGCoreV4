@@ -84,8 +84,8 @@ public final class RPGCore extends JavaPlugin {
     private SkillManager skill_manager;
     private IPartyManager party_manager;
     private QuestManager quest_manager;
+    private MobManager mob_manager;
     // Managers providing high-level functionality for the server
-    private MobManager monster_manager;
     private MountManager mount_manager;
     private IGuildManager guild_manager;
     private ISocialManager social_manager;
@@ -169,6 +169,7 @@ public final class RPGCore extends JavaPlugin {
         this.effect_manager = new EffectManager();
         this.node_manager = new NodeManager();
         this.npc_manager = new NPCManager();
+        this.mob_manager = new MobManager();
         this.quest_manager = new QuestManager();
 
         this.mail_manager = new MailManager();
@@ -176,6 +177,7 @@ public final class RPGCore extends JavaPlugin {
         this.hologram_manager = new HologramManager();
 
         // initialize relevant commands
+        this.commands.put("mob", new MobCommand());
         this.commands.put("storage", new UnlockStorageCommand());
         this.commands.put("holoadd", new HologramAddCommand());
         this.commands.put("holodel", new HologramDeleteCommand());
@@ -190,6 +192,7 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("tool", new ToolCommand());
         this.commands.put("reload", new ReloadCommand());
         this.commands.put("help", new HelpCommand());
+        this.commands.put("attribute", new AttributeCommand());
 
         // task to update the timestamp
         Bukkit.getScheduler().runTaskTimer(this, () -> this.timestamp += 1, 1, 1);
@@ -372,5 +375,9 @@ public final class RPGCore extends JavaPlugin {
 
     public QuestManager getQuestManager() {
         return quest_manager;
+    }
+
+    public MobManager getMobManager() {
+        return mob_manager;
     }
 }

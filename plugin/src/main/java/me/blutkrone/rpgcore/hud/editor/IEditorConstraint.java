@@ -1,5 +1,9 @@
 package me.blutkrone.rpgcore.hud.editor;
 
+import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.design.Design;
+import me.blutkrone.rpgcore.menu.EditorMenu;
+
 import java.util.List;
 
 /**
@@ -116,4 +120,27 @@ public interface IEditorConstraint {
      * @return instructions on this constraint.
      */
     List<String> getInstruction();
+
+    /**
+     * An attempt of focusing on an element, if the element doesn't
+     * match any type we know we can return an error.
+     *
+     * @param editor the editor we originate from
+     * @param element the element we want to focus
+     * @return true if we've focused
+     */
+    default boolean doListFocus(EditorMenu editor, Object element) {
+        // identify which element we clicked on
+        if (element instanceof IEditorBundle) {
+            // update the focus to the said element
+            editor.getFocus().setFocusToBundle(((IEditorBundle) element));
+            // rebuild the editor with the updated focus
+            editor.getMenu().queryRebuild();
+            // operation is fine
+            return true;
+        } else {
+            // cannot focus this type of element
+            return false;
+        }
+    }
 }

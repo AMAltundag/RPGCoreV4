@@ -35,6 +35,7 @@ public class ResourcepackGeneratorMeasured {
     public int marker_offset;
     public int portrait_offset;
     public int instruction_offset;
+    public int focus_sigil_offset;
 
     public int hud_notification;
     public int hud_sidebar;
@@ -65,6 +66,7 @@ public class ResourcepackGeneratorMeasured {
         focus_ward_offset = config.getInt("interface-offset.focus-ward-offset");
         focus_status_offset = config.getInt("interface-offset.focus-status-offset");
         focus_skillbar_offset = config.getInt("interface-offset.focus-skillbar-offset");
+        focus_sigil_offset = config.getInt("interface-offset.focus-sigil-offset");
         skillbar_offset = config.getInt("interface-offset.skillbar-offset");
         activity_offset = config.getInt("interface-offset.activity-offset");
         health_orb_offset = config.getInt("interface-offset.health-orb-offset");

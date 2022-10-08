@@ -49,8 +49,8 @@ public class EditorAudio implements EditorEffect.IEditorEffectBundle {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fSound Effect");
-        instruction.add("§fA sound effect to play.");
+        instruction.add("Sound Effect");
+        instruction.add("A sound effect to play.");
         return instruction;
     }
 

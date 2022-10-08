@@ -48,7 +48,7 @@ public class EditorQuestRewardItem extends AbstractEditorQuestReward {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fItem Reward");
+        instruction.add("Item Reward");
         instruction.add("Grants items to player, excess that cannot be stored");
         instruction.add("Will be dropped on the ground.");
         return instruction;

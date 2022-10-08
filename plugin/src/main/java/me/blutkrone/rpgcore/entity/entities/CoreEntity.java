@@ -9,18 +9,21 @@ import me.blutkrone.rpgcore.api.entity.IEntityEffect;
 import me.blutkrone.rpgcore.attribute.AttributeCollection;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.attribute.TagModifier;
+import me.blutkrone.rpgcore.attribute.TagModifierTimed;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.AilmentTracker;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.EntityManager;
 import me.blutkrone.rpgcore.entity.resource.EntityResource;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
-import me.blutkrone.rpgcore.entity.tasks.BukkitImmolationTask;
-import me.blutkrone.rpgcore.entity.tasks.CoreToBukkitAttributeTask;
-import me.blutkrone.rpgcore.entity.tasks.EntityActivityTask;
-import me.blutkrone.rpgcore.entity.tasks.EntityEffectTask;
+import me.blutkrone.rpgcore.entity.tasks.*;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
+import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
+import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
+import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -54,15 +57,26 @@ public class CoreEntity implements IContext, IOrigin {
     private EntityResource stamina_resource;
     // damage interaction causing entity death
     private DamageInteraction cause_of_death;
-
     // mark entity as no longer being used by the core
     private boolean invalid;
-
     // tracker for cooldowns on the entity
     private Map<String, Integer> cooldowns = new HashMap<>();
-
     // a process which has something at happen at the end of it
     private IActivity activity = null;
+    // proxies provided by skills
+    private List<AbstractSkillProxy> proxies = new ArrayList<>();
+    // parent-child logic
+    private List<UUID> children = new ArrayList<>();
+    private UUID parent;
+    // tags we are involved with
+    private List<String> tags_self = new ArrayList<>();
+    private List<String> tags_hostile = new ArrayList<>();
+    private List<String> tags_friendly = new ArrayList<>();
+    // a pseudo hint to pull from an activity
+    private String focus_hint = "none";
+    private int focus_hint_until = -1;
+    // track the pipelines for actions we've requested
+    private List<CoreAction.ActionPipeline> actions = new ArrayList<>();
 
     public CoreEntity(LivingEntity entity, EntityProvider provider) {
         // apply basic bukkit initialization
@@ -86,7 +100,179 @@ public class CoreEntity implements IContext, IOrigin {
         // process the activity on the entity
         this.bukkit_tasks.add(new EntityActivityTask(this)
                 .runTaskTimer(RPGCore.inst(), 1, 1));
+        // processes the proxies we are using
+        this.bukkit_tasks.add(new EntityProxyTask(this)
+                .runTaskTimer(RPGCore.inst(), 1, 1));
+        // apply recovery and update maximum capacities
+        this.bukkit_tasks.add(new EntityRecoveryTask(this)
+                .runTaskTimer(RPGCore.inst(), 1, 10));
+    }
 
+    /**
+     * Soak X amount of damage with barriers that are stalling
+     * execution of other abilities.
+     *
+     * @param damage the damage we've taken
+     * @return whether we soaked damage
+     */
+    public boolean soakForBarrier(int damage) {
+        boolean barrier = false;
+
+        // check for barrier from mob AI
+        if (this instanceof CoreMob) {
+            IEntityBase base = ((CoreMob) this).getBase();
+            barrier = base.doBarrierDamageSoak(damage);
+        }
+
+        // check for barrier from skill activity
+        IActivity activity = this.getActivity();
+        if (activity instanceof ISkillActivity) {
+            barrier |= ((ISkillActivity) activity).doBarrierDamageSoak(damage);
+        }
+
+        // check for barrier from passive behaviours
+        for (CoreAction.ActionPipeline pipeline : this.getActions()) {
+            BarrierMechanic.ActiveBarrier active = pipeline.getBarrier();
+            if (active != null) {
+                active.damage -= damage;
+            }
+        }
+
+        // whether we soaked any damage
+        return barrier;
+    }
+
+    /**
+     * Actions which we are currently operating.
+     *
+     * @return the pipelines which we do have.
+     */
+    public List<CoreAction.ActionPipeline> getActions() {
+        return actions;
+    }
+
+    /**
+     * Does nothing by default, but may be used by derivations.
+     */
+    public void updateSkills() {
+
+    }
+
+    /**
+     * A hint to show on the UX for focus information, this will override
+     * the activity information.
+     *
+     * @return hint to be rendered, may be null.
+     */
+    public String getFocusHint() {
+        // get rid of the hint if the timestamp expired
+        if (this.focus_hint_until < RPGCore.inst().getTimestamp()) {
+            this.focus_hint = null;
+        }
+        // offer up the hint or nothing
+        return this.focus_hint;
+    }
+
+    /**
+     * A hint to show on the UX for focus information, this will override
+     * the activity information.
+     *
+     * @param hint the hint we are given
+     * @param duration how many ticks the hint lasts
+     */
+    public void giveFocusHint(String hint, int duration) {
+        this.focus_hint = hint;
+        this.focus_hint_until = RPGCore.inst().getTimestamp() + duration;
+    }
+
+    /**
+     * A view of all child entities.
+     *
+     * @return child entities.
+     */
+    public Set<CoreEntity> getChildren() {
+        Set<CoreEntity> children = new HashSet<>();
+        this.children.removeIf(uuid -> {
+            CoreEntity entity = RPGCore.inst().getEntityManager().getEntity(uuid);
+            if (entity == null) {
+                return true;
+            }
+            children.add(entity);
+            return false;
+        });
+        return children;
+    }
+
+    /**
+     * Tags that are identifying this entity.
+     *
+     * @return tags of the entity.
+     */
+    public List<String> getMyTags() {
+        return tags_self;
+    }
+
+    /**
+     * We are friendly, if the target has these tags. This
+     * works bi-directionally.
+     *
+     * @return tags to be friendly towards.
+     */
+    public List<String> getTagsFriendly() {
+        return tags_friendly;
+    }
+
+    /**
+     * We are hostile, if the target has these tags. This
+     * works bi-directionally.
+     *
+     * @return tags to be hostile towards.
+     */
+    public List<String> getTagsHostile() {
+        return tags_hostile;
+    }
+
+    /**
+     * The unique identifier of the parent, do note that the
+     * parent may be dead already which can cause there to be
+     * no associated entity.
+     *
+     * @return identifier of parent.
+     */
+    public UUID getParent() {
+        return parent;
+    }
+
+    /**
+     * Establishes a parent-child relationship, this is
+     * handled bi-directionally.
+     *
+     * @param child entity that will become our child.
+     */
+    public void addChild(CoreEntity child) {
+        child.parent = this.getUniqueId();
+        this.children.add(child.getUniqueId());
+    }
+
+    /**
+     * Establishes a parent-child relationship, this is
+     * handled bi-directionally.
+     *
+     * @param parent entity that will become our parent.
+     */
+    public void setParent(CoreEntity parent) {
+        this.parent = parent.getUniqueId();
+        parent.children.add(this.getUniqueId());
+    }
+
+    /**
+     * Proxies which were created by skills to invoke
+     * certain logic in some way.
+     *
+     * @return all proxies
+     */
+    public List<AbstractSkillProxy> getProxies() {
+        return proxies;
     }
 
     /**
@@ -291,7 +477,7 @@ public class CoreEntity implements IContext, IOrigin {
      * @return the collection backing it up.
      */
     public AttributeCollection getAttribute(String attribute) {
-        return this.attributes.computeIfAbsent(attribute, (k -> {
+        return this.attributes.computeIfAbsent(attribute.toLowerCase(), (k -> {
             // create the collection to hold modifiers for this attribute
             AttributeCollection collection = new AttributeCollection(this);
             // configure the collection for this attribute specifically
@@ -330,14 +516,33 @@ public class CoreEntity implements IContext, IOrigin {
         return !modifiers.isEmpty();
     }
 
+    @Override
+    public CoreEntity getCoreEntity() {
+        return this;
+    }
+
     /**
      * Acquire a certain tag, until it is expired.
      *
      * @param tag the tag we've acquired.
-     * @return the modifier backing up the tag.
+     * @return a modifier which we can expire manually.
      */
     public TagModifier grantTag(String tag) {
         TagModifier gained = new TagModifier();
+        this.tags.computeIfAbsent(tag, (k -> new ArrayList<>())).add(gained);
+        return gained;
+    }
+
+    /**
+     * Acquire a certain tag, which expires naturally after a certain
+     * duration has passed.
+     *
+     * @param tag the tag we've acquired.
+     * @param duration how long the tag lasts.
+     * @return a modifier which we can expire manually.
+     */
+    public TagModifier grantTag(String tag, int duration) {
+        TagModifier gained = new TagModifierTimed(duration);
         this.tags.computeIfAbsent(tag, (k -> new ArrayList<>())).add(gained);
         return gained;
     }
@@ -359,6 +564,11 @@ public class CoreEntity implements IContext, IOrigin {
      * @see EntityManager#unregister(UUID) This method is for internal usage only!
      */
     public void remove() {
+        // request proxies to be destructed
+        this.proxies.removeIf(proxy -> {
+            proxy.pleaseCancelThis();
+            return proxy.update();
+        });
         // drop all tasks from the scheduler
         for (BukkitTask bukkit_task : this.bukkit_tasks)
             bukkit_task.cancel();
@@ -429,6 +639,96 @@ public class CoreEntity implements IContext, IOrigin {
      */
     public boolean isAllowTarget() {
         return !isInvalid();
+    }
+
+    /**
+     * Check if we are considered friendly to the other entity, this
+     * is expected to be bi-directional.
+     *
+     * @param other who to compare against
+     * @return whether we are friendly
+     */
+    public boolean isFriendly(CoreEntity other) {
+        // grab parent of this entity
+        CoreEntity a = this;
+        while (a.getParent() != null) {
+            CoreEntity parent = RPGCore.inst().getEntityManager().getEntity(a.getParent());
+            if (parent == null) {
+                break;
+            }
+            a = parent;
+        }
+        // grab parent of other entity
+        CoreEntity b = other;
+        while (b.getParent() != null) {
+            CoreEntity parent = RPGCore.inst().getEntityManager().getEntity(b.getParent());
+            if (parent == null) {
+                break;
+            }
+            b = parent;
+        }
+        // we are friendly to ourself
+        if (a == b) {
+            return true;
+        }
+        // check if either is friendly to the other
+        for (String tag : a.tags_friendly) {
+            if (b.tags_self.contains(tag)) {
+                return true;
+            }
+        }
+        for (String tag : b.tags_friendly) {
+            if (a.tags_self.contains(tag)) {
+                return true;
+            }
+        }
+        // otherwise we are not considered friendly
+        return false;
+    }
+
+    /**
+     * Check if we are considered hostile to the other entity, this
+     * is expected to be bi-directional.
+     *
+     * @param other who to compare against
+     * @return whether we are hostile
+     */
+    public boolean isHostile(CoreEntity other) {
+        // grab parent of this entity
+        CoreEntity a = this;
+        while (a.getParent() != null) {
+            CoreEntity parent = RPGCore.inst().getEntityManager().getEntity(a.getParent());
+            if (parent == null) {
+                break;
+            }
+            a = parent;
+        }
+        // grab parent of other entity
+        CoreEntity b = other;
+        while (b.getParent() != null) {
+            CoreEntity parent = RPGCore.inst().getEntityManager().getEntity(b.getParent());
+            if (parent == null) {
+                break;
+            }
+            b = parent;
+        }
+        // cannot be hostile to ourself or allies
+        if (a == b || isFriendly(other)) {
+            return false;
+        }
+        // check if either is hostile to the other
+        for (String tag : a.tags_hostile) {
+            if (b.tags_self.contains(tag)) {
+                return true;
+            }
+        }
+        for (String tag : b.tags_hostile) {
+            if (a.tags_self.contains(tag)) {
+                return true;
+            }
+        }
+        // otherwise we are not considered hostile
+        return false;
     }
 
     /**

@@ -58,7 +58,7 @@ public class EditorDialogue implements IEditorRoot<CoreDialogue> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fDialogue");
+        instruction.add("Dialogue");
         instruction.add("A dialogue meant for NPC/Quest, do note that while");
         instruction.add("Your dialogue can branch, the result is the same.");
         return instruction;

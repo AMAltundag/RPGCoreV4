@@ -38,8 +38,8 @@ public class EditorTalk implements IEditorBundle {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fTalk");
-        instruction.add("§fUsed by quests to show dialogue for a certain NPC.");
+        instruction.add("Talk");
+        instruction.add("Used by quests to show dialogue for a certain NPC.");
         return instruction;
     }
 

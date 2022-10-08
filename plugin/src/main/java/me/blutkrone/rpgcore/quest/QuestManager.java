@@ -1,17 +1,11 @@
 package me.blutkrone.rpgcore.quest;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
-import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
-import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskKill;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 /**
@@ -46,18 +40,5 @@ public class QuestManager implements Listener {
      */
     public EditorIndex<CoreDialogue, EditorDialogue> getIndexDialogue() {
         return index_dialogue;
-    }
-
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    void onQuestProgressKill(CoreEntityKilledEvent e) {
-        if (e.getKiller() instanceof CorePlayer) {
-            for (String id : ((CorePlayer) e.getKiller()).getActiveQuestIds()) {
-                CoreQuest quest = this.getIndexQuest().get(id);
-                AbstractQuestTask task = quest.getCurrentTask((CorePlayer) e.getKiller());
-                if (task instanceof CoreQuestTaskKill) {
-                    ((CoreQuestTaskKill) task).updateQuest((CorePlayer) e.getKiller(), e);
-                }
-            }
-        }
     }
 }

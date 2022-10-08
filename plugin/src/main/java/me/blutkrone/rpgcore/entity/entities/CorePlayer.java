@@ -14,6 +14,11 @@ import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.skill.CoreSkill;
+import me.blutkrone.rpgcore.skill.SkillContext;
+import me.blutkrone.rpgcore.skill.behaviour.BehaviourEffect;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
+import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
 import me.blutkrone.rpgcore.skill.skillbar.OwnedSkillbar;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
@@ -95,10 +100,15 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     private Map<String, Integer> quest_items_snapshot = null;
     private long quest_items_timestamp = 0;
 
+    // tracks passive behaviours we've got
+    private Map<CoreBehaviour, BehaviourEffect> passive_behaviour = new HashMap<>();
+
+    // track the pipelines for actions we've requested
+    private List<CoreAction.ActionPipeline> actions = new ArrayList<>();
+
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
-
-        Bukkit.getLogger().severe("not implemented (data persistence)");
+        this.getMyTags().add("PLAYER");
 
         // initialize the relevant skillbar
         this.skillbar = new OwnedSkillbar(this);
@@ -106,6 +116,31 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // the character which we represent
         this.character = character;
+    }
+
+    @Override
+    public void updateSkills() {
+        // grab behaviours from skillbar
+        Set<CoreBehaviour> acquired = new HashSet<>();
+        for (int i = 0; i < 6; i++) {
+            CoreSkill skill = skillbar.getSkill(i);
+            if (skill != null) {
+                acquired.addAll(skill.getBehaviours());
+            }
+        }
+        // grab behaviours from alternate sources
+        if (Math.random() <= 0.01d) {
+            Bukkit.getLogger().severe("not implemented (other skill sources)");
+        }
+        // drop behaviours no longer active
+        this.passive_behaviour.keySet().removeIf(key -> !acquired.contains(key));
+        // add behaviours newly acquired
+        for (CoreBehaviour behaviour : acquired) {
+            if (!this.passive_behaviour.containsKey(behaviour)) {
+                SkillContext context = createSkillContext(behaviour.getSkill());
+                this.passive_behaviour.put(behaviour, behaviour.createEffect(context));
+            }
+        }
     }
 
     /**

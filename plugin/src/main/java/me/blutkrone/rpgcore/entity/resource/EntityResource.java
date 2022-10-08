@@ -83,6 +83,17 @@ public class EntityResource {
     }
 
     /**
+     * Sets remaining resource to the given amount, this will bypass
+     * any checks and validations - do NOT use this without absolute
+     * certainty about the behaviour.
+     *
+     * @param amount the amount to update to.
+     */
+    public void setToExactUnsafe(double amount) {
+        this.current_amount = amount;
+    }
+
+    /**
      * Recover the ward on the entity, do note that if the remaining ward
      * is zero it cannot be recovered at all and will be removed soon.
      * <p>

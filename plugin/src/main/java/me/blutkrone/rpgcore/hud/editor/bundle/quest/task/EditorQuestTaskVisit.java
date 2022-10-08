@@ -60,7 +60,7 @@ public class EditorQuestTaskVisit extends AbstractEditorQuestTask {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("§bVisit Task");
-        instruction.add("§fStand close enough to a hotspot node.");
+        instruction.add("Stand close enough to a hotspot node.");
         return instruction;
     }
 }

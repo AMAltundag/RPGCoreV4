@@ -107,13 +107,13 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fQuest");
-        instruction.add("§fA series of tasks for a player to complete. A quest is");
-        instruction.add("§fCompleted once the rewards have been claimed.");
-        instruction.add("§f");
-        instruction.add("§fQuests are designed to be linear, if you wish to branch");
-        instruction.add("§fA quest create two follow ups and make their completion");
-        instruction.add("§fAbandon each other.");
+        instruction.add("Quest");
+        instruction.add("A series of tasks for a player to complete. A quest is");
+        instruction.add("Completed once the rewards have been claimed.");
+        instruction.add("");
+        instruction.add("Quests are designed to be linear, if you wish to branch");
+        instruction.add("A quest create two follow ups and make their completion");
+        instruction.add("Abandon each other.");
         return instruction;
     }
 }

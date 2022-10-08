@@ -75,6 +75,7 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("npc", RPGCore.inst().getNPCManager().getIndex());
             this.indexes.put("quest", RPGCore.inst().getQuestManager().getIndexQuest());
             this.indexes.put("dialogue", RPGCore.inst().getQuestManager().getIndexDialogue());
+            this.indexes.put("mob", RPGCore.inst().getMobManager().getIndex());
         }
 
         return this.indexes;

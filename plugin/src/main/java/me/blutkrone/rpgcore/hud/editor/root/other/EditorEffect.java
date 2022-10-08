@@ -65,9 +65,9 @@ public class EditorEffect implements IEditorRoot<CoreEffect> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fComplex Effect");
-        instruction.add("§fChain together multiple effect components to.");
-        instruction.add("§fbuild a visual effect.");
+        instruction.add("Complex Effect");
+        instruction.add("Chain together multiple effect components to.");
+        instruction.add("build a visual effect.");
         return instruction;
     }
 

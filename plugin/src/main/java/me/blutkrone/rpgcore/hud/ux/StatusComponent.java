@@ -103,11 +103,11 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
         workspace.actionbar().shiftToExact(renderpoint);
         workspace.actionbar().append(rpm.texture("status_self_lower_" + icon));
         // write duration if it did not exceed time limit
-        String time_string = RPGCore.inst().getLanguageManager().formatShortTicks(time);
-        //workspace.actionbar().shiftCentered(renderpoint + this.focus_status_offset + (index*26)+12 + 1, Utility.measureWidthExact(time_string));
-        //workspace.actionbar().shadow(time_string, "hud_status_time_focus");
-        workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(time_string));
-        workspace.actionbar().append(time_string, "hud_status_time_lower");
+        if (time != Integer.MAX_VALUE) {
+            String time_string = RPGCore.inst().getLanguageManager().formatShortTicks(time);
+            workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(time_string));
+            workspace.actionbar().append(time_string, "hud_status_time_lower");
+        }
         // write stack count into the frame
         if (stack > 1) {
             String stack_string = RPGCore.inst().getLanguageManager().formatShortNumber(stack);

@@ -97,6 +97,6 @@ public abstract class AbstractAilment {
      * @return which particles can spawn.
      */
     public ParticleUtility getParticle() {
-        return decor_particle.nextSafe();
+        return decor_particle.next();
     }
 }

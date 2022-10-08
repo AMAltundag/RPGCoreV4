@@ -56,7 +56,7 @@ public class EditorCrafterTrait extends AbstractEditorNPCTrait {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fBanker Trait");
+        instruction.add("Banker Trait");
         return instruction;
     }
 

@@ -11,7 +11,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @EditorName(name = "Attribute And Factor")
 @EditorTooltip(tooltip = "An attribute mapped to a numeric value")
@@ -40,8 +42,26 @@ public class EditorAttributeAndFactor implements IEditorBundle {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAttribute And Factor");
+        instruction.add("Attribute And Factor");
         instruction.add("Sum up with any other modifier to the attribute.");
         return instruction;
+    }
+
+    /**
+     * Useful method to unwrap a list of this class into a map.
+     *
+     * @param bundles bundles to unwrap
+     * @return attribute mapped to factor
+     */
+    public static Map<String, Double> unwrap(List<IEditorBundle> bundles) {
+        Map<String, Double> unwrapped = new HashMap<>();
+        for (IEditorBundle bundle : bundles) {
+            if (bundle instanceof EditorAttributeAndFactor) {
+                String attribute = ((EditorAttributeAndFactor) bundle).attribute;
+                double factor = ((EditorAttributeAndFactor) bundle).factor;
+                unwrapped.merge(attribute, factor, (a,b) -> a+b);
+            }
+        }
+        return unwrapped;
     }
 }

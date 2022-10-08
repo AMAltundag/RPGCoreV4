@@ -63,12 +63,16 @@ public class FocusTracked {
      * @return target or null
      */
     public CoreEntity getTargetEntity() {
+        // drop target if duration has run out
         if (this.expire_time < RPGCore.inst().getTimestamp()) {
-            // the entity exceed the maximum time to be picked
             this.target_entity = null;
         }
-
-        return target_entity;
+        // drop target if no longer registered
+        if (this.target_entity != null && this.target_entity.isInvalid()) {
+            this.target_entity = null;
+        }
+        // offer up the target we've found
+        return this.target_entity;
     }
 
     /**

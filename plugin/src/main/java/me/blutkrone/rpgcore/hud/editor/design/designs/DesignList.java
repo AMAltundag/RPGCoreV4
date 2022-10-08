@@ -1,11 +1,10 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -44,9 +43,9 @@ public class DesignList implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
-        focus.focus(this);
-        editor.queryRebuild();
+    public void edit(IEditorBundle bundle, Player viewer, EditorMenu editor) {
+        editor.getFocus().setFocusToList(bundle, this);
+        editor.getMenu().queryRebuild();
     }
 
     @Override

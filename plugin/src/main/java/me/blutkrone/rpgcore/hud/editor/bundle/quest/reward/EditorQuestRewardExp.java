@@ -55,7 +55,7 @@ public class EditorQuestRewardExp extends AbstractEditorQuestReward {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fExp Reward");
+        instruction.add("Exp Reward");
         instruction.add("Grants either levels or experience, flat experience will");
         instruction.add("be applied first.");
         return instruction;

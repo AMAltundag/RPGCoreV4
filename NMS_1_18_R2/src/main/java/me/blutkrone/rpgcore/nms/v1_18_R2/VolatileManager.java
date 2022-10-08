@@ -7,10 +7,12 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.nms.v1_18_R2.entity.VolatileEntityCollider;
 import me.blutkrone.rpgcore.nms.v1_18_R2.entity.VolatileVisualEntity;
 import me.blutkrone.rpgcore.nms.v1_18_R2.menu.VolatileChestMenu;
 import me.blutkrone.rpgcore.nms.v1_18_R2.menu.VolatileTextInput;
+import me.blutkrone.rpgcore.nms.v1_18_R2.mob.VolatileEntityBase;
 import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.chat.hover.content.*;
 import net.md_5.bungee.chat.*;
@@ -19,6 +21,8 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.server.level.BossBattleServer;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.EntityTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,6 +33,8 @@ import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R2.boss.CraftBossBar;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -150,11 +156,6 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
     }
 
     @Override
-    public Class adaptedComponentClass() {
-        return IChatBaseComponent.class;
-    }
-
-    @Override
     public void setItemLore(ItemStack item, List<BaseComponent[]> lore) {
         // reference: CraftMetaItem#setDisplayTag
         net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(item);
@@ -201,6 +202,194 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
         // transform back into a craft item and mirror the changes
         CraftItemStack craftStack = CraftItemStack.asCraftMirror(nmsStack);
         item.setItemMeta(craftStack.getItemMeta());
+    }
+
+    @Override
+    public IEntityBase spawnEntity(EntityType type, Location location) {
+        // ensure that our location is a valid one
+        World world = location.getWorld();
+        if (world == null) {
+            throw new NullPointerException("World cannot be null!");
+        }
+
+        // map to a base entity type to for clean spawning
+        EntityTypes typeNMS = null;
+        if (type == EntityType.AXOLOTL) {
+            typeNMS = EntityTypes.e;
+        } else if (type == EntityType.BAT) {
+            typeNMS = EntityTypes.f;
+        } else if (type == EntityType.BEE) {
+            typeNMS = EntityTypes.g;
+        } else if (type == EntityType.BLAZE) {
+            typeNMS = EntityTypes.h;
+        } else if (type == EntityType.CAT) {
+            typeNMS = EntityTypes.j;
+        } else if (type == EntityType.CAVE_SPIDER) {
+            typeNMS = EntityTypes.k;
+        } else if (type == EntityType.CHICKEN) {
+            typeNMS = EntityTypes.l;
+        } else if (type == EntityType.COD) {
+            typeNMS = EntityTypes.m;
+        } else if (type == EntityType.COW) {
+            typeNMS = EntityTypes.n;
+        } else if (type == EntityType.CREEPER) {
+            typeNMS = EntityTypes.o;
+        } else if (type == EntityType.DOLPHIN) {
+            typeNMS = EntityTypes.p;
+        } else if (type == EntityType.DONKEY) {
+            typeNMS = EntityTypes.q;
+        } else if (type == EntityType.DROWNED) {
+            typeNMS = EntityTypes.s;
+        } else if (type == EntityType.ELDER_GUARDIAN) {
+            typeNMS = EntityTypes.t;
+        } else if (type == EntityType.ENDERMAN) {
+            typeNMS = EntityTypes.w;
+        } else if (type == EntityType.ENDERMITE) {
+            typeNMS = EntityTypes.x;
+        } else if (type == EntityType.EVOKER) {
+            typeNMS = EntityTypes.y;
+        } else if (type == EntityType.FOX) {
+            typeNMS = EntityTypes.E;
+        } else if (type == EntityType.GHAST) {
+            typeNMS = EntityTypes.F;
+        } else if (type == EntityType.GLOW_SQUID) {
+            typeNMS = EntityTypes.I;
+        } else if (type == EntityType.GOAT) {
+            typeNMS = EntityTypes.J;
+        } else if (type == EntityType.GUARDIAN) {
+            typeNMS = EntityTypes.K;
+        } else if (type == EntityType.HOGLIN) {
+            typeNMS = EntityTypes.L;
+        } else if (type == EntityType.HORSE) {
+            typeNMS = EntityTypes.M;
+        } else if (type == EntityType.HUSK) {
+            typeNMS = EntityTypes.N;
+        } else if (type == EntityType.ILLUSIONER) {
+            typeNMS = EntityTypes.O;
+        } else if (type == EntityType.IRON_GOLEM) {
+            typeNMS = EntityTypes.P;
+        } else if (type == EntityType.LLAMA) {
+            typeNMS = EntityTypes.V;
+        } else if (type == EntityType.MAGMA_CUBE) {
+            typeNMS = EntityTypes.X;
+        } else if (type == EntityType.MULE) {
+            typeNMS = EntityTypes.ag;
+        } else if (type == EntityType.MUSHROOM_COW) {
+            typeNMS = EntityTypes.ah;
+        } else if (type == EntityType.OCELOT) {
+            typeNMS = EntityTypes.ai;
+        } else if (type == EntityType.PANDA) {
+            typeNMS = EntityTypes.ak;
+        } else if (type == EntityType.PARROT) {
+            typeNMS = EntityTypes.al;
+        } else if (type == EntityType.PHANTOM) {
+            typeNMS = EntityTypes.am;
+        } else if (type == EntityType.PIG) {
+            typeNMS = EntityTypes.an;
+        } else if (type == EntityType.PIGLIN) {
+            typeNMS = EntityTypes.ao;
+        } else if (type == EntityType.PIGLIN_BRUTE) {
+            typeNMS = EntityTypes.ap;
+        } else if (type == EntityType.PILLAGER) {
+            typeNMS = EntityTypes.aq;
+        } else if (type == EntityType.POLAR_BEAR) {
+            typeNMS = EntityTypes.ar;
+        } else if (type == EntityType.PUFFERFISH) {
+            typeNMS = EntityTypes.at;
+        } else if (type == EntityType.RABBIT) {
+            typeNMS = EntityTypes.au;
+        } else if (type == EntityType.RAVAGER) {
+            typeNMS = EntityTypes.av;
+        } else if (type == EntityType.SALMON) {
+            typeNMS = EntityTypes.aw;
+        } else if (type == EntityType.SHEEP) {
+            typeNMS = EntityTypes.ax;
+        } else if (type == EntityType.SHULKER) {
+            typeNMS = EntityTypes.ay;
+        } else if (type == EntityType.SILVERFISH) {
+            typeNMS = EntityTypes.aA;
+        } else if (type == EntityType.SKELETON) {
+            typeNMS = EntityTypes.aB;
+        } else if (type == EntityType.SKELETON_HORSE) {
+            typeNMS = EntityTypes.aC;
+        } else if (type == EntityType.SLIME) {
+            typeNMS = EntityTypes.aD;
+        } else if (type == EntityType.SNOWMAN) {
+            typeNMS = EntityTypes.aF;
+        } else if (type == EntityType.SPIDER) {
+            typeNMS = EntityTypes.aI;
+        } else if (type == EntityType.SQUID) {
+            typeNMS = EntityTypes.aJ;
+        } else if (type == EntityType.STRAY) {
+            typeNMS = EntityTypes.aK;
+        } else if (type == EntityType.STRIDER) {
+            typeNMS = EntityTypes.aL;
+        } else if (type == EntityType.TRADER_LLAMA) {
+            typeNMS = EntityTypes.aR;
+        } else if (type == EntityType.TROPICAL_FISH) {
+            typeNMS = EntityTypes.aS;
+        } else if (type == EntityType.TURTLE) {
+            typeNMS = EntityTypes.aT;
+        } else if (type == EntityType.VEX) {
+            typeNMS = EntityTypes.aU;
+        } else if (type == EntityType.VILLAGER) {
+            typeNMS = EntityTypes.aV;
+        } else if (type == EntityType.VINDICATOR) {
+            typeNMS = EntityTypes.aW;
+        } else if (type == EntityType.WANDERING_TRADER) {
+            typeNMS = EntityTypes.aX;
+        } else if (type == EntityType.WITCH) {
+            typeNMS = EntityTypes.aY;
+        } else if (type == EntityType.WITHER) {
+            typeNMS = EntityTypes.aZ;
+        } else if (type == EntityType.WITHER_SKELETON) {
+            typeNMS = EntityTypes.ba;
+        } else if (type == EntityType.WOLF) {
+            typeNMS = EntityTypes.bc;
+        } else if (type == EntityType.ZOGLIN) {
+            typeNMS = EntityTypes.bd;
+        } else if (type == EntityType.ZOMBIE) {
+            typeNMS = EntityTypes.be;
+        } else if (type == EntityType.ZOMBIE_HORSE) {
+            typeNMS = EntityTypes.bf;
+        } else if (type == EntityType.ZOMBIE_VILLAGER) {
+            typeNMS = EntityTypes.bg;
+        } else if (type == EntityType.ZOMBIFIED_PIGLIN) {
+            typeNMS = EntityTypes.bh;
+        }
+
+        // ensure we could map to a NMS type
+        if (typeNMS == null) {
+            Bukkit.getLogger().severe("Entity type '" + type + "' is not supported!");
+            return null;
+        }
+
+        // manually instantiate the entity to force that copies are without variants
+        WorldServer server = ((CraftWorld) world).getHandle();
+        net.minecraft.world.entity.Entity entity = typeNMS.a(server);
+        if (entity == null) {
+            throw new IllegalStateException("Bad factorized entity type " + type);
+        }
+
+        // move to an appropriate position
+        entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        entity.l(location.getYaw());
+
+        // register the creature that has been requested
+        server.addFreshEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+
+        // initialize the bukkit entity into a wrapper
+        LivingEntity bukkit_entity = (LivingEntity) entity.getBukkitEntity();
+        VolatileEntityBase entity_base = new VolatileEntityBase(bukkit_entity);
+        entity_base.getAI();
+        return entity_base;
+    }
+
+    @Override
+    public IEntityBase getEntity(LivingEntity entity) {
+        VolatileEntityBase entity_base = new VolatileEntityBase(entity);
+        entity_base.getAI();
+        return entity_base;
     }
 
     @EventHandler(priority = EventPriority.LOW)

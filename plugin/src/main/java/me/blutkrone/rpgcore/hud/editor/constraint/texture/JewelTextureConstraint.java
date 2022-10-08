@@ -100,8 +100,8 @@ public class JewelTextureConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fJewel Texture");
-        instruction.add("§fTexture used for item lore.");
+        instruction.add("Jewel Texture");
+        instruction.add("Texture used for item lore.");
         return instruction;
     }
 

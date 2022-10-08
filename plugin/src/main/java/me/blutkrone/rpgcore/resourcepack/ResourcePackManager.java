@@ -117,6 +117,8 @@ public class ResourcePackManager implements Listener {
             = FileUtil.directory("resourcepack/generated/selfie");
     private static final File INPUT_QUEST
             = FileUtil.directory("resourcepack/generated/quest");
+    private static final File INPUT_FOCUS_SIGIL
+            = FileUtil.directory("resourcepack/generated/focus");
 
     private static final File OUTPUT_FONT
             = FileUtil.directory("resourcepack/working/assets/minecraft/textures/font");
@@ -644,8 +646,13 @@ public class ResourcePackManager implements Listener {
             for (File file : FileUtil.buildAllFiles(INPUT_SELFIE)) {
                 indexed_fonts.putAll(StaticGenerator.construct(file, "dialogue_selfie", "selfie", MenuGenerator.MENU_VERTICAL_OFFSET, selfie_symbol_space));
             }
-
             Bukkit.getLogger().info(String.format("Generated 'selfie' font textures in %sms", clock.loop()));
+            // sigils are used on the focus bar
+            StaticGenerator.PooledSymbolSpace sigil_space = new StaticGenerator.PooledSymbolSpace();
+            for (File file : FileUtil.buildAllFiles(INPUT_FOCUS_SIGIL)) {
+                indexed_fonts.putAll(StaticGenerator.construct(file, "focus_sigil", "focus_sigil", rules.focus_sigil_offset, sigil_space));
+            }
+            Bukkit.getLogger().info(String.format("Generated 'sigil' font textures in %sms", clock.loop()));
             // textures used by quests
             StaticGenerator.PooledSymbolSpace quest_symbol_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_QUEST)) {

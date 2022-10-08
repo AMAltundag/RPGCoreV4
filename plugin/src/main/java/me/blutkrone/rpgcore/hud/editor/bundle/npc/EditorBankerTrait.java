@@ -54,10 +54,10 @@ public class EditorBankerTrait extends AbstractEditorNPCTrait {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fBanker Trait");
-        instruction.add("§fA banker is storage limited to 'bulk' items, which");
-        instruction.add("§fMight have a denomination associated with them. Any");
-        instruction.add("§fBank-able item can be stored here.");
+        instruction.add("Banker Trait");
+        instruction.add("A banker is storage limited to 'bulk' items, which");
+        instruction.add("Might have a denomination associated with them. Any");
+        instruction.add("Bank-able item can be stored here.");
         return instruction;
     }
 

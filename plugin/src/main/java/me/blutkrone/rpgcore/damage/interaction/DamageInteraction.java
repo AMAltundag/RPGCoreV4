@@ -23,13 +23,10 @@ public final class DamageInteraction {
     private Map<DamageElement, Double> damage = new HashMap<>();
     // tags to identify this damage type
     private Set<String> tags = new HashSet<>();
-    // scaling rules to apply
-    private List<DamageScaling> scaling_attacker_multi = new ArrayList<>();
-    private List<DamageScaling> scaling_attacker_flat = new ArrayList<>();
-    private List<DamageScaling> scaling_attacker_crit_chance = new ArrayList<>();
-    private List<DamageScaling> scaling_attacker_crit_damage = new ArrayList<>();
     // additional modifiers available here
     private Map<String, AttributeCollection> attribute = new HashMap<>();
+    // a context may be provided optionally
+    private IContext source_context = null;
 
     /**
      * An interaction holding information about damage.
@@ -44,6 +41,26 @@ public final class DamageInteraction {
         this.type = type;
         this.defender = defender;
         this.attacker = attacker;
+    }
+
+    /**
+     * A source context is provided if the damage was generated thorough the
+     * skill system. Otherwise this is empty.
+     *
+     * @return the source context, if it exists.
+     */
+    public Optional<IContext> getSourceContext() {
+        return Optional.ofNullable(source_context);
+    }
+
+    /**
+     * Binds the instance to a context, this is meant for skills to identify
+     * damage from other skills. Should always be a skill context.
+     *
+     * @param source_context the context.
+     */
+    public void setSourceContext(IContext source_context) {
+        this.source_context = source_context;
     }
 
     /**
@@ -85,6 +102,19 @@ public final class DamageInteraction {
     }
 
     /**
+     * Get the total sum of damage.
+     *
+     * @return total damage dealt.
+     */
+    public double getDamage() {
+        double total = 0d;
+        for (double damage : this.damage.values()) {
+            total += damage;
+        }
+        return total;
+    }
+
+    /**
      * Update the damage to be dealt of a given element.
      *
      * @param element which element to process
@@ -102,6 +132,17 @@ public final class DamageInteraction {
      */
     public void addTags(String... tags) {
         this.tags.addAll(Arrays.asList(tags));
+    }
+
+
+    /**
+     * Acquire a subset of tags to further identify what sort of
+     * damage we are dealing.
+     *
+     * @param tags the tags to acquire
+     */
+    public void addTags(Collection<String> tags) {
+        this.tags.addAll(tags);
     }
 
     /**

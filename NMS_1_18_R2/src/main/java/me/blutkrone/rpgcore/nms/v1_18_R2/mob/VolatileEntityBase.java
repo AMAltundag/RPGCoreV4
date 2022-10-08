@@ -1,0 +1,403 @@
+package me.blutkrone.rpgcore.nms.v1_18_R2.mob;
+
+import me.blutkrone.rpgcore.nms.api.mob.AbstractEntityRoutine;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import net.minecraft.util.profiling.GameProfilerFiller;
+import net.minecraft.world.entity.EntityCreature;
+import net.minecraft.world.entity.EntityInsentient;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.ai.goal.PathfinderGoal;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalSelector;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalWrapped;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
+import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.level.RayTrace;
+import net.minecraft.world.level.World;
+import net.minecraft.world.phys.MovingObjectPosition;
+import net.minecraft.world.phys.Vec3D;
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMob;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.NumberConversions;
+import org.bukkit.util.Vector;
+
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+public class VolatileEntityBase implements IEntityBase {
+
+    private LivingEntity bukkit_entity;
+
+    public VolatileEntityBase(LivingEntity bukkit_entity) {
+        this.bukkit_entity = bukkit_entity;
+    }
+
+    @Override
+    public void setAggressive(boolean aggressive) {
+        EntityInsentient insentient = getInsentient();
+        insentient.u(aggressive);
+    }
+
+    @Override
+    public void addRoutine(String namespace, AbstractEntityRoutine routine) {
+        getAI().routines.computeIfAbsent(namespace, (k -> new ArrayList<>())).add(routine);
+    }
+
+    @Override
+    public void addDeathRoutine(AbstractEntityRoutine routine) {
+        getAI().death_routines.add(routine);
+    }
+
+    @Override
+    public boolean walkTo(Entity entity, double speed) {
+        return walkTo(entity.getLocation(), speed);
+    }
+
+    @Override
+    public boolean walkTo(Location where, double speed) {
+        return where.getWorld() == this.getBukkitHandle().getWorld()
+                && this.getInsentient().D().a(where.getX(), where.getY(), where.getZ(), speed);
+    }
+
+    @Override
+    public void stopWalk() {
+        this.getInsentient().D().n();
+    }
+
+    @Override
+    public boolean stroll(int minimum, int maximum, double speed) {
+        EntityInsentient insentient = getInsentient();
+        if (insentient instanceof EntityCreature) {
+            EntityCreature creature = (EntityCreature) insentient;
+            // find a location to stroll towards
+            Vec3D where = LandRandomPos.a(creature, maximum, minimum);
+            if (where == null) {
+                where = DefaultRandomPos.a(creature, maximum, minimum);
+            }
+            // if we got the target, stroll there
+            if (where != null) {
+                return insentient.D().a(where.b, where.c, where.d, speed);
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public void look(Entity entity) {
+        look(entity.getLocation());
+    }
+
+    @Override
+    public void look(Location location) {
+        if (location.getWorld() == this.getBukkitHandle().getWorld()) {
+            Vector v1 = location.toVector();
+            Vector v2 = getBukkitHandle().getLocation().toVector();
+            Vector v3 = v1.subtract(v2).normalize();
+
+            double theta = Math.atan2(-v3.getX(), v3.getZ());
+            double x2 = NumberConversions.square(v3.getX());
+            double z2 = NumberConversions.square(v3.getZ());
+            double xz = Math.sqrt(x2 + z2);
+
+            float yaw = (float) Math.toDegrees((theta + (2*Math.PI)) % (2*Math.PI));
+            float pitch = (float) Math.toDegrees(Math.atan(-v3.getY() / xz));
+
+            getBukkitHandle().setRotation(yaw, pitch);
+        }
+    }
+
+    @Override
+    public boolean canSense(LivingEntity other) {
+        try {
+            // identify the entities which are to be checked
+            CraftLivingEntity craft_asking = (CraftLivingEntity) this.getBukkitHandle();
+            CraftLivingEntity craft_asked = (CraftLivingEntity) other;
+            if (craft_asking == null || craft_asked == null) return false;
+            // remap into the nms handle of the entities
+            EntityInsentient handle_asking = (EntityInsentient) craft_asking.getHandle();
+            EntityLiving handle_asked = craft_asked.getHandle();
+            // check if the asking entity is able to sense the target
+            return handle_asking.E().a(handle_asked);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean canSee(LivingEntity other) {
+        if (getBukkitHandle().getWorld() != other.getWorld())
+            return false;
+        Location loc1 = getBukkitHandle().getEyeLocation();
+        Location loc2 = other.getEyeLocation();
+
+        World world = ((CraftWorld) other.getWorld()).getHandle();
+        Vec3D p1 = new Vec3D(loc1.getX(), loc1.getY(), loc1.getZ());
+        Vec3D p2 = new Vec3D(loc2.getX(), loc2.getY(), loc2.getZ());
+        return world.a(new RayTrace(p1, p2, RayTrace.BlockCollisionOption.a, RayTrace.FluidCollisionOption.a, null))
+                .c() == MovingObjectPosition.EnumMovingObjectType.a;
+    }
+
+    @Override
+    public LivingEntity getBukkitHandle() {
+        return this.bukkit_entity;
+    }
+
+    @Override
+    public boolean isWalking() {
+        return !this.getInsentient().D().l();
+    }
+
+    @Override
+    public boolean isInDeathSequence() {
+        return getAI().death_routine != null;
+    }
+
+    @Override
+    public boolean doDeathSequence(Runnable callback) {
+        // do not invoke multiple times
+        if (getAI().death_routine != null) {
+            return false;
+        }
+        // search for a routine to query
+        for (AbstractEntityRoutine death_routine : getAI().death_routines) {
+            if (death_routine.doStart()) {
+                getAI().death_routine = death_routine;
+                getAI().death_callback = callback;
+                return false;
+            }
+        }
+        // no routine found, we can just die
+        callback.run();
+        return true;
+    }
+
+    @Override
+    public void setRageLimit(double maximum_rage) {
+        getAI().rage_maximum = maximum_rage;
+    }
+
+    @Override
+    public void enrage(LivingEntity source, double amount, double maximum, double focus, boolean forced) {
+        // rage of less-equal zero is ignored
+        if (amount <= 0d) {
+            return;
+        }
+
+        // rage cannot change during death sequence
+        if (getAI().death_routine != null) {
+            return;
+        }
+
+        if (getAI().rage_entity == null) {
+            // apply as the new rage holder, inherits prior rage
+            getAI().rage_entity = source;
+            getAI().rage_focus = focus;
+            getAI().rage_value = Math.max(1d, getAI().rage_value);
+            // 3 second cooldown before allowing to pull
+            getAI().rage_cooldown = System.currentTimeMillis() + 5000L;
+        } else if (getAI().rage_entity == source) {
+            // accumulate rage, and respect limits
+            double updated = getAI().rage_value + amount;
+            updated = Math.min(updated, maximum);
+            updated = Math.min(updated, getAI().rage_maximum);
+            // update the rage we're holding
+            getAI().rage_value = updated;
+        } else {
+            // pull rage (reduced by focus from the rage holder)
+            double updated = getAI().rage_value - (amount / (1d + Math.max(0d, getAI().rage_focus)));
+
+            if (updated > 0d) {
+                // reduced rage a little
+                getAI().rage_value = updated;
+            } else if (System.currentTimeMillis() < getAI().rage_cooldown) {
+                // low rage allows to pull away after cooldown passed
+                getAI().rage_value = 0.01d;
+            } else {
+                // apply as the new rage holder, rage overflow is maintained
+                getAI().rage_entity = source;
+                getAI().rage_focus = focus;
+                getAI().rage_value = Math.max(1d, (-1d) * updated);
+                // 3 second cooldown before allowing to pull
+                getAI().rage_cooldown = System.currentTimeMillis() + 5000L;
+            }
+        }
+    }
+
+    @Override
+    public void enrage(double amount) {
+        // rage cannot change during death sequence
+        if (getAI().death_routine != null) {
+            return;
+        }
+
+        // manipulate the rage (respecting maximum)
+        getAI().rage_value = Math.max(0d, Math.min(amount, getAI().rage_maximum));
+        // lose target if rage dipped below 0
+        if (getAI().rage_value <= 0d) {
+            getAI().rage_entity = null;
+        }
+    }
+
+    @Override
+    public LivingEntity getRageEntity() {
+        return getAI().rage_entity;
+    }
+
+    @Override
+    public double getRageValue() {
+        return getAI().rage_value;
+    }
+
+    @Override
+    public boolean doBarrierDamageSoak(int damage) {
+        // soak damage by all barrier phases
+        boolean barrier = false;
+        for (AbstractEntityRoutine routine : getAI().active.values()) {
+            barrier = barrier || routine.doBarrierDamageSoak(damage);
+        }
+        return barrier;
+    }
+
+    /**
+     * Wrapper for core AI implementation.
+     *
+     * @return a wrapper for Core based AI.
+     */
+    public CoreAI getAI() {
+        if (!(getInsentient().bQ instanceof CoreAI)) {
+            getInsentient().bQ = new CoreAI(getInsentient().s.ac());
+            getInsentient().bR = new PathfinderGoalSelector(getInsentient().s.ac());
+        }
+
+        return (CoreAI) getInsentient().bQ;
+    }
+
+    /**
+     * Retrieve the insentient handle.
+     *
+     * @return insentient entity wrapper
+     */
+    public EntityInsentient getInsentient() {
+        return ((CraftMob) this.getBukkitHandle()).getHandle();
+    }
+
+    /*
+     * An override for the entity AI, allowing them to process
+     * core based AI logic instead.
+     */
+    class CoreAI extends PathfinderGoalSelector {
+
+        Map<String, List<AbstractEntityRoutine>> routines = new HashMap<>();
+        Map<String, AbstractEntityRoutine> active = new HashMap<>();
+        List<AbstractEntityRoutine> death_routines = new ArrayList<>();
+        double rage_maximum;
+        LivingEntity rage_entity;
+        double rage_value;
+        double rage_focus;
+        long rage_cooldown;
+        AbstractEntityRoutine death_routine;
+        Runnable death_callback;
+
+        CoreAI(Supplier<GameProfilerFiller> var0) {
+            super(var0);
+            super.a(1);
+        }
+
+        @Override
+        public void a() {
+
+        }
+
+        @Override
+        public void a(boolean var0) {
+            // a(boolean); and b(); are called in alteration
+            this.b();
+        }
+
+        @Override
+        public Set<PathfinderGoalWrapped> c() {
+            return new HashSet<>();
+        }
+
+        @Override
+        public void a(int var0) {
+        }
+
+        @Override
+        public void b() {
+            // conclude a death routine if we got one
+            if (death_routine != null) {
+                if (death_routine.doUpdate()) {
+                    // invoke the callback
+                    death_callback.run();
+                    // if still active, remove
+                    if (getBukkitHandle().isValid()) {
+                        getBukkitHandle().setHealth(0d);
+                        getBukkitHandle().remove();
+                    }
+                }
+                // do not process basic AI
+                return;
+            }
+
+            // tick the rage
+            routines.forEach((key, routines) -> {
+                // fetch which routine we are working with
+                AbstractEntityRoutine routine = active.get(key);
+
+                if (routine == null) {
+                    // attempt to initialize a new routine
+                    for (AbstractEntityRoutine candidate : routines) {
+                        if (candidate.doStart()) {
+                            active.put(key, candidate);
+                            return;
+                        }
+                    }
+                } else if (routine.doUpdate()) {
+                    // check if we've finished
+                    active.remove(key);
+                    // remove if it was a singleton
+                    if (routine.isSingleton()) {
+                        routines.remove(routine);
+                    }
+                }
+            });
+        }
+
+        @Deprecated
+        @Override
+        public void a(PathfinderGoal.Type var0) {
+        }
+
+        @Deprecated
+        @Override
+        public void a(PathfinderGoal var0) {
+        }
+
+        @Deprecated
+        @Override
+        public void a(PathfinderGoal.Type var0, boolean var1) {
+        }
+
+        @Deprecated
+        @Override
+        public void a(int var0, PathfinderGoal var1) {
+        }
+
+        @Deprecated
+        @Override
+        public Stream<PathfinderGoalWrapped> d() {
+            return Stream.empty();
+        }
+
+        @Deprecated
+        @Override
+        public void b(PathfinderGoal.Type var0) {
+        }
+    }
+}

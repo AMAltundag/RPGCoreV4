@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.entity.entities.CoreTotem;
 import me.blutkrone.rpgcore.util.world.ChunkIdentifier;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -84,6 +85,18 @@ public class EntityManager {
     public CoreMob getMob(UUID uuid) {
         CoreEntity found = getEntity(uuid);
         return found instanceof CoreMob ? ((CoreMob) found) : null;
+    }
+
+
+    /**
+     * Retrieve the mob, if the associated entity is a mob.
+     *
+     * @param uuid which entity to retrieve
+     * @return entity to retrieve
+     */
+    public CoreTotem getTotem(UUID uuid) {
+        CoreEntity found = getEntity(uuid);
+        return found instanceof CoreTotem ? ((CoreTotem) found) : null;
     }
 
     /**

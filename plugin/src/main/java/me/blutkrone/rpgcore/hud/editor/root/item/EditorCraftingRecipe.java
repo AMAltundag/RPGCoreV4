@@ -94,7 +94,7 @@ public class EditorCraftingRecipe implements IEditorRoot<CoreCraftingRecipe> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fCrafting Recipe");
+        instruction.add("Crafting Recipe");
         instruction.add("Combine multiple items into another item.");
         return instruction;
     }

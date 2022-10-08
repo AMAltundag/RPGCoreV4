@@ -24,12 +24,12 @@ public @interface EditorNumber {
      *
      * @return lower bound
      */
-    double minimum() default Double.MIN_VALUE;
+    double minimum() default Integer.MIN_VALUE;
 
     /**
      * Number cannot exceed past maximum.
      *
      * @return upper bound.
      */
-    double maximum() default Double.MAX_VALUE;
+    double maximum() default Integer.MAX_VALUE;
 }

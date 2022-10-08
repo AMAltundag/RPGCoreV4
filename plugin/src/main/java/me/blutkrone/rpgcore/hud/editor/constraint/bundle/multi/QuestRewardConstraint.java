@@ -126,8 +126,8 @@ public class QuestRewardConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fQuest Reward");
-        instruction.add("§fA reward offered upon quest completion.");
+        instruction.add("Quest Reward");
+        instruction.add("A reward offered upon quest completion.");
         return instruction;
     }
 }

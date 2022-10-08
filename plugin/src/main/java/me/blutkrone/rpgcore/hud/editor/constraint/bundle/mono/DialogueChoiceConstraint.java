@@ -35,7 +35,7 @@ public class DialogueChoiceConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fDialogue Choice");
+        instruction.add("Dialogue Choice");
         instruction.add("A choice for dialogue, do note that this is only meant");
         instruction.add("for narrative steering - choices in dialogue will not be");
         instruction.add("able to branch quest progress.");

@@ -112,9 +112,9 @@ public class EditorNPC implements IEditorRoot<CoreNPC> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fNPC");
-        instruction.add("§fEntity meant for miscellaneous purposes. Use for Quests,");
-        instruction.add("§fVendors, Quests, Background. Not meant for combat.");
+        instruction.add("NPC");
+        instruction.add("Entity meant for miscellaneous purposes. Use for Quests,");
+        instruction.add("Vendors, Quests, Background. Not meant for combat.");
         return instruction;
     }
 }

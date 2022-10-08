@@ -66,9 +66,9 @@ public class EditorQuestTaskDeliver extends AbstractEditorQuestTask {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("§bDelivery Task");
-        instruction.add("§fDeliver X amount of items to an NPC.");
-        instruction.add("§fYou can deliver partial amounts.");
-        instruction.add("§fItems must be delivered, not collected!");
+        instruction.add("Deliver X amount of items to an NPC.");
+        instruction.add("You can deliver partial amounts.");
+        instruction.add("Items must be delivered, not collected!");
         return instruction;
     }
 }

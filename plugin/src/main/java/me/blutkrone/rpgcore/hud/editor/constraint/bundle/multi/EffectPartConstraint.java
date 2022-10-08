@@ -2,10 +2,7 @@ package me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorAudio;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticleBrush;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticlePoint;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorWait;
+import me.blutkrone.rpgcore.hud.editor.bundle.effect.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +20,13 @@ public class EffectPartConstraint implements IEditorConstraint {
         id_to_constructor.put("particle", EditorParticleBrush::new);
         id_to_constructor.put("point", EditorParticlePoint::new);
         id_to_constructor.put("wait", EditorWait::new);
+        id_to_constructor.put("sphere", EditorParticleSphere::new);
 
         class_to_id.put(EditorAudio.class, "sound");
         class_to_id.put(EditorParticleBrush.class, "particle");
         class_to_id.put(EditorParticlePoint.class, "point");
         class_to_id.put(EditorWait.class, "wait");
+        class_to_id.put(EditorParticleSphere.class, "sphere");
     }
 
     @Override
@@ -129,9 +128,9 @@ public class EffectPartConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fComplex Effect");
-        instruction.add("§fChain together multiple effect components to.");
-        instruction.add("§fbuild a visual effect.");
+        instruction.add("Complex Effect");
+        instruction.add("Chain together multiple effect components to.");
+        instruction.add("build a visual effect.");
         return instruction;
     }
 }

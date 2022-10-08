@@ -36,8 +36,8 @@ public class EditorWait implements EditorEffect.IEditorEffectBundle {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fWait");
-        instruction.add("§fStall further execution by given number of ticks.");
+        instruction.add("Wait");
+        instruction.add("Stall further execution by given number of ticks.");
         return instruction;
     }
 }

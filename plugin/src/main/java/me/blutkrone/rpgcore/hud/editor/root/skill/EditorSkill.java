@@ -2,7 +2,11 @@ package me.blutkrone.rpgcore.hud.editor.root.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
+import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.BehaviourConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.SkillBindingConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
@@ -22,16 +26,19 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
 
     @EditorWrite(name = "Name", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Name of this Skill", "§cThis is a language code, NOT plaintext."})
-    public String lc_name;
+    public String lc_name = "NOTHINGNESS";
     @EditorWrite(name = "Item", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Itemization of this Skill", "§cThis is a language code, NOT plaintext."})
-    public String lc_item;
-    @EditorWrite(name = "Binding", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {"Hotbar symbol when bound to a slot"})
-    public String binding;
+    public String lc_item = "NOTHINGNESS";
     @EditorWrite(name = "Evolution", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {"WIP"})
-    public String evolution_type;
+    @EditorTooltip(tooltip = {"Used to customize the skill"})
+    public String evolution_type = "default";
+    @EditorList(name = "Binding", singleton = true, constraint = SkillBindingConstraint.class)
+    @EditorTooltip(tooltip = "What type of binding to make skill accessible")
+    public List<IEditorBundle> skill_binding = new ArrayList<>();
+    @EditorList(name = "Passive", constraint = BehaviourConstraint.class)
+    @EditorTooltip(tooltip = {"Additional behaviours passively on the entity", "These are assigned while the skills are active"})
+    public List<IEditorBundle> behaviours = new ArrayList<>();
 
     public transient File file;
 
@@ -67,7 +74,6 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
                 .name("§aSkill")
                 .appendLore("§fName: " + this.lc_name)
                 .appendLore("§fItem: " + this.lc_item)
-                .appendLore("§fBinding: " + this.binding)
                 .appendLore("§fEvolution: " + this.evolution_type)
                 .build();
     }

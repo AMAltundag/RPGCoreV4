@@ -138,9 +138,9 @@ public class TraitConstraint implements IEditorConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fNPC Trait");
-        instruction.add("§fTraits provide behaviour to NPC entities, only up to");
-        instruction.add("§f6 traits will be applied.");
+        instruction.add("NPC Trait");
+        instruction.add("Traits provide behaviour to NPC entities, only up to");
+        instruction.add("6 traits will be applied.");
         return instruction;
     }
 }

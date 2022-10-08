@@ -43,7 +43,7 @@ public class EditorQuestRewardTrait extends AbstractEditorQuestReward {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fTrait Reward");
+        instruction.add("Trait Reward");
         instruction.add("Grants a trait tag which can unlock additional traits");
         instruction.add("on a NPC who wants that trait tag.");
         return instruction;

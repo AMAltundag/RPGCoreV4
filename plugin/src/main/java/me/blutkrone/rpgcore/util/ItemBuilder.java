@@ -195,6 +195,22 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder color(int rgb) {
+        try {
+            Color color = Color.fromRGB(rgb);
+
+            meta((meta -> {
+                if (meta instanceof LeatherArmorMeta) {
+                    ((LeatherArmorMeta) meta).setColor(color);
+                } else if (meta instanceof PotionMeta) {
+                    ((PotionMeta) meta).setColor(color);
+                }
+            }));
+        } catch (Exception ignored) {
+        }
+
+        return this;
+    }
     public ItemStack build() {
         this.stack.setItemMeta(this.meta);
         return this.stack;
@@ -203,23 +219,5 @@ public class ItemBuilder {
     public void inventory(Inventory inventory, int slot) {
         this.stack.setItemMeta(this.meta);
         inventory.setItem(slot, this.stack);
-    }
-
-    public void color(int rgb) {
-        try {
-            Color color = Color.fromRGB(rgb);
-
-            meta((meta -> {
-                if (meta instanceof LeatherArmorMeta) {
-                    ((LeatherArmorMeta) meta).setColor(color);
-                    Bukkit.getLogger().severe("LEATHER COLOR: " + rgb);
-                } else if (meta instanceof PotionMeta) {
-                    ((PotionMeta) meta).setColor(color);
-                    Bukkit.getLogger().severe("POT COLOR: " + rgb);
-                }
-            }));
-        } catch (Exception ignored) {
-            Bukkit.getLogger().severe("BAD COLOR!");
-        }
     }
 }

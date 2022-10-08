@@ -1,221 +1,319 @@
 package me.blutkrone.rpgcore.hud.editor;
 
+import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.design.Design;
 import me.blutkrone.rpgcore.hud.editor.design.DesignCategory;
 import me.blutkrone.rpgcore.hud.editor.design.designs.DesignList;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-/*
- * A focus queue exists only for a singular element, under no
- * circumstances should the queue reference to a bundle which
- * is not a child of the initial element.
+/**
+ * A queue structure used by the editor, tracing the editing
+ * of relevant elements.
  */
 public class FocusQueue {
-    private List<Focus> queue = new ArrayList<>();
-    private int scroll_offset;
+
+    private final EditorMenu menu;
+    private List<AbstractFocus> queue = new ArrayList<>();
 
     /**
-     * Reset the queue and establish a new root element.
+     * A queue structure used by the editor, tracing the editing
+     * of relevant elements.
      *
-     * @param root the element we are viewing.
+     * @param menu the menu we are linked to
      */
-    public void focus(String id, IEditorRoot<?> root) {
-        this.queue.clear();
-        this.queue.add(new RootFocus(root, id));
-        this.scroll_offset = 0;
+    public FocusQueue(EditorMenu menu) {
+        this.menu = menu;
+        this.queue.add(new NullFocus());
     }
 
     /**
-     * Shift focus on a bundle, this should give the user the option to
-     * pick a category to narrow the selection into.
-     *
-     * @param bundle which bundle to put on focus.
-     */
-    public void focus(IEditorBundle bundle) {
-        this.queue.add(new Focus(bundle));
-        this.scroll_offset = 0;
-    }
-
-    /**
-     * Shift the focus to a list,
-     *
-     * @param list
-     */
-    public void focus(DesignList list) {
-        if (this.queue.isEmpty()) {
-            return;
-        }
-
-        Focus peek = this.queue.get(this.queue.size() - 1);
-        this.queue.add(new ListFocus(peek.bundle, list));
-        this.scroll_offset = 0;
-    }
-
-    /**
-     * Shift the focus on a category of the current bundle.
-     *
-     * @param category which category we are viewing.
-     */
-    public void scope(DesignCategory category) {
-        if (this.queue.isEmpty()) {
-            return;
-        }
-
-        Focus peek = this.queue.get(this.queue.size() - 1);
-        if (peek instanceof ScopedFocus) {
-            return;
-        }
-
-        this.queue.add(new ScopedFocus(peek.bundle, category));
-        this.scroll_offset = 0;
-    }
-
-    /**
-     * Fetch the highest level element we are focusing on, this may
-     * be a scoped focus.
-     *
-     * @return the element we are focusing.
-     */
-    public Focus header() {
-        return this.queue.isEmpty() ? null : this.queue.get(this.queue.size() - 1);
-    }
-
-    /**
-     * Drop the focus by one level, we cannot drop the focus level
-     * if we are already at the root element.
+     * Abandon the latest element on the queue, provided that it
+     * isn't the null element. This also resets the offset.
      */
     public void drop() {
-        if (!this.queue.isEmpty()) {
-            this.queue.remove(this.queue.size() - 1);
+        if (this.queue.size() > 1) {
+            this.queue.remove(this.queue.size()-1);
+            getHeader().setScrollOffset(0);
         }
     }
 
     /**
-     * Clears any focus we have.
+     * The focus that has the highest position on our queue. This
+     * is null if we haven't focused yet.
+     *
+     * @return current focus, or null.
      */
-    public void clear() {
+    public AbstractFocus getHeader() {
+        if (this.queue.isEmpty()) {
+            return null;
+        } else {
+            return this.queue.get(this.queue.size() - 1);
+        }
+    }
+
+    /**
+     * Reset the entire focus queue.
+     */
+    public void clearFocus() {
         this.queue.clear();
+        this.queue.add(new NullFocus());
     }
 
     /**
-     * How many elements are in our focus queue.
+     * Put the focus on a bundle, do <b>not</b> use this to set the
+     * focus for a root element.
      *
-     * @return how many elements are in the focus queue.
+     * @param bundle the element we are focusing on.
      */
-    public int size() {
-        return this.queue.size();
+    public void setFocusToBundle(IEditorBundle bundle) {
+        if (bundle instanceof IEditorRoot) {
+            throw new IllegalArgumentException("Expected bundle, received root!");
+        }
+
+        this.queue.add(new ElementFocus(bundle));
     }
 
     /**
-     * Fetch the offset on our current scope, this can be an
-     * offset for categories of a bundle, or elements of the
-     * category.
+     * Set the focus on a list within the bundle.
      *
-     * @return current offset
+     * @param bundle the bundle that contains the list
+     * @param list a design element that handles lists
      */
-    public int getOffset() {
-        return this.scroll_offset;
+    public void setFocusToList(IEditorBundle bundle, DesignList list) {
+        this.queue.add(new ListFocus(bundle, list));
     }
 
     /**
-     * Update the offset on our current scope.
+     * Set the focus on a root element, we may precede with other
+     * root elements for cross reference related things.
      *
-     * @param offset how far our offset is.
+     * @param id the identifier of the root element
+     * @param root the element we are focusing on.
      */
-    public void setOffset(int offset) {
-        this.scroll_offset = offset;
+    public void setFocusToRoot(String id, IEditorRoot root) {
+        this.queue.add(new ElementFocus(id, root));
     }
 
     /**
-     * A focus on a bundle, this has to be narrowed to a scoped
-     * focus before being edited in any form.
+     * A common ancestor for everything which can be focused.
      */
-    public static class Focus {
-        final IEditorBundle bundle;
+    public abstract class AbstractFocus {
+        int scroll_offset = 0;
 
-        Focus(IEditorBundle bundle) {
-            this.bundle = bundle;
+        /**
+         * The offset within the current focus, exact usage
+         * differs based on implementation.
+         *
+         * @return offset within the focus.
+         */
+        public int getScrollOffset() {
+            return scroll_offset;
         }
 
         /**
-         * Fetch which bundle we are focused on.
+         * The offset within the current focus, exact usage
+         * differs based on implementation.
          *
-         * @return the bundle we are operating on.
+         * @param scroll_offset updated offset
+         */
+        public void setScrollOffset(int scroll_offset) {
+            this.scroll_offset = scroll_offset;
+        }
+
+        /**
+         * Size within which we can scroll, should this be -1 the focus
+         * does does not know the size.
+         *
+         * @return size of the viewport
+         */
+        public abstract int getSize();
+    }
+
+    /**
+     * Original element on the focus queue, this cannot be
+     * removed.
+     */
+    public class NullFocus extends AbstractFocus {
+
+        @Override
+        public int getSize() {
+            // size is the editing history of the user
+            Player viewer = menu.getMenu().getViewer();
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(viewer);
+            List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
+            filtered_history.removeIf(history -> !menu.getIndex().has(history));
+            return filtered_history.size();
+        }
+    }
+
+    /**
+     * A focus on an editor element, categorization can be used
+     * to limit the scope we operate in.
+     */
+    public class ElementFocus extends AbstractFocus {
+        String id;
+        IEditorBundle bundle;
+        DesignCategory category;
+
+        Design design;
+
+        /**
+         * Used for bundle elements.
+         *
+         * @param bundle the bundle to focus
+         */
+        ElementFocus(IEditorBundle bundle) {
+            this(null, bundle);
+        }
+
+        /**
+         * Used for root elements.
+         *
+         * @param id root element identifier
+         * @param bundle bundle or root element
+         */
+        ElementFocus(String id, IEditorBundle bundle) {
+            this.id = id;
+            this.bundle = bundle;
+            this.design = menu.getDesigns().computeIfAbsent(bundle.getClass(), Design::new);
+            if (design.getCategories().size() == 1) {
+                this.category = this.design.getCategories().get(0);
+            }
+        }
+
+        /**
+         * Check if the bundle is a root element.
+         *
+         * @return true if bundle is a root element.
+         */
+        public boolean isRootElement() {
+            return this.bundle instanceof IEditorRoot<?>;
+        }
+
+        /**
+         * Check if the bundle is a root element where all elements
+         * are visible to the user.
+         *
+         * @return true if all elements of a root bundle are visible.
+         */
+        public boolean isRootInFullView() {
+            return this.bundle instanceof IEditorRoot<?>
+                    && (this.category == null || this.getCategories().size() == 1);
+        }
+
+        /**
+         * An ID is present, if we are a root element. Otherwise
+         * this should offer an empty return value.
+         *
+         * @return ID for root elements.
+         */
+        public Optional<String> getId() {
+            return Optional.ofNullable(this.id);
+        }
+
+        /**
+         * A bundle or a root element.
+         *
+         * @return the element that is focused
          */
         public IEditorBundle getBundle() {
-            return bundle;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("BaserFocus{clazz=%s}", bundle.getClass());
-        }
-    }
-
-    /**
-     * A focus on a root element.
-     */
-    public static class RootFocus extends Focus {
-        final String id;
-
-        RootFocus(IEditorRoot bundle, String id) {
-            super(bundle);
-            this.id = id;
+            return this.bundle;
         }
 
         /**
-         * Which ID was the root element created with.
+         * The current category, if this is null it means that the user
+         * is present the category selection instead.
          *
-         * @return the ID the root element was created with.
+         * @return the category we have.
          */
-        public String getId() {
-            return id;
+        public DesignCategory getCategory() {
+            return this.category;
         }
 
+        /**
+         * Categproes allowed for this element.
+         *
+         * @return categories we have available.
+         */
+        public List<DesignCategory> getCategories() {
+            return this.design.getCategories();
+        }
+
+        /**
+         * Narrow the scope of the bundle.
+         *
+         * @param category updated category.
+         */
+        public void setCategory(DesignCategory category) {
+            this.category = category;
+            this.scroll_offset = 0;
+        }
+
+        /**
+         * The design of the element we've focused.
+         *
+         * @return
+         */
+        public Design getDesign() {
+            return design;
+        }
+
+        /**
+         * This is either the number of categories, if we haven't scoped
+         * on a category, or the number of elements in the category we did
+         * scope on.
+         *
+         * @return current size factor.
+         */
         @Override
-        public String toString() {
-            return String.format("RootFocus{id=%s;clazz=%s}", id, bundle.getClass());
+        public int getSize() {
+            if (this.category == null) {
+                return getCategories().size();
+            } else {
+                return this.category.getElements().size();
+            }
         }
     }
 
     /**
-     * A focus on a list within an arbitrary bundle.
+     * A focus on a list within an element.
      */
-    public static class ListFocus extends Focus {
-
-        private final DesignList list;
+    public class ListFocus extends AbstractFocus {
+        IEditorBundle bundle;
+        DesignList list;
 
         ListFocus(IEditorBundle bundle, DesignList list) {
-            super(bundle);
+            this.bundle = bundle;
             this.list = list;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("ListFocus{size=%s}", size());
+            this.scroll_offset = 0;
         }
 
         /**
-         * The list which is focused currently.
+         * The bundle we are backed up by.
          *
-         * @return the focused list.
+         * @return backing bundle
          */
-        public Map<Integer, Object> getViewport(int offset, int viewport) {
-            return IChestMenu.getIndexedViewport(offset, viewport, this.getValues());
+        public IEditorBundle getBundle() {
+            return this.bundle;
         }
 
         /**
-         * The list connected to this focus.
+         * The design element of the list.
          *
-         * @return the connected list.
+         * @return backing design list.
          */
-        public DesignList getList() {
-            return list;
+        public DesignList getDesignList() {
+            return this.list;
         }
 
         /**
@@ -232,39 +330,18 @@ public class FocusQueue {
          *
          * @return values in backing list.
          */
-        public int size() {
+        @Override
+        public int getSize() {
             return getValues().size();
         }
-    }
-
-    /**
-     * A view of a focused bundle, narrowed to a category.
-     */
-    public static class ScopedFocus extends Focus {
-
-        final DesignCategory category;
-
-        ScopedFocus(IEditorBundle bundle, DesignCategory category) {
-            super(bundle);
-            this.category = category;
-        }
 
         /**
-         * Fetch which category we narrowed our scope to.
+         * The list which is focused currently.
          *
-         * @return the category we are scoped to.
+         * @return the focused list.
          */
-        public DesignCategory getCategory() {
-            return category;
-        }
-
-        /**
-         * How many elements are in the category.
-         *
-         * @return elements in category
-         */
-        public int size() {
-            return this.category.getElements().size();
+        public Map<Integer, Object> getViewport(int offset, int viewport) {
+            return IChestMenu.getIndexedViewport(offset, viewport, this.getValues());
         }
     }
 }

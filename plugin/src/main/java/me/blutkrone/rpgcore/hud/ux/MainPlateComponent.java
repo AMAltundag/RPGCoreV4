@@ -100,7 +100,9 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         for (int i = 1; i <= 6; i++) {
             // ensure we got a usable icon
             String icon = prepared.skill_icon[i - 1];
-            if (icon == null) continue;
+            if (icon == null || !rpm.textures().containsKey("skillbar_" + icon)) {
+                continue;
+            }
 
             // draw icon of skill
             workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);

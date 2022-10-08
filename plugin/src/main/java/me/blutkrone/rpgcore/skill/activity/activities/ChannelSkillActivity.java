@@ -5,11 +5,14 @@ import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
-import me.blutkrone.rpgcore.skill.behaviour.CorePattern;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
+import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
 import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindChannel;
 import me.blutkrone.rpgcore.util.Utility;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -30,6 +33,8 @@ public class ChannelSkillActivity implements ISkillActivity {
     private double instability;
     private double remaining_time;
     private Location snapshot;
+    // pipelines need to finish already
+    private List<CoreAction.ActionPipeline> working = new ArrayList<>();
 
     public ChannelSkillActivity(SkillBindChannel binding, SkillContext context) {
         this.context = context;
@@ -49,7 +54,11 @@ public class ChannelSkillActivity implements ISkillActivity {
 
     @Override
     public boolean update() {
-        Bukkit.getLogger().severe("not implemented (channel animation?)");
+        // work off the channeling ability first
+        if (!this.working.isEmpty()) {
+            this.working.removeIf(CoreAction.ActionPipeline::update);
+            return false;
+        }
 
         // instability increases as player moves
         Location snapshot = this.context.getLocation();
@@ -63,22 +72,22 @@ public class ChannelSkillActivity implements ISkillActivity {
         if (this.remaining_time <= 0d) {
             // set off the last trigger
             this.context.addTag("CHANNEL_LAST_USE");
-            for (CorePattern pattern : this.binding.patterns) {
-                pattern.invoke(this.context);
+            // invoke the logic
+            for (CoreAction action : this.binding.actions) {
+                this.working.add(action.pipeline(this.context));
             }
             // calculate how long a cooldown we receive
             double cooldown_recovery = 1d + this.binding.cooldown_recovery.evalAsDouble(this.context);
             int cooldown_time = this.binding.cooldown_time.evalAsInt(context);
-            double cooldown_reduction = this.binding.cooldown_reduction.evalAsDouble(this.context);
-            int cooldown = (int) Math.max(0, (cooldown_time * Math.max(0d, 1d - cooldown_reduction)) / Math.max(0.1d, cooldown_recovery));
+            int cooldown = (int) Math.max(0, (cooldown_time) / Math.max(0.1d, cooldown_recovery));
             // have the context owner put on a cooldown
-            this.context.getOwner().setCooldown(this.binding.cooldown_id.evaluate(this.context), cooldown);
+            this.context.getCoreEntity().setCooldown(this.binding.cooldown_id.evaluate(this.context), cooldown);
             // strip the channel activity away
             return true;
         } else if (this.tick++ % this.interval == 0) {
-            // set off the middle trigger
-            for (CorePattern pattern : this.binding.patterns) {
-                pattern.invoke(this.context);
+            // invoke the logic
+            for (CoreAction action : this.binding.actions) {
+                this.working.add(action.pipeline(this.context));
             }
             // ensure we can afford the cost, otherwise we are done
             if (!this.binding.isAffordable(this.context)) {
@@ -108,10 +117,9 @@ public class ChannelSkillActivity implements ISkillActivity {
         // calculate how long a cooldown we receive
         double cooldown_recovery = 1d + this.binding.cooldown_recovery.evalAsDouble(this.context);
         int cooldown_time = this.binding.cooldown_time.evalAsInt(context);
-        double cooldown_reduction = this.binding.cooldown_reduction.evalAsDouble(this.context);
-        int cooldown = (int) Math.max(0, (cooldown_time * Math.max(0d, 1d - cooldown_reduction)) / Math.max(0.1d, cooldown_recovery));
+        int cooldown = (int) Math.max(0, (cooldown_time) / Math.max(0.1d, cooldown_recovery));
         // have the context owner put on a cooldown
-        this.context.getOwner().setCooldown(this.binding.cooldown_id.evaluate(this.context), cooldown);
+        this.context.getCoreEntity().setCooldown(this.binding.cooldown_id.evaluate(this.context), cooldown);
     }
 
     @Override
@@ -122,5 +130,18 @@ public class ChannelSkillActivity implements ISkillActivity {
     @Override
     public SkillContext getContext() {
         return this.context;
+    }
+
+    @Override
+    public boolean doBarrierDamageSoak(int damage) {
+        boolean barrier = false;
+        for (CoreAction.ActionPipeline pipeline : this.working) {
+            BarrierMechanic.ActiveBarrier active = pipeline.getBarrier();
+            if (active != null) {
+                active.damage -= damage;
+                barrier = true;
+            }
+        }
+        return barrier;
     }
 }

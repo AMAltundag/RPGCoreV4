@@ -1,10 +1,9 @@
 package me.blutkrone.rpgcore.hud.editor.design.designs;
 
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.menu.EditorMenu;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,12 +22,14 @@ public class DesignBundle implements IDesignFieldEditor {
     }
 
     @Override
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu editor, FocusQueue focus) {
+    public void edit(IEditorBundle bundle, Player viewer, EditorMenu editor) {
         try {
             IEditorBundle value = (IEditorBundle) this.field.get(bundle);
             if (value != null) {
-                focus.focus(value);
-                editor.queryRebuild();
+                // focus on the element itself
+                editor.getFocus().setFocusToBundle(value);
+                // request rebuilding
+                editor.getMenu().queryRebuild();
             } else {
                 viewer.sendMessage("§cBad class structure (bundle cannot be null)");
             }

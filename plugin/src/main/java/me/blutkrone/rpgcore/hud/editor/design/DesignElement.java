@@ -1,11 +1,9 @@
 package me.blutkrone.rpgcore.hud.editor.design;
 
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorHideWhen;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.*;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.designs.*;
-import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -109,11 +107,10 @@ public class DesignElement {
      *
      * @param bundle   the object we are editing.
      * @param viewer   who will receive the editor.
-     * @param previous the preceding editor we came from.
-     * @param focus    a queue to track our scope
+     * @param editor   the editor we work with
      */
-    public void edit(IEditorBundle bundle, Player viewer, IChestMenu previous, FocusQueue focus) {
-        this.editor.edit(bundle, viewer, previous, focus);
+    public void edit(IEditorBundle bundle, Player viewer, me.blutkrone.rpgcore.menu.EditorMenu editor) {
+        this.editor.edit(bundle, viewer, editor);
     }
 
     /**
@@ -165,5 +162,14 @@ public class DesignElement {
      */
     public UUID getUUID() {
         return uuid;
+    }
+
+    /**
+     * The design we are contained by
+     *
+     * @return containing design
+     */
+    public Design getContainer() {
+        return container;
     }
 }

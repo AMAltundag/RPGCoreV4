@@ -95,7 +95,7 @@ public class EditorModifier implements IEditorRoot<CoreModifier> {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fModifier");
+        instruction.add("Modifier");
         instruction.add("A modifier which affects the entity when the item is used");
         return instruction;
     }

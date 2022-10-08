@@ -52,4 +52,9 @@ public class FocusSkillActivity implements ISkillActivity {
     public SkillContext getContext() {
         throw new UnsupportedOperationException("not implemented (focused context)");
     }
+
+    @Override
+    public boolean doBarrierDamageSoak(int damage) {
+        throw new UnsupportedOperationException("not implemented (focused skill)");
+    }
 }

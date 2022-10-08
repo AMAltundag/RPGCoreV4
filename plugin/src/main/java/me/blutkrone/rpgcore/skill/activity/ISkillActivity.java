@@ -18,4 +18,14 @@ public interface ISkillActivity extends IActivity {
      * @return the context for this activity
      */
     SkillContext getContext();
+
+    /**
+     * Attempt to make a barrier soak the damage, a barrier always
+     * soaks any damage. The return value implies whether there is
+     * a barrier available.
+     *
+     * @param damage the damage we want to soak.
+     * @return whether the creature has any barrier.
+     */
+    boolean doBarrierDamageSoak(int damage);
 }

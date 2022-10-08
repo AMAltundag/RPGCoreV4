@@ -35,7 +35,7 @@ public class AttributeInheritConstraint extends AbstractMonoConstraint {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fAttribute Inheritance");
+        instruction.add("Attribute Inheritance");
         instruction.add("Multiply attribute A with B and add to this attribute.");
         return instruction;
     }

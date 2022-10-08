@@ -69,7 +69,7 @@ public class EditorRefinerTrait extends AbstractEditorNPCTrait {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("§fRefiner Trait");
+        instruction.add("Refiner Trait");
         return instruction;
     }
 

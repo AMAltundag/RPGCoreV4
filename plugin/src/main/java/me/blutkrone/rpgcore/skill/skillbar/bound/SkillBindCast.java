@@ -1,14 +1,21 @@
 package me.blutkrone.rpgcore.skill.skillbar.bound;
 
 import me.blutkrone.rpgcore.api.activity.IActivity;
+import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.bundle.binding.EditorCastBind;
+import me.blutkrone.rpgcore.hud.editor.bundle.cost.AbstractEditorCost;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.activities.CastSkillActivity;
-import me.blutkrone.rpgcore.skill.behaviour.CorePattern;
-import me.blutkrone.rpgcore.skill.cost.CoreCost;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
+import me.blutkrone.rpgcore.skill.cost.AbstractCoreCost;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.skillbar.ISkillBind;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SkillBindCast implements ISkillBind {
 
@@ -17,7 +24,6 @@ public class SkillBindCast implements ISkillBind {
     // icon of this binding
     public CoreModifierString icon;
     // cooldown to apply after usage
-    public CoreModifierNumber cooldown_reduction;
     public CoreModifierNumber cooldown_time;
     public CoreModifierNumber cooldown_recovery;
     public CoreModifierString cooldown_id;
@@ -28,9 +34,33 @@ public class SkillBindCast implements ISkillBind {
     // accelerates casting time
     public CoreModifierNumber cast_faster;
     // costs consumed each time triggered
-    public CoreCost[] costs;
+    public List<AbstractCoreCost> costs;
     // patterns invoked each time triggered
-    public CorePattern[] patterns;
+    public List<CoreAction> actions;
+
+    public SkillBindCast(CoreSkill skill, EditorCastBind editor) {
+        this.skill = skill;
+        this.icon = editor.icon.build();
+        this.cooldown_time = editor.cooldown_time.build();
+        this.cooldown_recovery = editor.cooldown_recovery.build();
+        this.cooldown_id = editor.cooldown_id.build();
+        this.stability = editor.stability.build();
+        this.costs = new ArrayList<>();
+        for (IEditorBundle bundle : editor.costs) {
+            this.costs.add(((AbstractEditorCost) bundle).build());
+        }
+        this.actions = new ArrayList<>();
+        for (IEditorBundle bundle : editor.actions) {
+            this.actions.add(((EditorAction) bundle).build());
+        }
+        this.cast_time = editor.cast_time.build();
+        this.cast_faster = editor.cast_faster.build();
+    }
+
+    @Override
+    public String getName() {
+        return this.skill.getName();
+    }
 
     @Override
     public String getIcon(SkillContext context) {
@@ -39,12 +69,12 @@ public class SkillBindCast implements ISkillBind {
 
     @Override
     public int getCooldown(SkillContext context) {
-        return context.getOwner().getCooldown(this.cooldown_id.evaluate(context));
+        return context.getCoreEntity().getCooldown(this.cooldown_id.evaluate(context));
     }
 
     @Override
     public boolean isAffordable(SkillContext context) {
-        for (CoreCost cost : costs) {
+        for (AbstractCoreCost cost : costs) {
             if (!cost.canAfford(context)) {
                 return false;
             }
@@ -55,11 +85,11 @@ public class SkillBindCast implements ISkillBind {
     @Override
     public boolean invoke(SkillContext context) {
         // consume all relevant costs
-        for (CoreCost cost : costs)
+        for (AbstractCoreCost cost : costs)
             cost.consumeCost(context);
 
         // query our activity
-        context.getOwner().setActivity(new CastSkillActivity(this, context));
+        context.getCoreEntity().setActivity(new CastSkillActivity(this, context));
 
         return false;
     }
