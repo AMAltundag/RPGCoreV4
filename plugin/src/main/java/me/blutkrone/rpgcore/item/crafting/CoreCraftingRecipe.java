@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.item.crafting;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorItemWithQuantity;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
@@ -10,7 +9,10 @@ import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CoreCraftingRecipe {
 
@@ -155,30 +157,5 @@ public class CoreCraftingRecipe {
      */
     public CoreItem getOutput() {
         return RPGCore.inst().getItemManager().getItemIndex().get(this.output);
-    }
-
-    /**
-     * The effect to invoke when the crafting was successful.
-     *
-     * @param player who is presented the effect
-     */
-    public void playEffectCrafted(Player player) {
-        if (!this.effect_crafted.equalsIgnoreCase("NOTHINGNESS")) {
-            CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(this.effect_crafted);
-            effect.show(player.getLocation(), 1d, Collections.singletonList(player));
-        }
-    }
-
-    /**
-     * The effect to invoke when the crafting failed, this only happens
-     * with a chance below 1.0 and the chance roll fails.
-     *
-     * @param player who is presented the effect
-     */
-    public void playEffectFailed(Player player) {
-        if (!this.effect_failed.equalsIgnoreCase("NOTHINGNESS")) {
-            CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(this.effect_failed);
-            effect.show(player.getLocation(), 1d, Collections.singletonList(player));
-        }
     }
 }

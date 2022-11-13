@@ -11,10 +11,10 @@ import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
+import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindCast;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -29,6 +29,8 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
     private int mana_start_at;
     private int skillbar_start_at;
 
+    private int instant_animation_size;
+
     public MainPlateComponent(ConfigWrapper section) {
         activity_frame_start_at = section.getInt("interface-offset.activity-frame-start-at");
         activity_start_at = section.getInt("interface-offset.activity-start-at");
@@ -37,6 +39,14 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         health_start_at = section.getInt("interface-offset.health-start-at");
         mana_start_at = section.getInt("interface-offset.mana-start-at");
         skillbar_start_at = section.getInt("interface-offset.skills-start-at");
+
+        for (int i = 0; i < 24; i++) {
+            if (RPGCore.inst().getResourcePackManager().textures().containsKey("skillbar_instant_animation_" + i)) {
+                instant_animation_size = i;
+            } else {
+                break;
+            }
+        }
     }
 
     @Override
@@ -61,7 +71,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         // draw info about the current progress focus
         if (prepared.activity_text != null) {
             // write the progress % on the ux
-            int state = (int) (prepared.activity_ratio * 100);
+            int state = Math.min(100, (int) (prepared.activity_ratio * 100));
 
             if (state >= 0) {
                 workspace.actionbar().shiftToExact(activity_frame_start_at);
@@ -108,6 +118,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
             workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);
             if (prepared.skill_selecting) {
                 workspace.actionbar().append(rpm.texture("skillbar_" + icon));
+
                 if (!prepared.skill_unaffordable[i - 1] && prepared.skill_cooldown[i - 1] <= 0) {
                     String key_hint = String.valueOf(i + 1);
                     workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 2 - Utility.measureWidthExact(key_hint));
@@ -115,12 +126,24 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                     workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 1 - Utility.measureWidthExact(key_hint));
                     workspace.actionbar().append(key_hint, "hud_skill_text_keys", ChatColor.WHITE);
                 }
+
+                if (prepared.skill_instant[i - 1] && instant_animation_size != 0) {
+                    int frame = (prepared.timestamp/2) % instant_animation_size;
+                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);
+                    workspace.actionbar().append(rpm.texture("skillbar_instant_animation_" + frame));
+                }
             } else {
                 if (prepared.skill_highlight[i - 1]) {
-                    Bukkit.getLogger().severe("not implemented (highlight via animated frame)");
+                    // Bukkit.getLogger().severe("not implemented (highlight via animated frame)");
                     workspace.actionbar().append(rpm.texture("skillbar_" + icon));
                 } else {
                     workspace.actionbar().append(rpm.texture("skillbar_bleached_" + icon));
+                }
+
+                if (prepared.skill_instant[i - 1] && instant_animation_size != 0) {
+                    int frame = (prepared.timestamp/2) % instant_animation_size;
+                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);
+                    workspace.actionbar().append(rpm.texture("skillbar_instant_animation_" + frame));
                 }
             }
 
@@ -189,9 +212,13 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         private int[] skill_cooldown = new int[6];
         private boolean[] skill_unaffordable = new boolean[6];
         private boolean[] skill_highlight = new boolean[6];
+        private boolean[] skill_instant = new boolean[6];
         private boolean skill_selecting = false;
+        // server interval of snapshot
+        private int timestamp;
 
         Snapshot(CorePlayer entity) {
+            this.timestamp = RPGCore.inst().getTimestamp();
             // snapshot the resources
             this.health = entity.getHealth().snapshot();
             this.mana = entity.getMana().snapshot();
@@ -220,6 +247,9 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                     this.skill_cooldown[i] = skill.getBinding().getCooldown(context);
                     this.skill_unaffordable[i] = !skill.getBinding().isAffordable(context);
                     this.skill_highlight[i] = activity != null && skill.getBinding().isCreatorOf(activity);
+                    if (skill.getBinding() instanceof SkillBindCast) {
+                        this.skill_instant[i] = entity.hasInstantCast(skill, false);
+                    }
                 }
             }
         }

@@ -27,6 +27,8 @@ public final class DamageInteraction {
     private Map<String, AttributeCollection> attribute = new HashMap<>();
     // a context may be provided optionally
     private IContext source_context = null;
+    // blame generated for the skill
+    private String damage_blame = "unknown";
 
     /**
      * An interaction holding information about damage.
@@ -41,6 +43,26 @@ public final class DamageInteraction {
         this.type = type;
         this.defender = defender;
         this.attacker = attacker;
+    }
+
+    /**
+     * Identifies who is to be blamed for the damage, this is
+     * meant for something like a damage log.
+     *
+     * @param damage_blame who should bear blame.
+     */
+    public void setDamageBlame(String damage_blame) {
+        this.damage_blame = damage_blame;
+    }
+
+    /**
+     * Identifies who is to be blamed for the damage, this is
+     * meant for something like a damage log.
+     *
+     * @return who is to blame for damage.
+     */
+    public String getDamageBlame() {
+        return damage_blame;
     }
 
     /**
@@ -194,7 +216,7 @@ public final class DamageInteraction {
      * @return local attribute modifier
      */
     public AttributeCollection getAttribute(String attribute) {
-        return this.attribute.computeIfAbsent(attribute, (k -> new AttributeCollection(IContext.EMPTY)));
+        return this.attribute.computeIfAbsent(attribute.toLowerCase(), (k -> new AttributeCollection(IContext.EMPTY)));
     }
 
 }

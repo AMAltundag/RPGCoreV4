@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import java.util.function.Predicate;
+
 /**
  * A common base for a living entity.
  */
@@ -97,7 +99,7 @@ public interface IEntityBase {
      * @param speed how quick to travel
      * @return true if the prior walking had a lower-equal priority.
      */
-    boolean walkTo(Entity entity, double speed);
+    boolean walkTo(LivingEntity entity, double speed);
 
     /**
      * Attempt to talk towards the given location, do note
@@ -118,7 +120,7 @@ public interface IEntityBase {
      * @param speed movement speed
      * @return whether we could stroll somewhere.
      */
-    boolean stroll(int minimum, int maximum, double speed);
+    boolean stroll(int minimum, int maximum, double speed, Predicate<Location> valid);
 
     /**
      * If the entity is walking, makes them stop that.
@@ -187,4 +189,9 @@ public interface IEntityBase {
      * @return true if entity is allowed to die
      */
     boolean doDeathSequence(Runnable callback);
+
+    /**
+     * Reset rage of the creature.
+     */
+    void resetRage();
 }

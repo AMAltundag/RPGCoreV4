@@ -20,6 +20,9 @@ public class EditorBlastMechanic extends AbstractEditorMechanic {
     @EditorBundle(name = "Duration")
     @EditorTooltip(tooltip = "Blast is removed after ticks have passed.")
     public EditorModifierNumber duration = new EditorModifierNumber(100);
+    @EditorBundle(name = "Shrink")
+    @EditorTooltip(tooltip = "Angle reduced by per second.")
+    public EditorModifierNumber shrink = new EditorModifierNumber(2);
     @EditorBundle(name = "Start")
     @EditorTooltip(tooltip = "Initial distance covered by blast.")
     public EditorModifierNumber start = new EditorModifierNumber(2);
@@ -29,9 +32,6 @@ public class EditorBlastMechanic extends AbstractEditorMechanic {
     @EditorBundle(name = "Angle")
     @EditorTooltip(tooltip = "Blast is removed after ticks have passed.")
     public EditorModifierNumber angle = new EditorModifierNumber(30);
-    @EditorBundle(name = "Up")
-    @EditorTooltip(tooltip = "Displacement on Y axis")
-    public EditorModifierNumber up = new EditorModifierNumber(0.75d);
     @EditorCategory(info = "Logic", icon = Material.ENDER_CHEST)
     @EditorBundle(name = "Impact")
     @EditorTooltip(tooltip = "Logic triggered on entities hit by the blast.")

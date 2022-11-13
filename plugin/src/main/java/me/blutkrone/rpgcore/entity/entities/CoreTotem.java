@@ -16,4 +16,14 @@ public class CoreTotem extends CoreEntity {
     public CoreTotem(LivingEntity entity, EntityProvider provider) {
         super(entity, provider);
     }
+
+    @Override
+    public void remove() {
+        super.remove();
+
+        LivingEntity handle = getEntity();
+        if (handle != null) {
+            handle.remove();
+        }
+    }
 }

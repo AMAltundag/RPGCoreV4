@@ -238,6 +238,8 @@ public class RefinerMenu extends AbstractCoreMenu {
                 // check if we've archived timer condition
                 int wanted_time = (int) (recipe.getDuration() / (1d + speed));
                 if (timer >= wanted_time) {
+                    recipe.playEffectFinished(getMenu().getViewer());
+
                     if (recipe.craftAndConsume(1, materials) == 0) {
                         // cannot afford cost of recipe anymore, drop it
                         this.recipe = null;

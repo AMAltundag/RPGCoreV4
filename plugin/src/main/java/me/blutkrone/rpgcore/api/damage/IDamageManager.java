@@ -29,6 +29,8 @@ public interface IDamageManager {
 
     List<DamageElement> getElements(List<String> elements);
 
+    List<String> getElementIds();
+
     IDamageType getType(String type);
 
     List<IDamageType> getTypes();

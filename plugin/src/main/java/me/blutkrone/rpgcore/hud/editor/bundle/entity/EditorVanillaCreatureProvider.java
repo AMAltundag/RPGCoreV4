@@ -2,7 +2,9 @@ package me.blutkrone.rpgcore.hud.editor.bundle.entity;
 
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
 import me.blutkrone.rpgcore.entity.providers.LivingProvider;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorItemModel;
 import me.blutkrone.rpgcore.hud.editor.constraint.enums.EntityTypeConstraint;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
@@ -16,10 +18,24 @@ public class EditorVanillaCreatureProvider extends AbstractEditorEntityProvider 
 
     @EditorWrite(name = "Type", constraint = EntityTypeConstraint.class)
     public EntityType type = EntityType.ZOMBIE;
+    @EditorBundle(name = "Helmet")
+    public EditorItemModel helmet = new EditorItemModel();
+    @EditorBundle(name = "Boots")
+    public EditorItemModel boots = new EditorItemModel();
+    @EditorBundle(name = "Leggings")
+    public EditorItemModel leggings = new EditorItemModel();
+    @EditorBundle(name = "Chestplate")
+    public EditorItemModel chestplate = new EditorItemModel();
+    @EditorBundle(name = "Main-Hand")
+    public EditorItemModel main_hand = new EditorItemModel();
+    @EditorBundle(name = "Off-Hand")
+    public EditorItemModel off_hand = new EditorItemModel();
+    @EditorBundle(name = "Hidden")
+    public boolean hidden = false;
 
     @Override
     public EntityProvider build() {
-        return new LivingProvider(this.type);
+        return new LivingProvider(this);
     }
 
     @Override
@@ -40,6 +56,7 @@ public class EditorVanillaCreatureProvider extends AbstractEditorEntityProvider 
         List<String> instruction = new ArrayList<>();
         instruction.add("Vanilla Entity Provider");
         instruction.add("Spawns a plain vanilla creature.");
+        instruction.add("Equipment cannot be dropped.");
         return instruction;
     }
 }

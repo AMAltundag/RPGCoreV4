@@ -40,7 +40,7 @@ public class EditorEffect implements IEditorRoot<CoreEffect> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 

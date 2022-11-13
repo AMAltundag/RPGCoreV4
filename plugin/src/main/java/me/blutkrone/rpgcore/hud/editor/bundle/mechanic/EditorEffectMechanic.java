@@ -9,6 +9,7 @@ import me.blutkrone.rpgcore.skill.mechanic.AbstractCoreMechanic;
 import me.blutkrone.rpgcore.skill.mechanic.EffectMechanic;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;

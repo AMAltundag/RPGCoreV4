@@ -21,9 +21,12 @@ import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
+import me.blutkrone.rpgcore.skill.behaviour.BehaviourEffect;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
+import me.blutkrone.rpgcore.skill.mechanic.InstantMechanic;
 import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
+import me.blutkrone.rpgcore.skill.trigger.AbstractCoreTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -49,7 +52,7 @@ public class CoreEntity implements IContext, IOrigin {
     private final Map<String, AttributeCollection> attributes = new HashMap<>();
     private final Map<String, List<TagModifier>> tags = new HashMap<>();
     // effects on the entity
-    private Map<Class<? extends IEntityEffect>, Map<String, IEntityEffect>> status_effects = new HashMap<>();
+    private Map<String, IEntityEffect> status_effects = new HashMap<>();
     private Map<AbstractAilment, AilmentTracker> ailment_tracker = new HashMap<>();
     // resources available to the entity
     private EntityResource health_resource;
@@ -106,6 +109,81 @@ public class CoreEntity implements IContext, IOrigin {
         // apply recovery and update maximum capacities
         this.bukkit_tasks.add(new EntityRecoveryTask(this)
                 .runTaskTimer(RPGCore.inst(), 1, 10));
+        // tick skill behaviours we've queried
+        this.bukkit_tasks.add(new EntitySkillTask(this)
+                .runTaskTimer(RPGCore.inst(), 1, 1));
+    }
+
+    /**
+     * Check for an instant cast for the given skill, and if requested
+     * consume it.
+     *
+     * @param skill the skill we're checking
+     * @param consume whether to consume the instant cast
+     * @return true if we have an instant cast
+     */
+    public boolean hasInstantCast(CoreSkill skill, boolean consume) {
+        for (IEntityEffect effect : getStatusEffects().values()) {
+            // ensure we are an instant cast
+            if (!(effect instanceof InstantMechanic.Effect)) {
+                continue;
+            }
+            // ensure that the effect can instant cast this
+            InstantMechanic.Effect casted = (InstantMechanic.Effect) effect;
+            if (!casted.doesMatch(skill)) {
+                continue;
+            }
+            // consume the instant cast if applicable
+            if (consume) {
+                casted.setConsumed();
+            }
+            // we have an instant cast to use
+            return true;
+        }
+        // no instant cast matches this
+        return false;
+    }
+
+    /**
+     * Proliferate an event to every passive behaviour that
+     * has a trigger of the given type.
+     *
+     * @param clazz the trigger type to check
+     * @param event the event acquired
+     */
+    public void proliferateTrigger(Class<? extends AbstractCoreTrigger> clazz, Object event) {
+        for (IEntityEffect effect : getStatusEffects().values()) {
+            if (effect instanceof BehaviourEffect) {
+                BehaviourEffect casted = (BehaviourEffect) effect;
+                AbstractCoreTrigger trigger = casted.getBehaviour().getTrigger();
+
+                if (trigger.getClass() == clazz) {
+                    // ensure not on cooldown
+                    String cdId = trigger.cooldown_id.evaluate(casted.getContext());
+                    if (casted.getContext().getCoreEntity().getCooldown(cdId) > 0) {
+                        continue;
+                    }
+                    // grab info or create new info
+                    AbstractCoreTrigger.TriggerInfo info = casted.getInfo();
+                    if (info == null) {
+                        casted.setInfo(info = trigger.createInfo());
+                    }
+                    // update trigger and check if we can invoke
+                    if (trigger.update(casted.getContext(), event, info)) {
+                        casted.setInfo(null);
+                        casted.getBehaviour().doBehaviour(casted.getContext());
+                        // update cooldown to be applied
+                        int cooldown = trigger.cooldown_time.evalAsInt(casted.getContext());
+                        double reduction = trigger.cooldown_reduction.evalAsDouble(casted.getContext());
+                        double recovery = trigger.cooldown_recovery.evalAsDouble(casted.getContext());
+                        int result = (int) (cooldown * Math.max(0d, 1d-reduction) / Math.max(0.01d, 1d+recovery));
+                        if (result > 0) {
+                            casted.getContext().getCoreEntity().setCooldown(cdId, result);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -344,12 +422,19 @@ public class CoreEntity implements IContext, IOrigin {
 
     /**
      * Generate a context for the given skill.
+     * <p>
+     * There are the following causes to create a skill context:
+     * <ul>
+     *     <li>Used the skillbar to cast a skill</li>
+     *     <li>Passive behaviour was triggered</li>
+     *     <li>Player UX wants to check usability</li>
+     * </ul>
      *
      * @param skill the skill we want a context for.
      * @return the context that was just created.
      */
     public SkillContext createSkillContext(CoreSkill skill) {
-        return new SkillContext(this);
+        return new SkillContext(this, skill);
     }
 
     /**
@@ -412,11 +497,19 @@ public class CoreEntity implements IContext, IOrigin {
      */
     public EntityWard getWard() {
         // check if we got any ward effect
-        Map<String, IEntityEffect> effects = this.status_effects.get(EntityWard.class);
+        Map<String, IEntityEffect> effects = getStatusEffects();
         if (effects == null || effects.isEmpty())
             return null;
+
+        // search for wards
+        for (IEntityEffect effect : effects.values()) {
+            if (effect instanceof EntityWard) {
+                return (EntityWard) effect;
+            }
+        }
+
         // offer up the only ward effect we should have
-        return (EntityWard) effects.values().iterator().next();
+        return null;
     }
 
     /**
@@ -426,14 +519,7 @@ public class CoreEntity implements IContext, IOrigin {
      * @return the effect with that id, if any.
      */
     public IEntityEffect getEffect(String id) {
-        // search for any effect with the given ID
-        for (Map<String, IEntityEffect> effects : this.status_effects.values()) {
-            IEntityEffect effect = effects.get(id);
-            if (effect != null)
-                return effect;
-        }
-        // if nothing matched offer up null instead
-        return null;
+        return getStatusEffects().get(id);
     }
 
     /**
@@ -441,7 +527,10 @@ public class CoreEntity implements IContext, IOrigin {
      *
      * @return the effects on the entity.
      */
-    public Map<Class<? extends IEntityEffect>, Map<String, IEntityEffect>> getStatusEffects() {
+    public Map<String, IEntityEffect> getStatusEffects() {
+        // abandon all effects no longer considered to be valid
+        status_effects.entrySet().removeIf(effect -> !effect.getValue().isValid());
+        // effects that are still fine
         return status_effects;
     }
 
@@ -453,12 +542,9 @@ public class CoreEntity implements IContext, IOrigin {
      * @param effect the effect to be acquired
      */
     public void addEffect(String id, IEntityEffect effect) {
-        // destroy any effect which matches this ID
-        for (Map<String, IEntityEffect> effects : this.status_effects.values())
-            effects.remove(id);
-
-        // track the effect which is requested to be added
-        this.status_effects.computeIfAbsent(effect.getClass(), (k -> new HashMap<>())).put(id, effect);
+        Map<String, IEntityEffect> effects = getStatusEffects();
+        // override any effect with the same ID
+        effects.put(id, effect);
     }
 
     /**
@@ -739,5 +825,11 @@ public class CoreEntity implements IContext, IOrigin {
     @Override
     public Location getLocation() {
         return this.getEntity().getLocation();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("CoreEntity{uuid=%s;name=%s;class=%s}",
+                getUniqueId(), getEntity().getName(), getClass().getSimpleName());
     }
 }

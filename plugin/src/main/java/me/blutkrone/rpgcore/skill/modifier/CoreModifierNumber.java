@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 
 import java.util.*;
@@ -19,6 +20,8 @@ public class CoreModifierNumber {
     private List<AbstractCoreSelector> condition;
     // sub-modifiers that can contribute
     private List<CoreModifierNumber> children;
+    // info block attached to modifier
+    private CoreSkillInfo info;
 
     public CoreModifierNumber(double number) {
         this.base_number = number;
@@ -36,6 +39,10 @@ public class CoreModifierNumber {
                 this.children.add(((EditorModifierNumber) bundle).build());
             }
         }
+    }
+
+    public CoreSkillInfo getInfo() {
+        return info;
     }
 
     public int evalAsInt(IContext context) {

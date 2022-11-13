@@ -48,4 +48,25 @@ public interface IEntityEffect {
      * @return true if we are a debuff.
      */
     boolean isDebuff();
+
+    /**
+     * Whether the effect is still valid, validity depends on the exact
+     * implementation of the effect.
+     * <p>
+     * Examples of invalidity are context-inheriting effects where the
+     * context no longer exists.
+     *
+     * @return whether the effect is still valid.
+     */
+    boolean isValid();
+
+    /**
+     * An attempt at manipulating the stacks and duration of the
+     * effect,
+     *
+     * @param stack manipulation value
+     * @param duration manipulation value
+     * @param override override or add
+     */
+    void manipulate(int stack, int duration, boolean override);
 }

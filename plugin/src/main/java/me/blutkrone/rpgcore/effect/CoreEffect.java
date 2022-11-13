@@ -1,8 +1,7 @@
 package me.blutkrone.rpgcore.effect;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.effect.impl.CoreParticleBrush;
-import me.blutkrone.rpgcore.effect.impl.CoreWait;
+import me.blutkrone.rpgcore.effect.impl.CoreEffectBrush;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
@@ -10,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,52 +41,60 @@ public class CoreEffect {
      * Show an effect to the given entities.
      *
      * @param where   anchor within absolute space
-     * @param scale   scale ratio of the effect
-     * @param viewing who is viewing the effect
      * @return linked effect task
      */
-    public BukkitTask show(Location where, double scale, List<Player> viewing) {
+    public BukkitTask show(Location where) {
+        ActiveEffect active = new ActiveEffect(where, 1d, new EffectObservation(where), this.parts);
         // query a task to handle the effect
         return new BukkitRunnable() {
-            // position related information
-            Location absolute = where.clone();
-            Vector relative = new Vector();
-            // stall further execution based on this
-            int delay = 0;
-            // what parts need to be processed
-            List<IEffectPart> parts = new ArrayList<>(CoreEffect.this.parts);
-            // the current effect brush
-            WeightedRandomMap<CoreParticleBrush> brush = new WeightedRandomMap<>();
-
             @Override
             public void run() {
-                // stall execution while we got a delay
-                if (delay > 0) {
-                    delay = delay - 1;
-                    return;
-                }
-                // finish task if no parts left
-                if (parts.isEmpty()) {
+                if (active.update()) {
                     cancel();
-                    return;
-                }
-                // poll parts until empty or delay
-                while (!parts.isEmpty()) {
-                    IEffectPart header = parts.remove(0);
-                    // delay will stall further execution
-                    if (header instanceof CoreWait) {
-                        delay = ((CoreWait) header).time;
-                        return;
-                    }
-                    // invoke the component we got
-                    header.process(absolute, relative, brush, scale, viewing);
                 }
             }
         }.runTaskTimerAsynchronously(RPGCore.inst(), 0L, 1L);
     }
 
     /**
-     * A sub-part of an effect.
+     * Show an effect to the given entities.
+     *
+     * @param where   anchor within absolute space
+     * @param scale   additional size scaling for effect
+     */
+    public void show(Location where, double scale) {
+        ActiveEffect active = new ActiveEffect(where, scale, new EffectObservation(where), this.parts);
+        // query a task to handle the effect
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (active.update()) {
+                    cancel();
+                }
+            }
+        }.runTaskTimerAsynchronously(RPGCore.inst(), 0L, 1L);
+    }
+
+    /**
+     * Show an effect to the given entities.
+     *
+     * @param where anchor within absolute space
+     */
+    public void show(Location where, Player player) {
+        ActiveEffect active = new ActiveEffect(where, 1d, new EffectObservation(player), this.parts);
+        // query a task to handle the effect
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (active.update()) {
+                    cancel();
+                }
+            }
+        }.runTaskTimerAsynchronously(RPGCore.inst(), 0L, 1L);
+    }
+
+    /**
+     * A part of an effect sequence.
      */
     public interface IEffectPart {
 
@@ -96,10 +102,23 @@ public class CoreEffect {
          * Process a part of an effect.
          *
          * @param where   anchor within absolute space
-         * @param offset  local displacement of effect
+         * @param brush   a "brush" for particle effects
          * @param scale   effect scaling ratio
          * @param viewing who is viewing the effect
          */
-        void process(Location where, Vector offset, WeightedRandomMap<CoreParticleBrush> brush, double scale, List<Player> viewing);
+        List<ISubPart> process(Location where, WeightedRandomMap<CoreEffectBrush> brush, double scale, EffectObservation viewing);
+    }
+
+    /**
+     * A sub-part of an effect, this should be anchored
+     * to the location of the owing part.
+     */
+    public interface ISubPart {
+        /**
+         * Process the part, if finished returns true
+         *
+         * @return whether we are finished.
+         */
+        boolean process();
     }
 }

@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import me.blutkrone.rpgcore.util.world.ChunkIdentifier;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -46,10 +47,10 @@ public class MinimapManager {
             List<MapMarker> filtered = new ArrayList<>();
             for (MapMarker marker : map_markers_listed) {
                 // ensure the marker shares this world
-                if (marker.location.getWorld() != bukkit.getWorld())
+                if (marker.getLocation().getWorld() != bukkit.getWorld())
                     continue;
                 // verify (rough) distance matching
-                double distance = bukkit.getLocation().distance(marker.location) + 20d;
+                double distance = bukkit.getLocation().distance(marker.getLocation()) + 20d;
                 if (distance > marker.distance)
                     continue;
                 // this chunk can show the marker
@@ -61,7 +62,7 @@ public class MinimapManager {
         List<MapMarker> filtered = new ArrayList<>();
         for (MapMarker candidate : candidates) {
             // ensure the marker is within a passable distance
-            double distSq = candidate.location.distanceSquared(bukkit.getLocation());
+            double distSq = candidate.getLocation().distanceSquared(bukkit.getLocation());
             if (distSq >= candidate.distance * candidate.distance || distSq <= 9d)
                 continue;
             // offer up the marker to the render queue
@@ -70,17 +71,17 @@ public class MinimapManager {
         // retrieve markers specific to this player
         for (MapMarker candidate : core.getMapMarkers().values()) {
             // ensure the marker shares this world
-            if (candidate.location.getWorld() != bukkit.getWorld())
+            if (candidate.getLocation().getWorld() != bukkit.getWorld())
                 continue;
             // ensure the marker is within a passable distance
-            double distSq = candidate.location.distanceSquared(bukkit.getLocation());
+            double distSq = candidate.getLocation().distanceSquared(bukkit.getLocation());
             if (distSq >= candidate.distance * candidate.distance || distSq <= 9d)
                 continue;
             // offer up the marker to the render queue
             filtered.add(candidate);
         }
         // sort the markers by their distance towards the player
-        filtered.sort(Comparator.comparingDouble((o -> o.location.distanceSquared(bukkit.getLocation()))));
+        filtered.sort(Comparator.comparingDouble((o -> o.getLocation().distanceSquared(bukkit.getLocation()))));
         Collections.reverse(filtered);
         return filtered;
     }
@@ -110,6 +111,38 @@ public class MinimapManager {
         List<MapRegion> filtered = new ArrayList<>();
         for (MapRegion candidate : candidates) {
             if (candidate.contains(player.getLocation())) {
+                filtered.add(candidate);
+            }
+        }
+        // offer the first hit as the map region
+        return filtered.isEmpty() ? null : filtered.iterator().next();
+    }
+
+    /**
+     * Retrieve which region is anchored at the given location
+     *
+     * @param location where to sample
+     * @return which region to present
+     */
+    public MapRegion getRegionOf(Location location) {
+        // retrieve the approximated regions
+        List<MapRegion> candidates = map_regions_cached.computeIfAbsent(new ChunkIdentifier(location), (k -> {
+            List<MapRegion> filtered = new ArrayList<>();
+            for (MapRegion region : map_regions_listed) {
+                // ensure we are contained in the region
+                if (!region.world.equals(location.getWorld().getName()))
+                    continue;
+                if (!region.contains(new ChunkIdentifier(location)))
+                    continue;
+                // this chunk can show the region
+                filtered.add(region);
+            }
+            return filtered;
+        }));
+        // reduce region set to our limited pool
+        List<MapRegion> filtered = new ArrayList<>();
+        for (MapRegion candidate : candidates) {
+            if (candidate.contains(location)) {
                 filtered.add(candidate);
             }
         }

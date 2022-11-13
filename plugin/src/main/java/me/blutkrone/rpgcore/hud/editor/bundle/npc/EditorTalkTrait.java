@@ -53,6 +53,6 @@ public class EditorTalkTrait extends AbstractEditorNPCTrait {
 
     @Override
     public String getUnlockFlag() {
-        return "none";
+        return "none"; // will not appear in cortex
     }
 }

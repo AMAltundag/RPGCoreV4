@@ -161,7 +161,7 @@ public class CoreNodeCollectible extends AbstractNode {
                 Location where = new Location(player.getWorld(), active.getX(), active.getY(), active.getZ());
                 where.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply((0d + this.collider_size) / 2));
                 // invoke the effect that we retrieved
-                effect.show(where, 1d, Collections.singletonList(player));
+                effect.show(where, player);
             }
         }
 
@@ -180,7 +180,7 @@ public class CoreNodeCollectible extends AbstractNode {
                 Location where = new Location(player.getWorld(), active.getX(), active.getY(), active.getZ());
                 where.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply((0d + this.collider_size) / 2));
                 // invoke the effect that we retrieved
-                effect.show(where, 1d, Collections.singletonList(player));
+                effect.show(where, player);
             }
         }
 

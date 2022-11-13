@@ -20,6 +20,7 @@ public class EditorLootItem extends AbstractEditorLoot {
     @EditorCategory(info = "Item", icon = Material.CHEST)
     @EditorList(name = "Items", constraint = LootConstraint.class)
     public List<IEditorBundle> item_weights = new ArrayList<>();
+
     @EditorCategory(info = {"Quantity", "How many individual rolls to apply"}, icon = Material.BUNDLE)
     @EditorNumber(name = "Quantity")
     public double quantity = 0.0d;
@@ -27,6 +28,7 @@ public class EditorLootItem extends AbstractEditorLoot {
     public List<IEditorBundle> quantity_killer = new ArrayList<>();
     @EditorList(name = "Killed", constraint = AttributeAndFactorConstraint.class)
     public List<IEditorBundle> quantity_killed = new ArrayList<>();
+
     @EditorCategory(info = {"Rarity", "Rolls multiple times to pick rarest outcome"}, icon = Material.DIAMOND)
     @EditorNumber(name = "Rarity")
     public double rarity = 0.0d;
@@ -34,6 +36,7 @@ public class EditorLootItem extends AbstractEditorLoot {
     public List<IEditorBundle> rarity_killer = new ArrayList<>();
     @EditorList(name = "Killed", constraint = AttributeAndFactorConstraint.class)
     public List<IEditorBundle> rarity_killed = new ArrayList<>();
+
     @EditorCategory(info = {"Quality", "Enhances random properties of the item"}, icon = Material.ANVIL)
     @EditorNumber(name = "Quality")
     public double quality = 0.0d;

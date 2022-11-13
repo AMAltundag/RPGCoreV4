@@ -92,6 +92,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: net.objecthunter:exp4j:0.4.8" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.dropbox.core:dropbox-core-sdk:5.2.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-core:2.7.9" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.depsypher:pngtastic:1.7" level="project" />
     <orderEntry type="module" module-name="rpgcore-api" />
     <orderEntry type="module" module-name="rpgcore-nms-1_18_R2" />
   </component>

@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.item.data;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.attribute.AttributeModifier;
+import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
@@ -148,8 +148,8 @@ public class ItemDataModifier extends AbstractItemData {
      * @param entity which entity should receive the modifier.
      * @return the effect under which the item effect was received.
      */
-    public List<AttributeModifier> apply(CoreEntity entity) {
-        List<AttributeModifier> modifiers = new ArrayList<>();
+    public List<IExpiringModifier> apply(CoreEntity entity) {
+        List<IExpiringModifier> modifiers = new ArrayList<>();
 
         for (CoreModifier modifier : this.modifiers) {
             modifiers.addAll(modifier.apply(entity));

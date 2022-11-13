@@ -79,7 +79,6 @@ public class CoreMobLogic extends CoreAction {
 
         public SmartEntityRoutine(IEntityBase entity, CoreMob core_entity) {
             super(entity);
-
             this.core_entity = core_entity;
         }
 

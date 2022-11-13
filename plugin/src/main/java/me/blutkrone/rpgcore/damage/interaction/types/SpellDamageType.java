@@ -236,7 +236,6 @@ public class SpellDamageType implements IDamageType {
             if (interaction.getAttacker() != null) {
                 EntityWard ward = interaction.getAttacker().getWard();
                 if (ward != null) {
-                    ward.addLeech(damage * ward.leech_rate);
                     double leech_health = interaction.evaluateAttribute("SPELL_LEECH_" + element.getId() + "_AS_LIFE", interaction.getAttacker());
                     interaction.getAttacker().getHealth().addLeech(damage * leech_health);
                     double leech_mana = interaction.evaluateAttribute("SPELL_LEECH_" + element.getId() + "_AS_MANA", interaction.getAttacker());
@@ -252,5 +251,10 @@ public class SpellDamageType implements IDamageType {
     @Override
     public DamageInteraction create(CoreEntity defender, CoreEntity attacker) {
         return new DamageInteraction(this, defender, attacker);
+    }
+
+    @Override
+    public String name() {
+        return "SPELL";
     }
 }

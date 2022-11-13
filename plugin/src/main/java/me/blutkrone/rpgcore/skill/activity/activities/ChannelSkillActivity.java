@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
 import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindChannel;
+import me.blutkrone.rpgcore.skill.trigger.CoreChannelTrigger;
 import me.blutkrone.rpgcore.util.Utility;
 import org.bukkit.Location;
 
@@ -72,6 +73,8 @@ public class ChannelSkillActivity implements ISkillActivity {
         if (this.remaining_time <= 0d) {
             // set off the last trigger
             this.context.addTag("CHANNEL_LAST_USE");
+            // invoke the skill trigger
+            this.context.getCoreEntity().proliferateTrigger(CoreChannelTrigger.class, this);
             // invoke the logic
             for (CoreAction action : this.binding.actions) {
                 this.working.add(action.pipeline(this.context));
@@ -85,6 +88,8 @@ public class ChannelSkillActivity implements ISkillActivity {
             // strip the channel activity away
             return true;
         } else if (this.tick++ % this.interval == 0) {
+            // invoke the skill trigger
+            this.context.getCoreEntity().proliferateTrigger(CoreChannelTrigger.class, this);
             // invoke the logic
             for (CoreAction action : this.binding.actions) {
                 this.working.add(action.pipeline(this.context));

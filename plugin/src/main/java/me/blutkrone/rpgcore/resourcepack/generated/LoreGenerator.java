@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class LoreGenerator {
 
-    public static Map<String, IndexedTexture> construct(File style, File icons, File jewels, ResourcepackGeneratorMeasured rules, StaticGenerator.PooledSymbolSpace symbol) {
+    public static Map<String, IndexedTexture> construct(File style, File icons, File jewels, File skillbar, ResourcepackGeneratorMeasured rules, StaticGenerator.PooledSymbolSpace symbol) {
         Map<String, IndexedTexture> textures = new HashMap<>();
 
         try {
@@ -55,6 +55,12 @@ public class LoreGenerator {
             for (File file : FileUtil.buildAllFiles(jewels)) {
                 String name = file.getName().replace(".png", "");
                 textures.put("lore_jewel_" + name, build(ImageIO.read(file), symbol));
+            }
+
+            // load up textures for icons shown in lore
+            for (File file : FileUtil.buildAllFiles(skillbar)) {
+                String name = file.getName().replace(".png", "");
+                textures.put("lore_skill_" + name, build(ImageIO.read(file), symbol));
             }
         } catch (IOException e) {
             e.printStackTrace();

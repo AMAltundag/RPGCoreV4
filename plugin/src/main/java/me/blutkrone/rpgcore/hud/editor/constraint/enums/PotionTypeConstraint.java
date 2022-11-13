@@ -42,27 +42,27 @@ public class PotionTypeConstraint implements IEditorConstraint {
 
     @Override
     public String getConstraintAt(List container, int index) {
-        return ((PotionEffectType) container.get(index)).getName();
+        return (String) container.get(index);
     }
 
     @Override
     public void setElementAt(List container, int index, String value) {
-        container.set(index, PotionEffectType.getByName(value));
+        container.set(index, value);
     }
 
     @Override
     public void addElement(List container, String value) {
-        container.add(PotionEffectType.getByName(value));
+        container.add(value);
     }
 
     @Override
     public Object asTypeOf(String value) {
-        return PotionEffectType.getByName(value);
+        return value;
     }
 
     @Override
     public String toTypeOf(Object value) {
-        return ((PotionEffectType) value).getName();
+        return (String) value;
     }
 
     @Override

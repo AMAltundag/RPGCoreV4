@@ -152,10 +152,7 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
             this.ward = Optional.ofNullable(entity.getWard())
                     .map(EntityWard::snapshot).orElse(null);
             // generate a list of effects, sorted by their last update
-            List<IEntityEffect> flatten = new ArrayList<>();
-            for (Map<String, IEntityEffect> effect_map : entity.getStatusEffects().values()) {
-                flatten.addAll(effect_map.values());
-            }
+            List<IEntityEffect> flatten = new ArrayList<>(entity.getStatusEffects().values());
             flatten.removeIf(e -> e.getIcon() == null);
             flatten.sort(Comparator.comparingLong(IEntityEffect::getLastUpdated));
             // track all the effects which are on the entity

@@ -5,11 +5,13 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.binding.EditorChannelBind;
 import me.blutkrone.rpgcore.hud.editor.bundle.cost.AbstractEditorCost;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.activities.ChannelSkillActivity;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.cost.AbstractCoreCost;
+import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.skillbar.ISkillBind;
@@ -58,6 +60,18 @@ public class SkillBindChannel implements ISkillBind {
         this.channel_time = editor.channel_time.build();
         this.channel_interval = editor.channel_interval.build();
         this.channel_faster = editor.channel_faster.build();
+    }
+
+    @Override
+    public List<CoreSkillInfo> getInfo() {
+        List<CoreSkillInfo> infos = new ArrayList<>();
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_cooldown_time", cooldown_time));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_cooldown_recovery", cooldown_recovery));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_stability", stability));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_channel_time", channel_time));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_channel_interval", channel_interval));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_channel_faster", channel_faster));
+        return infos;
     }
 
     @Override

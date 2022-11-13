@@ -18,6 +18,19 @@ public class WeightedRandomMap<E> {
     }
 
     /**
+     * An isolated snapshot of the current brush we are using.
+     *
+     * @return an isolated snapshot
+     */
+    public WeightedRandomMap<E> snapshot() {
+        WeightedRandomMap<E> output = new WeightedRandomMap<>();
+        this.map.forEach((k, v) -> output.map.put(k, v));
+        this.reverse.forEach((k, v) -> output.reverse.put(k, v));
+        output.total = total;
+        return output;
+    }
+
+    /**
      * Retrieve the weight from the map.
      *
      * @param object object to check

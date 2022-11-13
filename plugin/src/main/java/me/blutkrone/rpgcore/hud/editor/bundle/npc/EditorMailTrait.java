@@ -35,19 +35,19 @@ public class EditorMailTrait extends AbstractEditorNPCTrait {
     @Override
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.BOOK)
-                .name("§fBanker Trait")
+                .name("§fMail Trait")
                 .build();
     }
 
     @Override
     public String getName() {
-        return "Banker";
+        return "Mail";
     }
 
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("Banker Trait");
+        instruction.add("Mail Trait");
         return instruction;
     }
 

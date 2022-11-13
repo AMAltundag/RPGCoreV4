@@ -42,10 +42,10 @@ public class EditorCreature implements IEditorRoot<CoreCreature> {
     public String lc_name = "NOTHINGNESS";
 
     @EditorCategory(info = "Attributes", icon = Material.EXPERIENCE_BOTTLE)
-    @EditorList(name = "Base", singleton = true, constraint = AttributeAndFactorConstraint.class)
+    @EditorList(name = "Base", constraint = AttributeAndFactorConstraint.class)
     @EditorTooltip(tooltip = "Given to all instances of the creature.")
     public List<IEditorBundle> attributes_base = new ArrayList<>();
-    @EditorList(name = "Level", singleton = true, constraint = AttributeAndFactorConstraint.class)
+    @EditorList(name = "Level", constraint = AttributeAndFactorConstraint.class)
     @EditorTooltip(tooltip = "Multiplied with level before adding to creature.")
     public List<IEditorBundle> attributes_level = new ArrayList<>();
 
@@ -86,7 +86,7 @@ public class EditorCreature implements IEditorRoot<CoreCreature> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 

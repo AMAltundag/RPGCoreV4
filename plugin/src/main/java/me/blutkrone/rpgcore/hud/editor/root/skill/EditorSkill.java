@@ -2,10 +2,13 @@ package me.blutkrone.rpgcore.hud.editor.root.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorSkillInfo;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.BehaviourConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.SkillInfoConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.SkillBindingConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
@@ -27,12 +30,16 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
     @EditorWrite(name = "Name", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Name of this Skill", "§cThis is a language code, NOT plaintext."})
     public String lc_name = "NOTHINGNESS";
-    @EditorWrite(name = "Item", constraint = LanguageConstraint.class)
-    @EditorTooltip(tooltip = {"Itemization of this Skill", "§cThis is a language code, NOT plaintext."})
-    public String lc_item = "NOTHINGNESS";
-    @EditorWrite(name = "Evolution", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {"Used to customize the skill"})
-    public String evolution_type = "default";
+    @EditorList(name = "Tags", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = {"Allows to identify skills by certain keywords"})
+    public List<String> tags = new ArrayList<>();
+    @EditorBoolean(name = "Hidden")
+    @EditorTooltip(tooltip = {"Hide from player until an external source grants the skill"})
+    public boolean hidden = false;
+    @EditorBoolean(name = "Passive")
+    @EditorTooltip(tooltip = {"While skill is not hidden, all passives are acquired", "If disabled, passives are granted if skill on skillbar"})
+    public boolean passive = false;
+
     @EditorList(name = "Binding", singleton = true, constraint = SkillBindingConstraint.class)
     @EditorTooltip(tooltip = "What type of binding to make skill accessible")
     public List<IEditorBundle> skill_binding = new ArrayList<>();
@@ -40,10 +47,13 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
     @EditorTooltip(tooltip = {"Additional behaviours passively on the entity", "These are assigned while the skills are active"})
     public List<IEditorBundle> behaviours = new ArrayList<>();
 
+    @EditorList(name = "Info", constraint = SkillInfoConstraint.class)
+    @EditorTooltip(tooltip = {"Additional info to render on itemized skill."})
+    public List<EditorSkillInfo> info_modifiers = new ArrayList<>();
+
     public transient File file;
 
     public EditorSkill() {
-
     }
 
     @Override
@@ -59,7 +69,7 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 
@@ -73,8 +83,6 @@ public class EditorSkill implements IEditorRoot<CoreSkill> {
         return ItemBuilder.of(Material.BOOKSHELF)
                 .name("§aSkill")
                 .appendLore("§fName: " + this.lc_name)
-                .appendLore("§fItem: " + this.lc_item)
-                .appendLore("§fEvolution: " + this.evolution_type)
                 .build();
     }
 

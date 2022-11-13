@@ -12,6 +12,7 @@ import me.blutkrone.rpgcore.hud.editor.design.designs.DesignList;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
+import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
@@ -64,7 +65,7 @@ public class EditorMenu extends AbstractCoreMenu {
             .appendLore("§fShift click to top-most")
             .build();
     private ItemStack icon_list_down = ItemBuilder.of(Material.ARROW)
-            .name("§aMove Up Or Down")
+            .name("§aMove Down")
             .appendLore("§fShift click to bottom-most")
             .build();
     private ItemStack invisible = RPGCore.inst().getLanguageManager()
@@ -80,18 +81,12 @@ public class EditorMenu extends AbstractCoreMenu {
 
     // cached designs of editable classes
     private Map<Class, Design> designs = new HashMap<>();
-
-    private EditorIndex index;
+    // queue that tracks current edit focus
     private FocusQueue focus;
 
     public EditorMenu(EditorIndex<?, ?> index) {
         super(6);
-        this.index = index;
-        this.focus = new FocusQueue(this);
-    }
-
-    public EditorIndex getIndex() {
-        return index;
+        this.focus = new FocusQueue(this, index);
     }
 
     public Map<Class, Design> getDesigns() {
@@ -120,6 +115,8 @@ public class EditorMenu extends AbstractCoreMenu {
         FocusQueue.AbstractFocus focused = focus.getHeader();
 
         if (focused instanceof FocusQueue.NullFocus) {
+            EditorIndex<?, ?> index = focused.getIndex();
+
             // since nothing is opened, offer from history.
             List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
             filtered_history.removeIf(history -> !index.has(history));
@@ -139,6 +136,12 @@ public class EditorMenu extends AbstractCoreMenu {
                         msb.shiftToExact(26).append(id, "editor_viewport_" + (i + 1));
                         // left-most slot will get the full itemized variant
                         ItemStack preview = root.getPreview();
+                        if (root instanceof EditorItem) {
+                            ItemStack maybe_preview = RPGCore.inst().getItemManager().getPreviews().get().get(id);
+                            if (maybe_preview != preview) {
+                                preview = maybe_preview;
+                            }
+                        }
                         IChestMenu.setBrand(preview, RPGCore.inst(), "select_root", id);
                         this.getMenu().setItemAt((i + 2) * 9, preview);
                         // slots 2-8 are invisible for the sake of text
@@ -324,12 +327,7 @@ public class EditorMenu extends AbstractCoreMenu {
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_root", "").isEmpty()) {
             // pick from the history element
             String id = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_root", "");
-            IEditorRoot root = index.edit(id);
-            this.getMenu().stalled(() -> {
-                focus.clearFocus();
-                focus.setFocusToRoot(id, root);
-                this.getMenu().queryRebuild();
-            });
+            setFocusToRoot(id);
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "list_index", "").isEmpty()) {
             // edit the value at the given field
             int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "list_index", ""));
@@ -355,9 +353,9 @@ public class EditorMenu extends AbstractCoreMenu {
                 if (event.getClick() == ClickType.LEFT) {
                     // move element up by one slot
                     Object a = values.get(i);
-                    Object b = values.get(i-1);
+                    Object b = values.get(i - 1);
                     values.set(i, b);
-                    values.set(i-1, a);
+                    values.set(i - 1, a);
                 } else {
                     // move element to the top of the list
                     values.add(0, values.remove(i));
@@ -373,15 +371,15 @@ public class EditorMenu extends AbstractCoreMenu {
                 FocusQueue.ListFocus casted = (FocusQueue.ListFocus) focused;
                 List<Object> values = casted.getValues();
                 // cannot move if already at top
-                if (i >= values.size()-1) {
+                if (i >= values.size() - 1) {
                     return;
                 }
                 if (event.getClick() == ClickType.LEFT) {
                     // move element down by one slot
                     Object a = values.get(i);
-                    Object b = values.get(i+1);
+                    Object b = values.get(i + 1);
                     values.set(i, b);
-                    values.set(i+1, a);
+                    values.set(i + 1, a);
                 } else {
                     // move element to the bottom of the list
                     values.add(values.remove(i));
@@ -493,7 +491,7 @@ public class EditorMenu extends AbstractCoreMenu {
             return;
         }
         // save the changes we did
-        index.update(id, root.build(id));
+        casted.getIndex().update(id, root.build(id));
         // save changes to disk
         try {
             // todo keep a version control of our changes
@@ -644,6 +642,23 @@ public class EditorMenu extends AbstractCoreMenu {
         });
     }
 
+    public void setFocusToRoot(String id) {
+        // check if we can grab a relevant element to edit
+        EditorIndex<?, ?> index = focus.getHeader().getIndex();
+
+        // ensure that there was something we can do
+        if (index != null) {
+            IEditorRoot<?> root = index.edit(id);
+            this.getMenu().stalled(() -> {
+                focus.clearFocus();
+                focus.setFocusToRoot(id, root, index);
+                this.getMenu().queryRebuild();
+            });
+        } else {
+            Bukkit.getLogger().severe("Index could not be found");
+        }
+    }
+
     /*
      * Input that will add an element to a list.
      */
@@ -739,6 +754,8 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void response(String text) {
+            EditorIndex index = getFocus().getHeader().getIndex();
+
             if (text.isBlank()) {
                 // non-valid input (empty)
                 suggestOpen(parent);
@@ -747,7 +764,7 @@ public class EditorMenu extends AbstractCoreMenu {
                 IEditorRoot element = index.edit(text);
                 // set it into the focus queue
                 focus.clearFocus();
-                focus.setFocusToRoot(text, element);
+                focus.setFocusToRoot(text, element, index);
                 // inform and recover to previous menu
                 suggestOpen(parent);
                 getMenu().getViewer().sendMessage("§cEditing existing element '" + text + "'!");
@@ -761,7 +778,7 @@ public class EditorMenu extends AbstractCoreMenu {
                 element.setFile(FileUtil.file(index.getDirectory(), text + ".rpgcore"));
                 // set it into the focus queue
                 focus.clearFocus();
-                focus.setFocusToRoot(text, element);
+                focus.setFocusToRoot(text, element, index);
                 // inform and recover to previous menu
                 suggestOpen(parent);
                 getMenu().getViewer().sendMessage("§cCreated new element '" + text + "'!");
@@ -774,6 +791,8 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void update(String text) {
+            EditorIndex index = getFocus().getHeader().getIndex();
+
             getMenu().setItemAt(0, language().getAsItem("invisible").name("§f" + text).build());
 
             MagicStringBuilder msb = new MagicStringBuilder();
@@ -825,14 +844,17 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void response(String text) {
+            EditorIndex index = getFocus().getHeader().getIndex();
+
             if (!text.isBlank() && !index.has(text)) {
                 // create a clone of what we got open
-                IEditorRoot root = (IEditorRoot) ((FocusQueue.ElementFocus) focus.getHeader()).getBundle();
+                FocusQueue.ElementFocus focused = (FocusQueue.ElementFocus) focus.getHeader();
+                IEditorRoot root = (IEditorRoot) focused.getBundle();
                 File before = root.getFile();
                 try {
                     root.setFile(FileUtil.file(index.getDirectory(), text + ".rpgcore"));
                     root.save();
-                    focus.setFocusToRoot(text, root);
+                    focus.setFocusToRoot(text, root, index);
                     suggestOpen(parent);
                     getMenu().getViewer().sendMessage("§cEditing existing element '" + text + "'!");
                 } catch (Throwable e) {
@@ -844,6 +866,7 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void update(String text) {
+            EditorIndex index = getFocus().getHeader().getIndex();
             getMenu().setItemAt(0, language().getAsItem("invisible").name("§f" + text).build());
 
             MagicStringBuilder msb = new MagicStringBuilder();

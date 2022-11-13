@@ -10,7 +10,6 @@ import me.blutkrone.rpgcore.skill.mechanic.PotionMechanic;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
@@ -18,7 +17,7 @@ public class EditorPotionMechanic extends AbstractEditorMechanic {
 
     @EditorWrite(name = "Type", constraint = PotionTypeConstraint.class)
     @EditorTooltip(tooltip = "What potion type to apply.")
-    public PotionEffectType type = PotionEffectType.BLINDNESS;
+    public String type = "BLINDNESS";
     @EditorBundle(name = "Amplifier")
     @EditorTooltip(tooltip = "Amplifier of effect.")
     public EditorModifierNumber amplifier = new EditorModifierNumber();

@@ -30,8 +30,28 @@ public class EditorItemModel implements IEditorBundle {
     @EditorTooltip(tooltip = {"Gives the item an enchanted look."})
     public boolean enchanted = false;
 
+    public boolean isDefault() {
+        return this.material == Material.IRON_AXE
+                && this.model == -1
+                && this.color.equalsIgnoreCase("FFFFFF")
+                && !this.enchanted;
+    }
+
     public ItemStack build() {
-        return getPreview();
+        if (this.enchanted) {
+            return ItemBuilder.of(material)
+                    .color(Integer.parseInt(color, 16))
+                    .model(((int) this.model))
+                    .enchant(Enchantment.DURABILITY, 1)
+                    .name("§fItem Model")
+                    .build();
+        } else {
+            return ItemBuilder.of(material)
+                    .color(Integer.parseInt(color, 16))
+                    .model(((int) this.model))
+                    .name("§fItem Model")
+                    .build();
+        }
     }
 
     @Override

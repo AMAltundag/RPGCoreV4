@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 public class JewelMenu {
@@ -54,7 +53,7 @@ public class JewelMenu {
         EffectManager manager = RPGCore.inst().getEffectManager();
         for (String effect : jewel_shatter_effect) {
             CoreEffect core_effect = manager.getIndex().get(effect);
-            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+            core_effect.show(player.getLocation(), player);
         }
     }
 
@@ -68,7 +67,7 @@ public class JewelMenu {
         EffectManager manager = RPGCore.inst().getEffectManager();
         for (String effect : jewel_embed_effect) {
             CoreEffect core_effect = manager.getIndex().get(effect);
-            core_effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+            core_effect.show(player.getLocation());
         }
     }
 }

@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class MultiMechanic extends AbstractCoreMechanic {
 
-    private List<CoreAction> actions = new ArrayList<>();
+    public List<CoreAction> actions = new ArrayList<>();
 
     public MultiMechanic(EditorLogicMultiMechanic editor) {
         for (IEditorBundle action : editor.actions) {
@@ -29,7 +29,10 @@ public class MultiMechanic extends AbstractCoreMechanic {
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         for (CoreAction action : getActions()) {
-            context.getCoreEntity().getActions().add(action.pipeline(context, targets));
+            CoreAction.ActionPipeline pipeline = action.pipeline(context, targets);
+            if (!pipeline.update()) {
+                context.getCoreEntity().getActions().add(pipeline);
+            }
         }
     }
 

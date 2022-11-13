@@ -27,4 +27,10 @@ public interface IDamageType {
      * @return resulting interaction
      */
     DamageInteraction create(CoreEntity defender, CoreEntity attacker);
+
+    /**
+     * Transform type to a name
+     * @return
+     */
+    String name();
 }

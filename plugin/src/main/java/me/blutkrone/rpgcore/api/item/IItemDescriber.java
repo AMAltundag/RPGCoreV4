@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.api.item;
 
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import org.bukkit.inventory.ItemStack;
 
 public interface IItemDescriber {
@@ -8,6 +9,7 @@ public interface IItemDescriber {
      * are called by non RPGCore items ignore this call.
      *
      * @param item the item to describe.
+     * @param player
      */
-    void describe(ItemStack item);
+    void describe(ItemStack item, CorePlayer player);
 }

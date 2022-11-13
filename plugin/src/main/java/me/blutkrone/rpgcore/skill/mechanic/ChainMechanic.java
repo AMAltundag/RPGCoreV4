@@ -2,11 +2,13 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorChainMechanic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.proxy.ChainProxy;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
+import org.bukkit.entity.LivingEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,15 @@ public class ChainMechanic extends AbstractCoreMechanic {
         double radius = this.radius.evalAsDouble(context);
 
         for (IOrigin target : targets) {
-            ChainProxy proxy = new ChainProxy(context, target, this.impact, this.effects, chains, delay, radius, filter);
+            IOrigin where;
+            if (target instanceof CoreEntity) {
+                LivingEntity entity = ((CoreEntity) target).getEntity();
+                where = new IOrigin.SnapshotOrigin(entity.getEyeLocation());
+            } else {
+                where = target.isolate();
+            }
+
+            ChainProxy proxy = new ChainProxy(context, where, this.impact, this.effects, chains, delay, radius, filter);
             context.getCoreEntity().getProxies().add(proxy);
         }
     }

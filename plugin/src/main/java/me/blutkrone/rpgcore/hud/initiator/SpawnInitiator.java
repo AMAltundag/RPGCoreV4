@@ -3,9 +3,12 @@ package me.blutkrone.rpgcore.hud.initiator;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.menu.NavigationMenu;
+import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,36 +31,60 @@ public class SpawnInitiator implements IRosterInitiator {
 
     @Override
     public boolean initiate(CorePlayer player) {
-        if (player.getRespawnPosition() == null) {
-            int i = RPGCore.inst().getRandom().nextInt(this.spawnpoints.size());
-            Location where = this.spawnpoints.get(i).getWhere();
-            player.setRespawnPosition(where);
-            player.setLoginPosition(where);
-            player.getEntity().sendMessage("§cA random spawn-location was allocated (menu still WIP)");
+        // check if a spawnpoint selection is mandatory
+        if (player.getRespawnPosition() != null) {
+            // prevent getting stuck after logging off during character creation
+            if (player.getLoginPosition() != null) {
+                double distSq = Utility.distanceSqOrWorld(player.getLoginPosition(), RPGCore.inst().getDataManager().getPreLoginPosition());
+                if (distSq <= 1d) {
+                    player.setLoginPosition(player.getRespawnPosition());
+                }
+            }
+
+            return false;
         }
 
-        return false;
-    }
+        // with 1 spawnpoint, apply without question
+        if (this.spawnpoints.isEmpty()) {
+            // require at least 1 spawnpoint
+            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'spawn-camp-choices'");
+            });
+        } else if (this.spawnpoints.size() == 1) {
+            // with 1 spawnpoint we can auto-set spawns
+            Location where = this.spawnpoints.iterator().next().getWhere();
+            player.setRespawnPosition(where);
+            player.setLoginPosition(where);
+        } else {
+            // otherwise we can pick from the menu
+            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                try {
+                    NavigationMenu.SpawnCartography cartography = new NavigationMenu.SpawnCartography(player.getLocation());
+                    for (SpawnInitiator.Spawnpoint spawnpoint : this.spawnpoints) {
+                        cartography.addMarker(new MapMarker(spawnpoint.getWhere(), spawnpoint.getDescriptionLC(), 0d));
+                    }
+                    cartography.finish(player.getEntity());
+                } catch (Exception ex) {
+                    player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cReferenced Illegal MiniMap");
+                }
+            });
+        }
 
-    /**
-     * All spawnpoints known.
-     *
-     * @return
-     */
-    public List<Spawnpoint> getSpawnpoints() {
-        return spawnpoints;
+        return true;
     }
 
     public class Spawnpoint {
         private Supplier<Location> where;
         private Location where_cached;
-        private ItemStack icon;
+        private String description;
 
         Spawnpoint(ConfigWrapper config) {
             this.where = config.getLazyLocation("position");
-            this.icon = RPGCore.inst().getLanguageManager()
-                    .getAsItem(config.getString("description"))
-                    .build();
+            this.description = config.getString("description");
+        }
+
+        public String getDescriptionLC() {
+            return description;
         }
 
         public Location getWhere() {

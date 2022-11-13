@@ -196,6 +196,12 @@
             <version>5.2.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.depsypher</groupId>
+            <artifactId>pngtastic</artifactId>
+            <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- multiple version support -->
         <dependency>

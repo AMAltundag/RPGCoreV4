@@ -164,7 +164,7 @@ public class CoreNPC extends AbstractNode {
             msb.append(contents.get(i), "nameplate_" + i);
         }
         // special symbols for quests
-        List<AbstractCoreTrait> traits = getCortexTraits(core_player);
+        List<AbstractCoreTrait> traits = getSymbolTraits(core_player);
         for (AbstractCoreTrait trait : traits) {
             if (trait instanceof CoreQuestTrait) {
                 // identify a quest symbol to work with
@@ -328,21 +328,20 @@ public class CoreNPC extends AbstractNode {
         List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
         traits.removeIf((trait -> !trait.isAvailable(core_player)));
 
-        // 1 trait is just directly used
-        if (traits.size() == 1) {
-            return traits;
-        }
+        return traits;
+    }
 
-        // other traits are only shown if they got icons
-        List<AbstractCoreTrait> cortexed = new ArrayList<>();
-        for (AbstractCoreTrait trait : this.traits) {
-            if (!trait.getSymbol().equalsIgnoreCase("default")) {
-                cortexed.add(trait);
-            }
-        }
-
-        // offer up our traits
-        return cortexed;
+    /*
+     * Fetch the first six traits which can be shown on
+     * a cortex menu.
+     *
+     * @return up to six cortex-able traits
+     */
+    private List<AbstractCoreTrait> getSymbolTraits(CorePlayer core_player) {
+        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
+        traits.removeIf((trait -> !trait.isAvailable(core_player)));
+        traits.removeIf(trait -> trait.getSymbol().equalsIgnoreCase("default"));
+        return traits;
     }
 
     /*

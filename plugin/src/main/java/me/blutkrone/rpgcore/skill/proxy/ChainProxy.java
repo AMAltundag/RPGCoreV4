@@ -75,11 +75,19 @@ public class ChainProxy extends AbstractSkillProxy {
         for (AbstractCoreSelector selector : this.filter) {
             filtered = selector.doSelect(getContext(), filtered);
         }
+        // no targets = finished
+        if (filtered.isEmpty()) {
+            this.terminate = true;
+            return false;
+        }
+
         // sort candidates by distance
         filtered.sort(Comparator.comparingDouble(o -> o.distance(this.anchor)));
         // chain to first linked candidate
         for (IOrigin targeted : filtered) {
             if (targeted.hasLineOfSight(this.anchor)) {
+                // update the anchor
+                this.anchor = targeted.isolate();
                 // do not chain off same entity
                 if (targeted instanceof CoreEntity) {
                     this.blacklist.add(((CoreEntity) targeted).getUniqueId());
@@ -90,14 +98,15 @@ public class ChainProxy extends AbstractSkillProxy {
                 visualize(position);
                 // apply impact effect
                 this.impact.doMechanic(getContext(), Collections.singletonList(targeted));
-                // update the anchor
-                this.anchor = targeted.isolate();
+                // pop one chain off
+                this.chains -= 1;
                 // only one chain per tick invoked
-                return false;
+                break;
             }
         }
-        // delete since we cannot chain anymore
-        return true;
+
+        // check later if we can still chain
+        return false;
     }
 
     @Override
@@ -113,12 +122,11 @@ public class ChainProxy extends AbstractSkillProxy {
      */
     private void visualize(Location location) {
         if (!this.effects.isEmpty()) {
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.anchor.getLocation());
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 // always invoke effect at anchor position
                 String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
                 CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(location, 1d, observing);
+                effect.show(location);
             });
         }
     }

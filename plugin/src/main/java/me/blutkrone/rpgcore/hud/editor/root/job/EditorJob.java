@@ -3,7 +3,9 @@ package me.blutkrone.rpgcore.hud.editor.root.job;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.TreeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.job.CoreJob;
@@ -29,6 +31,9 @@ public class EditorJob implements IEditorRoot<CoreJob> {
     @EditorWrite(name = "Weapon", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Itemized weapon representing the job", "§cThis is a language code, NOT plaintext."})
     public String lc_weapon = "NOTHINGNESS";
+    @EditorList(name = "Trees", constraint = TreeConstraint.class)
+    @EditorTooltip(tooltip = {"All passive trees available with this job", "Will apply the passive tree from here", "§cNever grant access of tree from two sources!"})
+    public List<String> passive_tree = new ArrayList<>();
 
     public transient File file;
 
@@ -48,7 +53,7 @@ public class EditorJob implements IEditorRoot<CoreJob> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 
@@ -78,6 +83,8 @@ public class EditorJob implements IEditorRoot<CoreJob> {
         instruction.add("§bJob");
         instruction.add("A job grants additional power scaling to a player,");
         instruction.add("thorough a passive tree and dedicated abilities.");
+        instruction.add("");
+        instruction.add("§cNever grant access to the same tree from two sources!");
         return instruction;
     }
 }

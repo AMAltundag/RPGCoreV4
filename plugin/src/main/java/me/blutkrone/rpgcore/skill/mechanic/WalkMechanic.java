@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorWalkMechanic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
+import org.bukkit.Bukkit;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,26 +22,40 @@ public class WalkMechanic extends AbstractCoreMechanic {
     public WalkMechanic(EditorWalkMechanic editor) {
         this.selector = AbstractEditorSelector.unwrap(editor.selectors);
         this.speed = editor.speed.build();
+
+        Bukkit.getLogger().severe("not implemented (do not re-path unnecessarily)");
     }
 
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         double speed = this.speed.evalAsDouble(context);
 
+        // ensure we've got a mob
+        CoreEntity entity = context.getCoreEntity();
+        if (!(entity instanceof CoreMob)) {
+            return;
+        }
+
+        // ensure we've got a selection of targets
         List<IOrigin> where = Collections.singletonList(context.getCoreEntity());
         for (AbstractCoreSelector selector : this.selector) {
             where = selector.doSelect(context, where);
         }
+        if (where.isEmpty()) {
+            return;
+        }
 
-        if (!where.isEmpty()) {
-            // approach target if distance is fine
-            IOrigin target = where.get(ThreadLocalRandom.current().nextInt(where.size()));
-            if (target.distance(context.getCoreEntity()) > 0.75d) {
-                CoreEntity entity = context.getCoreEntity();
-                if (entity instanceof CoreMob) {
-                    ((CoreMob) entity).getBase().walkTo(target.getLocation(), speed);
-                }
-            }
+        // grab a random target to walk that isn't too close
+        IOrigin target = where.get(ThreadLocalRandom.current().nextInt(where.size()));
+        if (target.distance(context.getCoreEntity()) <= 0.75d) {
+            return;
+        }
+
+        // walk toward that target
+        if (target instanceof CoreEntity) {
+            ((CoreMob) entity).getBase().walkTo(((CoreEntity) target).getEntity(), speed);
+        } else {
+            ((CoreMob) entity).getBase().walkTo(target.getLocation(), speed);
         }
     }
 }

@@ -108,7 +108,7 @@ public class NodeWorld {
         }
         // keep track of the node
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(active_node, fw);
+            RPGCore.inst().getGsonPretty().toJson(active_node, fw);
         } catch (IOException e) {
             e.printStackTrace();
         }

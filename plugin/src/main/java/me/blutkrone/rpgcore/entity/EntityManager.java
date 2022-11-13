@@ -10,10 +10,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 
 import java.util.*;
 
-public class EntityManager {
+public class EntityManager implements Listener {
 
     // snapshots of observable players in a range
     private Map<ChunkIdentifier, List<Player>> observation = new HashMap<>();
@@ -22,6 +26,10 @@ public class EntityManager {
 
     public EntityManager() {
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
+            if (!RPGCore.inst().isEnabled()) {
+                return;
+            }
+
             // snapshot player locations
             Map<Player, ChunkIdentifier> snapshot = new HashMap<>();
             Bukkit.getOnlinePlayers().forEach(player -> {
@@ -29,6 +37,10 @@ public class EntityManager {
             });
             // run async to reduce performance impact
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
+                if (!RPGCore.inst().isEnabled()) {
+                    return;
+                }
+
                 // compute which player is observing what chunk
                 Map<ChunkIdentifier, List<Player>> computed = new HashMap<>();
                 snapshot.forEach((player, where) -> {
@@ -40,10 +52,16 @@ public class EntityManager {
                 });
                 // sync storage to avoid data conflicts
                 Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
-                    observation = computed;
+                    if (!RPGCore.inst().isEnabled()) {
+                        return;
+                    }
+
+                    observation = Collections.unmodifiableMap(computed);
                 });
             });
         }, 1, 1);
+
+        Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
     /**
@@ -162,5 +180,15 @@ public class EntityManager {
      */
     public List<Player> getObserving(Location where) {
         return observation.getOrDefault(new ChunkIdentifier(where), Collections.emptyList());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void onDeathEvent(EntityDeathEvent e) {
+        // prevent drops from any core entity
+        CoreEntity entity = getEntity(e.getEntity());
+        if (entity != null) {
+            e.getDrops().clear();
+            e.setDroppedExp(0);
+        }
     }
 }

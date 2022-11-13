@@ -11,11 +11,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ItemStylingRule {
+    // what renderer to utilize
+    private String render;
+    // what type of texture style to use
     private String style;
+    // text colors follow a left-to-right gradient
     private Map<String, ChatColor> left_color = new HashMap<>();
     private Map<String, ChatColor> right_color = new HashMap<>();
 
     public ItemStylingRule(ConfigWrapper config) {
+        this.render = config.getString("render");
         this.style = config.getString("style");
         config.forEachUnder("color", (path, root) -> {
             String[] raw = root.getString(path).split(" ");
@@ -24,6 +29,16 @@ public class ItemStylingRule {
             ChatColor right = raw.length == 2 ? ChatColor.of(raw[1]) : left;
             this.right_color.put(path, right);
         });
+    }
+
+    /**
+     * What approach to use on rendering if this is the
+     * style of the item.
+     *
+     * @return what style to render in.
+     */
+    public String getRender() {
+        return render;
     }
 
     /**
@@ -52,7 +67,7 @@ public class ItemStylingRule {
         ChatColor left = this.left_color.getOrDefault(pattern, ChatColor.WHITE);
         ChatColor right = this.right_color.getOrDefault(pattern, ChatColor.WHITE);
         // same colors need no gradient
-        if (left.equals(right)) {
+        if (left.equals(right) || text.length() <= 1) {
             return left + text;
         }
         // build a gradient for the text

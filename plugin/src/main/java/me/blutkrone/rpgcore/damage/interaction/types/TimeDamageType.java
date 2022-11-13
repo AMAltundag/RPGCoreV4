@@ -44,6 +44,8 @@ public class TimeDamageType implements IDamageType {
             if (damage <= 0d) {
                 continue;
             }
+            // flat DOT damage from external source (mainly for skills)
+            damage += interaction.evaluateAttribute("DOT_" + element.getId() + "_BASE", interaction.getAttacker());
             // apply DOT specific scaling rules
             damage *= Math.max(0d, 1d + multi_dot);
             damage *= Math.max(0d, 1d + received_dot);
@@ -55,5 +57,10 @@ public class TimeDamageType implements IDamageType {
     @Override
     public DamageInteraction create(CoreEntity defender, CoreEntity attacker) {
         return new DamageInteraction(this, defender, attacker);
+    }
+
+    @Override
+    public String name() {
+        return "DOT";
     }
 }

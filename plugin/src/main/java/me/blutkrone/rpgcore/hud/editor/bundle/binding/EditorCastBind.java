@@ -2,9 +2,11 @@ package me.blutkrone.rpgcore.hud.editor.bundle.binding;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierBoolean;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.ActionConstraint;
@@ -42,6 +44,10 @@ public class EditorCastBind extends AbstractEditorSkillBinding {
     @EditorList(name = "Actions", constraint = ActionConstraint.class)
     @EditorTooltip(tooltip = "Actions triggered after casting")
     public List<IEditorBundle> actions = new ArrayList<>();
+
+    @EditorBoolean(name = "Trigger")
+    @EditorTooltip(tooltip = {"The 'actions' can be triggered by other skills.", "Will bypass cooldown, casting and cost from this."})
+    public EditorModifierBoolean triggerable = new EditorModifierBoolean();
 
     @EditorCategory(icon = Material.BOOK, info = "Casting")
     @EditorBundle(name = "Stability")

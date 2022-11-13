@@ -144,7 +144,7 @@ public class JewelMenu extends AbstractCoreMenu {
         Player bukkit_player = getMenu().getViewer();
         CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(bukkit_player);
         ItemStack working = player.getMenuPersistence().remove("jewel_inspection");
-        RPGCore.inst().getItemManager().describe(working);
+        RPGCore.inst().getItemManager().describe(working, player);
         if (bukkit_player.getInventory().firstEmpty() != -1) {
             // add to inventory if we got the space for that
             bukkit_player.getInventory().addItem(working);

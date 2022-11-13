@@ -171,7 +171,7 @@ public class CoreQuest {
         message = message.replace("{QUEST}", this.getName());
         player.getEntity().sendMessage(message);
         // take the quest
-        player.getActiveQuestIds().add(this.id);
+        player.getActiveQuestIds().add(0, this.id);
     }
 
     /**

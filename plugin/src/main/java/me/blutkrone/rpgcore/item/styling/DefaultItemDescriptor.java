@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.item.styling;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataDurability;
@@ -26,6 +27,9 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
+/**
+ * Descriptor meant for a wide variety of generic items.
+ */
 public class DefaultItemDescriptor implements IItemDescriber {
 
     private int padding = 15;
@@ -92,7 +96,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
         modifiers.removeIf(modifier -> {
             ModifierStyle style = modifier.getStyle();
             if (style == ModifierStyle.HEADER) {
-                List<String> readables = language_manager.getTranslationList(modifier.getLCReadable());
+                List<String> readables = modifier.getReadable();
                 for (String readable : readables) {
                     // generate the backdrop texture
                     String[] split = readable.split("\\#");
@@ -100,11 +104,11 @@ public class DefaultItemDescriptor implements IItemDescriber {
                     msb.append(styling.texture("highlight_top", 0), ChatColor.WHITE);
                     // write the primary info of the modifier
                     msb.shiftToExact(-20 + this.padding - 5);
-                    msb.append(styling.color("highlight-left", split[0]));
+                    msb.append(styling.color("highlight-left", split[0]), "default_fixed");
                     // write the secondary info of the modifier
                     if (split.length == 2) {
                         msb.shiftToExact(-20 + this.width_base - this.padding + 5 - Utility.measureWidthExact(split[1]));
-                        msb.append(styling.color("highlight-right", split[1]));
+                        msb.append(styling.color("highlight-right", split[1]), "default_fixed");
                     }
                     // append the modifier to our listing
                     msb.shiftToExact(0);
@@ -152,11 +156,11 @@ public class DefaultItemDescriptor implements IItemDescriber {
                 msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
                 // write the primary info of the line
                 msb.shiftToExact(-20 + this.padding);
-                msb.append(styling.color("info-left", split[0]));
+                msb.append(styling.color("info-left", split[0]), "default_fixed");
                 // write the secondary info of the line
                 if (split.length == 2) {
                     msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measureWidthExact(split[1]));
-                    msb.append(styling.color("info-right", split[1]));
+                    msb.append(styling.color("info-right", split[1]), "default_fixed");
                 }
                 // append the line to our listing
                 msb.shiftToExact(0);
@@ -198,7 +202,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
             msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
-            msb.append(styling.color("category", translation));
+            msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
             // separator below category name
@@ -208,7 +212,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             compiled.add(msb.compileAndClean());
 
             for (CoreModifier modifier : mods) {
-                List<String> readables = language_manager.getTranslationList(modifier.getLCReadable());
+                List<String> readables = modifier.getReadable();
                 for (String readable : readables) {
                     // generate the backdrop texture
                     String[] split = readable.split("\\#");
@@ -216,11 +220,11 @@ public class DefaultItemDescriptor implements IItemDescriber {
                     msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
                     // write the primary info of the modifier
                     msb.shiftToExact(-20 + this.padding);
-                    msb.append(styling.color("attribute-left", split[0]));
+                    msb.append(styling.color("attribute-left", split[0]), "default_fixed");
                     // write the secondary info of the modifier
                     if (split.length == 2) {
                         msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measureWidthExact(split[1]));
-                        msb.append(styling.color("attribute-right", split[1]));
+                        msb.append(styling.color("attribute-right", split[1]), "default_fixed");
                     }
                     // append the modifier to our listing
                     msb.shiftToExact(0);
@@ -264,7 +268,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
             msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
-            msb.append(styling.color("category", translation));
+            msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
             // separator below category name
@@ -274,7 +278,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             compiled.add(msb.compileAndClean());
 
             for (CoreModifier modifier : mods) {
-                List<String> readables = language_manager.getTranslationList(modifier.getLCReadable());
+                List<String> readables = modifier.getReadable();
                 for (String readable : readables) {
                     // ensure we got a valid format to work with
                     String[] split = readable.split("\\#");
@@ -290,7 +294,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
                     msb.shiftToExact(-20);
                     msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
                     msb.shiftToExact(-20 + this.padding + 24);
-                    msb.append(styling.color("ability-upper", upper));
+                    msb.append(styling.color("ability-upper", upper), "default_fixed");
                     msb.shiftToExact(0);
                     compiled.add(msb.compileAndClean());
                     // create lower text
@@ -299,10 +303,10 @@ public class DefaultItemDescriptor implements IItemDescriber {
                     msb.shiftToExact(-20 + this.padding);
                     msb.append(resource_manager.texture("lore_icon_" + icon), ChatColor.WHITE);
                     msb.shiftToExact(-20 + this.padding + 24);
-                    msb.append(styling.color("ability-left", left));
+                    msb.append(styling.color("ability-left", left), "default_fixed");
                     if (right != null) {
                         msb.shiftToExact(this.width_base - this.padding - 20 - Utility.measureWidthExact(right));
-                        msb.append(styling.color("ability-right", right));
+                        msb.append(styling.color("ability-right", right), "default_fixed");
                     }
                     msb.shiftToExact(0);
                     compiled.add(msb.compileAndClean());
@@ -374,7 +378,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation("lore_category_description");
             msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
-            msb.append(styling.color("category", translation));
+            msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
             // separator below category name
@@ -387,7 +391,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
                 msb.shiftToExact(-20);
                 msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
                 msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(line));
-                msb.append(styling.color("description", line));
+                msb.append(styling.color("description", line), "default_fixed");
                 msb.shiftToExact(0);
                 compiled.add(msb.compileAndClean());
             }
@@ -642,7 +646,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
     }
 
     @Override
-    public void describe(ItemStack item) {
+    public void describe(ItemStack item, CorePlayer player) {
         // try to describe as an identified item
         if (describeIdentified(item)) {
             return;

@@ -7,11 +7,13 @@ import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;
+import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskDeliver;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -25,6 +27,200 @@ public class QuestMenu {
     private QuestMenu() {
     }
 
+    /**
+     * List of quests accepted by players.
+     */
+    public static class Journal extends AbstractCoreMenu {
+
+        private int offset;
+        private ItemStack invisible = RPGCore.inst().getLanguageManager().getAsItem("invisible").build();
+        private ItemStack move_quest_up = RPGCore.inst().getLanguageManager().getAsItem("move_quest_up").build();
+        private ItemStack move_quest_down = RPGCore.inst().getLanguageManager().getAsItem("move_quest_down").build();
+        private ItemStack icon_abandon_quest = RPGCore.inst().getLanguageManager().getAsItem("icon_abandon_quest").build();
+
+        public Journal() {
+            super(6);
+        }
+
+        @Override
+        public void rebuild() {
+            getMenu().clearItems();
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(getMenu().getViewer());
+            List<String> quests = core_player.getActiveQuestIds();
+
+            // base texture
+            MagicStringBuilder msb = new MagicStringBuilder();
+            msb.shiftToExact(-208);
+            msb.append(resourcepack().texture("menu_scroller_mono"), ChatColor.WHITE);
+
+            for (int i = 0; i < 6; i++) {
+                String qId = quests.size() > (offset + i) ? quests.get(offset + i) : null;
+                if (qId != null) {
+                    CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(qId);
+                    // track the item on the menu
+                    ItemBuilder quest_icon = ItemBuilder.of(quest.getIcon().clone());
+                    AbstractQuestTask task = quest.getCurrentTask(core_player);
+                    if (task != null) {
+                        List<String> info = task.getInfo(core_player);
+                        if (!info.isEmpty()) {
+                            quest_icon.appendLore("");
+                            quest_icon.appendLore(info);
+                        }
+                    } else {
+                        quest_icon.appendLore("");
+                        quest_icon.appendLore(language().getTranslation("quest_list_complete"));
+                    }
+                    // proliferate clickable icon across line
+                    ItemStack icon = quest_icon.build();
+                    getMenu().setItemAt(i * 9, icon);
+                    for (int j = 1; j < 8; j++) {
+                        getMenu().setItemAt((i * 9) + j, ItemBuilder.of(icon.clone()).inheritIcon(this.invisible).build());
+                    }
+                    // write quest name down
+                    msb.shiftToExact(20);
+                    if (task == null) {
+                        msb.append(quest.getName(), "scroller_text_" + (i + 1), ChatColor.YELLOW);
+                    } else {
+                        msb.append(quest.getName(), "scroller_text_" + (i + 1), ChatColor.WHITE);
+                    }
+                    // offer a button to reposition quest
+                    ItemStack icon_move_up = this.move_quest_up.clone();
+                    IChestMenu.setBrand(icon_move_up, RPGCore.inst(), "move_up", String.valueOf(offset + i));
+                    this.getMenu().setItemAt(i*9 + 7, icon_move_up);
+                    // offer a button to reposition quest
+                    ItemStack icon_move_down = this.move_quest_down.clone();
+                    IChestMenu.setBrand(icon_move_down, RPGCore.inst(), "move_down", String.valueOf(offset + i));
+                    this.getMenu().setItemAt(i*9 + 6, icon_move_down);
+                    // offer a button to abandon quest
+                    ItemStack icon_abandon_quest = this.icon_abandon_quest.clone();
+                    IChestMenu.setBrand(icon_abandon_quest, RPGCore.inst(), "abandon_quest", qId);
+                    this.getMenu().setItemAt(i*9 + 5, icon_abandon_quest);
+                }
+            }
+
+            // render scroll-bar for the viewport
+            msb.shiftToExact(150);
+            if (quests.size() <= 6) {
+                msb.append(resourcepack().texture("pointer_huge_0"), ChatColor.WHITE);
+            } else if (quests.size() <= 12) {
+                double ratio = (offset - 6d) / (quests.size() - 6);
+                msb.append(resourcepack().texture("pointer_medium_" + (int) (100 * ratio)), ChatColor.WHITE);
+            } else if (quests.size() <= 24) {
+                double ratio = (offset - 6d) / (quests.size() - 6);
+                msb.append(resourcepack().texture("pointer_small_" + (int) (100 * ratio)), ChatColor.WHITE);
+            } else {
+                double ratio = (offset - 6d) / (quests.size() - 6);
+                msb.append(resourcepack().texture("pointer_tiny_" + (int) (100 * ratio)), ChatColor.WHITE);
+            }
+
+            InstructionBuilder instructions = new InstructionBuilder();
+            instructions.add(RPGCore.inst().getLanguageManager().getTranslationList("instruction_player_quest"));
+            instructions.apply(msb);
+
+            getMenu().setTitle(msb.compile());
+        }
+
+        @Override
+        public void click(InventoryClickEvent event) {
+            event.setCancelled(true);
+            if (!(event.getClick() == ClickType.LEFT || event.getClick() == ClickType.SHIFT_LEFT)) {
+                return;
+            }
+
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(getMenu().getViewer());
+            List<String> quests = core_player.getActiveQuestIds();
+
+            if (event.getView().getTopInventory() == event.getClickedInventory()) {
+                if (event.getSlot() == 8) {
+                    // scroll up by one
+                    offset = Math.max(0, offset - 1);
+                    getMenu().queryRebuild();
+                } else if (event.getSlot() == 17) {
+                    // scroll to top
+                    offset = 0;
+                    getMenu().queryRebuild();
+                } else if (event.getSlot() == 26) {
+                    // ignore other clicks
+                } else if (event.getSlot() == 35) {
+                    // ignore other clicks
+                } else if (event.getSlot() == 44) {
+                    // scroll to bottom
+                    offset = Math.max(0, quests.size() - 6);
+                    getMenu().queryRebuild();
+                } else if (event.getSlot() == 53) {
+                    // scroll down by one
+                    int floor = Math.max(0, quests.size() - 6);
+                    offset = Math.min(floor, offset + 1);
+                    getMenu().queryRebuild();
+                } else {
+                    // abandon the quest that was accepted
+                    String instruction = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "abandon_quest", null);
+                    if (instruction != null) {
+                        if (event.getClick() == ClickType.SHIFT_LEFT) {
+                            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(instruction);
+                            quest.abandonQuest(core_player);
+                            getMenu().queryRebuild();
+                        }
+                        return;
+                    }
+                    // re-position quest in the list
+                    instruction = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_up", null);
+                    if (instruction != null) {
+                        int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_up", ""));
+                        this.getMenu().stalled(() -> {
+                            // cannot move if already at top
+                            if (i <= 0) {
+                                return;
+                            }
+                            // move up by one slot
+                            if (event.getClick() == ClickType.LEFT) {
+                                // move element up by one slot
+                                String a = quests.get(i);
+                                String b = quests.get(i - 1);
+                                quests.set(i, b);
+                                quests.set(i - 1, a);
+                            } else {
+                                // move element to the top of the list
+                                quests.add(0, quests.remove(i));
+                            }
+
+                            this.getMenu().queryRebuild();
+                        });
+                        return;
+                    }
+                    // re-position quest in the list
+                    instruction = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_down", null);
+                    if (instruction != null) {
+                        int i = Integer.valueOf(IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "move_down", ""));
+                        this.getMenu().stalled(() -> {
+                            // cannot move if already at bottom
+                            if (i >= quests.size() - 1) {
+                                return;
+                            }
+
+                            if (event.getClick() == ClickType.LEFT) {
+                                // move element down by one slot
+                                String a = quests.get(i);
+                                String b = quests.get(i + 1);
+                                quests.set(i, b);
+                                quests.set(i + 1, a);
+                            } else {
+                                // move element to the bottom of the list
+                                quests.add(quests.remove(i));
+                            }
+
+                            this.getMenu().queryRebuild();
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * List of quests available via NPC
+     */
     public static class Quest extends AbstractCoreMenu {
 
         private CoreNPC npc;
@@ -157,6 +353,9 @@ public class QuestMenu {
         }
     }
 
+    /**
+     * Receive reward of a quest
+     */
     public static class Reward extends AbstractCoreMenu {
 
         private CoreQuest quest;
@@ -251,6 +450,9 @@ public class QuestMenu {
         }
     }
 
+    /**
+     * Deliver an item for a quest
+     */
     public static class Delivery extends AbstractCoreMenu {
 
         private CoreQuestTaskDeliver task;

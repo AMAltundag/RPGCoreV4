@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorBehaviour;
 import me.blutkrone.rpgcore.hud.editor.bundle.trigger.AbstractEditorTrigger;
 import me.blutkrone.rpgcore.skill.CoreSkill;
+import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.cost.AbstractCoreCost;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
@@ -33,9 +34,9 @@ public class CoreBehaviour {
     // what behaviour to be triggered
     private AbstractCoreTrigger trigger;
     // costs consumed each time triggered
-    public List<AbstractCoreCost> costs;
+    private List<AbstractCoreCost> costs;
     // actions invoked each time triggered
-    public List<CoreAction> actions;
+    private List<CoreAction> actions;
 
     public CoreBehaviour(CoreSkill skill, EditorBehaviour editor) {
         this.skill = skill;
@@ -71,7 +72,7 @@ public class CoreBehaviour {
      *
      * @param context the context created within.
      */
-    public BehaviourEffect createEffect(IContext context) {
+    public BehaviourEffect createEffect(SkillContext context) {
         return new BehaviourEffect(context, this);
     }
 
@@ -80,7 +81,7 @@ public class CoreBehaviour {
      *
      * @param context the context created within.
      */
-    public BehaviourEffect createEffect(IContext context, int duration) {
+    public BehaviourEffect createEffect(SkillContext context, int duration) {
         return new BehaviourEffect(context, this, duration);
     }
 
@@ -99,7 +100,14 @@ public class CoreBehaviour {
      * @return effect that we've allocated.
      */
     public String getIcon(IContext context) {
-        return icon.evaluate(context);
+        String icon = this.icon.evaluate(context);
+        if ("null".equalsIgnoreCase(icon)) {
+            return null;
+        } else if ("none".equalsIgnoreCase(icon)) {
+            return null;
+        } else {
+            return icon;
+        }
     }
 
     /**

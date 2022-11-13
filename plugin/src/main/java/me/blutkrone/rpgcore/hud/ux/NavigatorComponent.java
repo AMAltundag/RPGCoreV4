@@ -55,7 +55,8 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
         workspace.bossbar().append(rpm.texture("static_navigator_back"));
 
         // draw the minimap slices on screen
-        if (prepared.map_region != null && prepared.map_region.contains(prepared.position)) {
+        if (prepared.map_region != null && prepared.map_region.contains(prepared.position)
+                && rpm.hasParameter("map-" + prepared.map_region.map + "-width")) {
             // identify the middle piece
             double relX = prepared.position.getBlockX() - prepared.map_region.x1;
             double lenX = prepared.map_region.x2 - prepared.map_region.x1;

@@ -16,17 +16,37 @@ public class EffectPartConstraint implements IEditorConstraint {
     private static Map<Class, String> class_to_id = new HashMap<>();
 
     static {
-        id_to_constructor.put("sound", EditorAudio::new);
-        id_to_constructor.put("particle", EditorParticleBrush::new);
-        id_to_constructor.put("point", EditorParticlePoint::new);
-        id_to_constructor.put("wait", EditorWait::new);
-        id_to_constructor.put("sphere", EditorParticleSphere::new);
+        id_to_constructor.put("sound", EditorEffectAudio::new);
+        id_to_constructor.put("particle", EditorEffectBrush::new);
+        id_to_constructor.put("circle", EditorEffectCircle::new);
+        id_to_constructor.put("direction", EditorEffectDirection::new);
+        id_to_constructor.put("forward", EditorEffectForward::new);
+        id_to_constructor.put("line", EditorEffectLine::new);
+        id_to_constructor.put("model", EditorEffectModel::new);
+        id_to_constructor.put("point", EditorEffectPoint::new);
+        id_to_constructor.put("radiator", EditorEffectRadiator::new);
+        id_to_constructor.put("rotate", EditorEffectRotate::new);
+        id_to_constructor.put("rotor", EditorEffectRotor::new);
+        id_to_constructor.put("sphere", EditorEffectSphere::new);
+        id_to_constructor.put("wait", EditorEffectWait::new);
+        id_to_constructor.put("repeat", EditorEffectRepeat::new);
+        id_to_constructor.put("block", EditorEffectBlock::new);
 
-        class_to_id.put(EditorAudio.class, "sound");
-        class_to_id.put(EditorParticleBrush.class, "particle");
-        class_to_id.put(EditorParticlePoint.class, "point");
-        class_to_id.put(EditorWait.class, "wait");
-        class_to_id.put(EditorParticleSphere.class, "sphere");
+        class_to_id.put(EditorEffectAudio.class, "sound");
+        class_to_id.put(EditorEffectBrush.class, "particle");
+        class_to_id.put(EditorEffectCircle.class, "circle");
+        class_to_id.put(EditorEffectDirection.class, "direction");
+        class_to_id.put(EditorEffectForward.class, "forward");
+        class_to_id.put(EditorEffectLine.class, "line");
+        class_to_id.put(EditorEffectModel.class, "model");
+        class_to_id.put(EditorEffectPoint.class, "point");
+        class_to_id.put(EditorEffectRadiator.class, "radiator");
+        class_to_id.put(EditorEffectRotate.class, "rotate");
+        class_to_id.put(EditorEffectRotor.class, "rotor");
+        class_to_id.put(EditorEffectSphere.class, "sphere");
+        class_to_id.put(EditorEffectWait.class, "wait");
+        class_to_id.put(EditorEffectRepeat.class, "repeat");
+        class_to_id.put(EditorEffectBlock.class, "block");
     }
 
     @Override

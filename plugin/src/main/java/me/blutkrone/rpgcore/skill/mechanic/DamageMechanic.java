@@ -11,6 +11,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorDamageMechanic;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndModifier;
+import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import org.bukkit.Bukkit;
@@ -64,6 +65,9 @@ public class DamageMechanic extends AbstractCoreMechanic {
             if (target instanceof CoreEntity) {
                 DamageInteraction interaction = type.create(((CoreEntity) target), context.getCoreEntity());
                 interaction.setSourceContext(context);
+                if (context instanceof SkillContext) {
+                    interaction.setDamageBlame("skill_" + ((SkillContext) context).getSkill().getId());
+                }
                 // offer up attributes into the interaction
                 attributes.forEach((id, factor) -> interaction.getAttribute(id).create(factor));
                 // provide tags for the interaction

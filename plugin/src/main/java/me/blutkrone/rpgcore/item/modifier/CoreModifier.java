@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.item.modifier;
 
-import me.blutkrone.rpgcore.attribute.AttributeModifier;
+import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
@@ -20,6 +21,7 @@ public class CoreModifier {
     private double weight;
     private double weight_per_quality;
     private Map<String, Double> attribute_effects;
+    private List<String> tag_effects;
     private ModifierType type;
     private boolean implicit;
 
@@ -37,14 +39,57 @@ public class CoreModifier {
         this.weight = editor.weight;
         this.weight_per_quality = editor.weight_per_quality;
         this.attribute_effects = new HashMap<>();
-        this.type = editor.type;
-        this.implicit = editor.isImplicit();
         for (EditorAttributeAndFactor attribute : editor.attribute_effects) {
             this.attribute_effects.put(attribute.attribute, attribute.factor);
         }
+        this.tag_effects = new ArrayList<>();
+        for (String skill : editor.skill_effects) {
+            this.tag_effects.add("skill_" + skill.toLowerCase());
+        }
+        for (String skill : editor.tag_effects) {
+            this.tag_effects.add(skill.toLowerCase());
+        }
+        this.type = editor.type;
+        this.implicit = editor.isImplicit();
         this.style = editor.readable_style;
         this.lc_readable = editor.lc_readable;
         this.lc_category = editor.lc_category;
+    }
+
+
+    /**
+     * Translate all placeholders and offers the modifier.
+     *
+     * @return modifiers that were translated.
+     */
+    public List<String> getReadable() {
+        List<String> template = RPGCore.inst().getLanguageManager().getTranslationList(this.lc_readable);
+
+        if (!this.attribute_effects.isEmpty()) {
+            // replace exact matches
+            template.replaceAll(string -> {
+                return RPGCore.inst().getLanguageManager().formatAsVersatile(string, this.attribute_effects);
+            });
+        }
+
+        return template;
+    }
+
+    /**
+     * Grant this modifier to the entity that requested it, do note
+     * that the return value should be cleaned up appropriately else
+     * it will accumulate bad data.
+     *
+     * @param entity which entity should receive the modifier.
+     * @return the effect under which the item effect was received.
+     */
+    public List<IExpiringModifier> apply(CoreEntity entity) {
+        List<IExpiringModifier> modifiers = new ArrayList<>();
+        this.tag_effects.forEach((tag) -> modifiers.add(entity.grantTag(tag)));
+        this.attribute_effects.forEach((attribute, factor) -> {
+            modifiers.add(entity.getAttribute(attribute).create(factor));
+        });
+        return modifiers;
     }
 
     /**
@@ -77,22 +122,6 @@ public class CoreModifier {
     }
 
     /**
-     * Grant this modifier to the entity that requested it, do note
-     * that the return value should be cleaned up appropriately else
-     * it will accumulate bad data.
-     *
-     * @param entity which entity should receive the modifier.
-     * @return the effect under which the item effect was received.
-     */
-    public List<AttributeModifier> apply(CoreEntity entity) {
-        List<AttributeModifier> modifiers = new ArrayList<>();
-        this.attribute_effects.forEach((attribute, factor) -> {
-            modifiers.add(entity.getAttribute(attribute).create(factor));
-        });
-        return modifiers;
-    }
-
-    /**
      * Modifiers are either an implicit (all items got one) or an affix (is
      * rolled randomly on this item.)
      *
@@ -121,21 +150,21 @@ public class CoreModifier {
     }
 
     /**
+     * Retrieve the tag effects.
+     *
+     * @return which tags are available.
+     */
+    public List<String> getTagEffects() {
+        return tag_effects;
+    }
+
+    /**
      * The style in which we present the modifier.
      *
      * @return how to style this modifier.
      */
     public ModifierStyle getStyle() {
         return style;
-    }
-
-    /**
-     * Language identifier containing readable modifier information.
-     *
-     * @return language identifier for the modifier.
-     */
-    public String getLCReadable() {
-        return lc_readable;
     }
 
     /**

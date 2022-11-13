@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.data.IDataIdentity;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
+import me.blutkrone.rpgcore.damage.DamageMetric;
 import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
 import me.blutkrone.rpgcore.entity.focus.FocusTracker;
 import me.blutkrone.rpgcore.entity.tasks.PlayerFocusTask;
@@ -12,12 +13,15 @@ import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
+import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.passive.CorePassiveNode;
+import me.blutkrone.rpgcore.passive.CorePassiveTree;
+import me.blutkrone.rpgcore.passive.node.*;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.behaviour.BehaviourEffect;
-import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
 import me.blutkrone.rpgcore.skill.skillbar.OwnedSkillbar;
 import org.bukkit.*;
@@ -49,11 +53,6 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // a skillbar to process skill inputs
     private OwnedSkillbar skillbar;
     private boolean skillbar_active;
-
-    // evolution slots that were unlocked
-    private Map<String, Set<Integer>> evolution_unlock = new HashMap<>();
-    // one evolution per list element
-    private Map<String, Map<Integer, String>> evolution_fitted = new HashMap<>();
 
     // default position to respawn, if nothing else specified
     private Location respawn_position;
@@ -100,11 +99,22 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     private Map<String, Integer> quest_items_snapshot = null;
     private long quest_items_timestamp = 0;
 
-    // tracks passive behaviours we've got
+    // snapshot of passive behaviours from skills
     private Map<CoreBehaviour, BehaviourEffect> passive_behaviour = new HashMap<>();
 
-    // track the pipelines for actions we've requested
-    private List<CoreAction.ActionPipeline> actions = new ArrayList<>();
+    // information and caching regarding passive tree
+    private Map<String, Long> passive_integrity = new HashMap<>();
+    private Map<String, Long> passive_viewport = new HashMap<>();
+    private Map<String, Integer> passive_points = new HashMap<>();
+    private Map<String, Integer> passive_refunds = new HashMap<>();
+    private Map<String, Set<Long>> passive_allocated = new HashMap<>();
+    private Map<String, Map<Long, ItemStack>> passive_socketed = new HashMap<>();
+    private Map<String, Set<String>> passive_cache_skill_tag = new HashMap<>();
+    private Map<String, Map<String, Double>> passive_cache_skill_attribute = new HashMap<>();
+    private Map<String, List<String>> passive_cache_skill_reference = new HashMap<>();
+
+    // metrics about damage inflicted
+    private Map<String, DamageMetric> metrics = new HashMap<>();
 
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
@@ -118,29 +128,233 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.character = character;
     }
 
-    @Override
-    public void updateSkills() {
-        // grab behaviours from skillbar
-        Set<CoreBehaviour> acquired = new HashSet<>();
-        for (int i = 0; i < 6; i++) {
-            CoreSkill skill = skillbar.getSkill(i);
-            if (skill != null) {
-                acquired.addAll(skill.getBehaviours());
+    /**
+     * Metrics on damage that was inflicted.
+     *
+     * @param blame the blame identifies damage origin.
+     * @return a metric for a certain damage.
+     */
+    public DamageMetric getMetric(String blame) {
+        return this.metrics.computeIfAbsent(blame, (k -> new DamageMetric()));
+    }
+
+    /**
+     * Request an update of every passive tree the player has
+     * access to.
+     */
+    public void updatePassiveTree() {
+        List<IExpiringModifier> passive_cache_attribute = getExpiringModifiers("passive");
+        // reset the caching structure we have
+        passive_cache_attribute.clear();
+        passive_cache_skill_attribute.clear();
+        passive_cache_skill_reference.clear();
+        passive_cache_skill_tag.clear();
+
+        // first pass should strip away any bad tree
+        List<String> needIntegrityCheck = new ArrayList<>(this.passive_allocated.keySet());
+        for (String treeId : needIntegrityCheck) {
+            CorePassiveTree tree = RPGCore.inst().getPassiveManager().getTreeIndex().get(treeId);
+            tree.ensureIntegrity(this);
+        }
+        // second pass to handle skills available to player
+        for (CoreSkill skill : RPGCore.inst().getSkillManager().getIndex().getAll()) {
+            CorePassiveTree tree = RPGCore.inst().getPassiveManager().getTreeIndex().get("skill_" + skill.getId());
+            Map<String, Double> skill_attributes = passive_cache_skill_attribute.computeIfAbsent(skill.getId(), (k -> new HashMap<>()));
+            List<String> skill_references = passive_cache_skill_reference.computeIfAbsent(skill.getId(), (k -> new ArrayList<>()));
+            Set<String> skill_tags = passive_cache_skill_tag.computeIfAbsent(skill.getId(), (k -> new HashSet<>()));
+
+            // process the relevant nodes on the tree
+            Set<Long> allocated = getAllocated(tree.getId());
+            for (long where : allocated) {
+                // never process the entry node
+                if (where == 0L) {
+                    continue;
+                }
+                // ensure node is not illegal
+                CorePassiveNode node = tree.getNode(where);
+                if (node == null) {
+                    continue;
+                }
+                // handle the node on the tree
+                AbstractCorePassive effect = node.getEffect().orElse(null);
+                if (effect instanceof CorePassiveEntityAttribute) {
+                    // add attributes to the entity
+                    Map<String, Double> attributes = ((CorePassiveEntityAttribute) effect).getAttributes();
+                    attributes.forEach((attribute, factor) -> {
+                        passive_cache_attribute.add(getAttribute(attribute).create(factor));
+                    });
+                } else if (effect instanceof CorePassiveSkillAttribute) {
+                    // add attributes to the skill
+                    Map<String, Double> attributes = ((CorePassiveSkillAttribute) effect).getAttributes();
+                    attributes.forEach((attribute, factor) -> {
+                        skill_attributes.merge(attribute, factor, (a,b) -> a+b);
+                    });
+                } else {
+                    ItemStack item = getPassiveSocketed(tree.getId(), where);
+                    if (item != null) {
+                        ItemDataModifier data = RPGCore.inst().getItemManager().getItemData(item, ItemDataModifier.class);
+                        if (data != null) {
+                            if (effect instanceof CorePassiveSocketEntityAttribute) {
+                                // add attributes to the entity, from socketed item
+                                passive_cache_attribute.addAll(data.apply(this));
+                            } else if (effect instanceof CorePassiveSocketSkillAttribute) {
+                                // add attributes to the skill, from socketed item
+                                for (CoreModifier modifier : data.getModifiers()) {
+                                    skill_tags.addAll(modifier.getTagEffects());
+                                    modifier.getAttributeEffects().forEach((attribute, factor) -> {
+                                        skill_attributes.merge(attribute, factor, (a,b) -> a+b);
+                                    });
+                                }
+                            } else if (effect instanceof CorePassiveSocketSkillReference) {
+                                // add a reference to the skill, from an itemized skill
+                                data.getItem().getHidden("skill").ifPresent(skill_references::add);
+                            }
+                        }
+                    }
+                }
             }
         }
-        // grab behaviours from alternate sources
-        if (Math.random() <= 0.01d) {
-            Bukkit.getLogger().severe("not implemented (other skill sources)");
-        }
-        // drop behaviours no longer active
-        this.passive_behaviour.keySet().removeIf(key -> !acquired.contains(key));
-        // add behaviours newly acquired
-        for (CoreBehaviour behaviour : acquired) {
-            if (!this.passive_behaviour.containsKey(behaviour)) {
-                SkillContext context = createSkillContext(behaviour.getSkill());
-                this.passive_behaviour.put(behaviour, behaviour.createEffect(context));
+        // third pass to handle jobs of the player
+        CoreJob job = getJob();
+        if (job != null) {
+            for (String id : job.getPassiveTree()) {
+                CorePassiveTree tree = RPGCore.inst().getPassiveManager().getTreeIndex().get(id);
+                Set<Long> allocated = getAllocated(tree.getId());
+
+                for (long where : allocated) {
+                    // never process the entry node
+                    if (where == 0L) {
+                        continue;
+                    }
+                    // ensure node is not illegal
+                    CorePassiveNode node = tree.getNode(where);
+                    if (node == null) {
+                        continue;
+                    }
+
+                    // handle the node on the tree
+                    AbstractCorePassive effect = node.getEffect().orElse(null);
+                    if (effect instanceof CorePassiveEntityAttribute) {
+                        // add attributes to the entity
+                        Map<String, Double> attributes = ((CorePassiveEntityAttribute) effect).getAttributes();
+                        attributes.forEach((attribute, factor) -> {
+                            passive_cache_attribute.add(getAttribute(attribute).create(factor));
+                        });
+                    } else {
+                        ItemStack item = getPassiveSocketed(tree.getId(), where);
+                        if (item != null) {
+                            ItemDataModifier data = RPGCore.inst().getItemManager().getItemData(item, ItemDataModifier.class);
+                            if (data != null) {
+                                if (effect instanceof CorePassiveSocketEntityAttribute) {
+                                    // add attributes to the entity, from socketed item
+                                    passive_cache_attribute.addAll(data.apply(this));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * Integrity ensures to not retain passive tree allocation
+     * if the tree layout was modified by the server.
+     *
+     * @return tree mapped to integrity snapshot
+     */
+    public Map<String, Long> getPassiveIntegrity() {
+        return passive_integrity;
+    }
+
+    /**
+     * Latest "anchor" position of the player.
+     *
+     * @return tree mapped to encoded position
+     */
+    public Map<String, Long> getPassiveViewport() {
+        return passive_viewport;
+    }
+
+    /**
+     * Check passive points available on a tree.
+     *
+     * @return total allocable points per type
+     */
+    public Map<String, Integer> getPassivePoints() {
+        return passive_points;
+    }
+
+    /**
+     * Check points available for refunds on the tree.
+     *
+     * @return refund points available per type
+     */
+    public Map<String, Integer> getPassiveRefunds() {
+        return passive_refunds;
+    }
+
+    /**
+     * Passive tree mapped to the positions.
+     *
+     * @return the tree type mapped to encoded positions
+     */
+    public Map<String, Set<Long>> getPassiveAllocated() {
+        return passive_allocated;
+    }
+
+    /**
+     * Grab the passive points allocated, the position 0|0 can always
+     * be assumed to be allocated. The positions are encoded X|Y
+     *
+     * @param tree the tree to check against
+     * @return allocated nodes, mutable collection
+     */
+    public Set<Long> getAllocated(String tree) {
+        Set<Long> allocated = passive_allocated.computeIfAbsent(tree, (k -> new HashSet<>()));
+        allocated.add(0L);
+        return allocated;
+    }
+
+    /**
+     * Items that were "equipped" to the passive menu.
+     *
+     * @return tree type to position that holds an item
+     */
+    public Map<String, Map<Long, ItemStack>> getPassiveSocketed() {
+        return passive_socketed;
+    }
+
+    /**
+     * Items socketed to the passive tree are pseudo equipment, or
+     * some special context driven things. Only RPGCore items should
+     * be able to be socketed.
+     *
+     * @param tree which tree holds the items
+     * @param position encoded position in the tree
+     * @param item the item socketed, or null to remove
+     */
+    public void setPassiveSocketed(String tree, long position, ItemStack item) {
+        Map<Long, ItemStack> socketed = this.passive_socketed.computeIfAbsent(tree, (k -> new HashMap<>()));
+        if (item == null) {
+            socketed.remove(position);
+        } else {
+            socketed.put(position, item);
+        }
+    }
+
+    /**
+     * Items socketed to the passive tree are pseudo equipment, or
+     * some special context driven things. Only RPGCore items should
+     * be able to be socketed.
+     *
+     * @param tree which tree holds the items
+     * @param position encoded position in the tree
+     * @return the item that is socketed, or null.
+     */
+    public ItemStack getPassiveSocketed(String tree, long position) {
+        Map<Long, ItemStack> socketed = this.passive_socketed.computeIfAbsent(tree, (k -> new HashMap<>()));
+        return socketed.get(position);
     }
 
     /**
@@ -320,96 +534,6 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
-     * Retrieve all evolutions of a skill
-     *
-     * @param skill the skill whose evolutions we fetch
-     * @return a read-only view of the evolutions
-     */
-    public Map<Integer, String> getEvolution(String skill) {
-        return Collections.unmodifiableMap(this.evolution_fitted.computeIfAbsent(skill, (k -> new HashMap<>())));
-    }
-
-    /**
-     * Update the given evolution, remove the evolution by updating
-     * it to a null value.
-     *
-     * @param skill     which skill to update.
-     * @param position  the position of the evolution.
-     * @param evolution which evolution to use
-     */
-    public void setEvolution(String skill, int position, String evolution) {
-        Map<Integer, String> current = this.evolution_fitted.computeIfAbsent(skill, (k -> new HashMap<>()));
-        if (evolution == null) {
-            current.remove(position);
-        } else {
-            current.put(position, evolution);
-        }
-    }
-
-    /**
-     * Purge all evolution options which do not match with the
-     * given list of slots.
-     *
-     * @param skill which skill to validate
-     * @param valid the slots that can be valid
-     * @return true if evolutions were abandoned
-     */
-    public boolean fixEvolution(String skill, List<Integer> valid) {
-        boolean fixed = false;
-        Map<Integer, String> fitted = this.evolution_fitted.get(skill);
-        fixed |= fitted != null && fitted.keySet().removeIf(slot -> !valid.contains(slot));
-        Set<Integer> unlocked = this.evolution_unlock.get(skill);
-        fixed |= unlocked != null && unlocked.removeIf(slot -> !valid.contains(slot));
-        return fixed;
-    }
-
-    /**
-     * Attempt to unlock an additional evolution slot, so long
-     * the key grade is high enough.
-     *
-     * @param key_grade the grade of the key.
-     * @return true if we unlocked a new slot.
-     */
-    public boolean tryToUnlockEvolveWithKey(String skill, int position, int key_grade) {
-        Set<Integer> current = this.evolution_unlock.computeIfAbsent(skill, (k -> new HashSet<>()));
-        if (current.size() < key_grade) {
-            current.add(position);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Check if the evolution slot was unlocked.
-     *
-     * @param skill    which skill to check
-     * @param position which position to check
-     * @return true if the slot is unlocked
-     */
-    public boolean hasUnlockedEvolutionSlot(String skill, int position) {
-        return this.evolution_unlock.computeIfAbsent(skill, (k -> new HashSet<>())).contains(position);
-    }
-
-    /**
-     * Direct access to the selected skill evolutions.
-     *
-     * @return skill evolution map.
-     */
-    public Map<String, Map<Integer, String>> getEvolutionFitted() {
-        return evolution_fitted;
-    }
-
-    /**
-     * Direct access to the unlocked evolution slots.
-     *
-     * @return which evolution slots were unlocked.
-     */
-    public Map<String, Set<Integer>> getEvolutionUnlock() {
-        return evolution_unlock;
-    }
-
-    /**
      * A job provides certain benefits, while also granting access
      * to a set of passive-tree options.
      *
@@ -560,6 +684,16 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
+     * The location intended for logging in, this method will not matter once
+     * the player instance was teleported to the login position.
+     *
+     * @return where to login the player.
+     */
+    public Location getLoginPosition() {
+        return login_position;
+    }
+
+    /**
      * Flag the skillbar as being active.
      *
      * @param skillbar_active true if the skillbar is active.
@@ -648,6 +782,42 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     @Override
+    public void updateSkills() {
+        // grab behaviours from skillbar
+        Set<CoreBehaviour> acquired = new HashSet<>();
+        for (int i = 0; i < 6; i++) {
+            CoreSkill skill = skillbar.getSkill(i);
+            if (skill != null) {
+                acquired.addAll(skill.getBehaviours());
+            }
+        }
+        // search for all passive skills accessible
+        for (CoreSkill skill : RPGCore.inst().getSkillManager().getIndex().getAll()) {
+            if (skill.hasPassiveAccess(this)) {
+                acquired.addAll(skill.getBehaviours());
+            }
+        }
+        // drop behaviours no longer active
+        this.passive_behaviour.entrySet().removeIf(entry -> {
+            if (!acquired.contains(entry.getKey())) {
+                entry.getValue().setAbandoned();
+                return true;
+            } else {
+                return false;
+            }
+        });
+        // add behaviours newly acquired
+        for (CoreBehaviour behaviour : acquired) {
+            if (!this.passive_behaviour.containsKey(behaviour)) {
+                SkillContext context = createSkillContext(behaviour.getSkill());
+                BehaviourEffect effect = behaviour.createEffect(context);
+                this.passive_behaviour.put(behaviour, effect);
+                addEffect("passive_skill_" + UUID.randomUUID().toString(), effect);
+            }
+        }
+    }
+
+    @Override
     public void remove() {
         // this is a dupe preventing system, it should ensure that
         // no player can logout during a menu interaction which is
@@ -701,5 +871,31 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     @Override
     public int getCharacter() {
         return this.character;
+    }
+
+    @Override
+    public SkillContext createSkillContext(CoreSkill skill) {
+        SkillContext context = super.createSkillContext(skill);
+        // grab attributes from passive tree
+        Map<String, Double> attributes = passive_cache_skill_attribute.get(skill.getId());
+        if (attributes != null) {
+            attributes.forEach((attribute, factor) -> {
+                context.getAttributeLocal(attribute).create(factor);
+            });
+        }
+        // grab tags from the tree
+        Set<String> tags = passive_cache_skill_tag.get(skill.getId());
+        if (tags != null) {
+            for (String tag : tags) {
+                context.addTag(tag);
+            }
+        }
+        // grab skill references
+        List<String> referenced = passive_cache_skill_reference.get(skill.getId());
+        if (referenced != null) {
+            context.getLinkedSkills().addAll(referenced);
+        }
+
+        return context;
     }
 }

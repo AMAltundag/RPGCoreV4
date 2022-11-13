@@ -5,11 +5,14 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.binding.EditorCastBind;
 import me.blutkrone.rpgcore.hud.editor.bundle.cost.AbstractEditorCost;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.activities.CastSkillActivity;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.cost.AbstractCoreCost;
+import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
+import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.skillbar.ISkillBind;
@@ -37,6 +40,8 @@ public class SkillBindCast implements ISkillBind {
     public List<AbstractCoreCost> costs;
     // patterns invoked each time triggered
     public List<CoreAction> actions;
+    // whether we can be externally triggered
+    public CoreModifierBoolean triggerable;
 
     public SkillBindCast(CoreSkill skill, EditorCastBind editor) {
         this.skill = skill;
@@ -55,6 +60,18 @@ public class SkillBindCast implements ISkillBind {
         }
         this.cast_time = editor.cast_time.build();
         this.cast_faster = editor.cast_faster.build();
+        this.triggerable = editor.triggerable.build();
+    }
+
+    @Override
+    public List<CoreSkillInfo> getInfo() {
+        List<CoreSkillInfo> infos = new ArrayList<>();
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_cooldown_time", cooldown_time));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_cooldown_recovery", cooldown_recovery));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_skill_stability", stability));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_cast_time", cast_time));
+        infos.add(new CoreSkillInfo("category_skill_binding", ModifierStyle.HEADER, "lc_cast_faster", cast_faster));
+        return infos;
     }
 
     @Override
@@ -87,8 +104,7 @@ public class SkillBindCast implements ISkillBind {
         // consume all relevant costs
         for (AbstractCoreCost cost : costs)
             cost.consumeCost(context);
-
-        // query our activity
+        // query an activity for casting the skill
         context.getCoreEntity().setActivity(new CastSkillActivity(this, context));
 
         return false;

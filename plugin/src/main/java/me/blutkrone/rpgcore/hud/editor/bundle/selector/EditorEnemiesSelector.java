@@ -16,10 +16,10 @@ public class EditorEnemiesSelector extends AbstractEditorSelector {
 
     @EditorBundle(name = "Radius")
     @EditorTooltip(tooltip = "Distance to select within")
-    public EditorModifierNumber radius = new EditorModifierNumber();
+    public EditorModifierNumber radius = new EditorModifierNumber(5.0);
     @EditorBundle(name = "Total")
     @EditorTooltip(tooltip = "Limits of how many targets to select")
-    public EditorModifierNumber total = new EditorModifierNumber();
+    public EditorModifierNumber total = new EditorModifierNumber(20.0);
 
     @Override
     public AbstractCoreSelector build() {

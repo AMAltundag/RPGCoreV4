@@ -9,11 +9,13 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -58,7 +60,7 @@ public class AreaProxy extends AbstractSkillProxy {
      */
     public AreaProxy(IContext context, IOrigin origin, ItemStack item, double inner_radius, double outer_radius, List<String> effects, int cooldown, int duration, MultiMechanic impact, MultiMechanic ticker, List<AbstractCoreSelector> filter) {
         super(context);
-        this.anchor = origin;
+        this.anchor = origin.isolate();
         this.impact = impact;
         this.inner_radius = inner_radius;
         this.outer_radius = outer_radius;
@@ -78,7 +80,7 @@ public class AreaProxy extends AbstractSkillProxy {
     @Override
     public boolean update() {
         // early termination
-        if (this.terminate || this.duration > this.cycle) {
+        if (this.terminate || this.cycle > this.duration) {
             if (this.item_entity != null) {
                 this.item_entity.remove();
             }
@@ -91,10 +93,9 @@ public class AreaProxy extends AbstractSkillProxy {
         // effect to highlight the area
         Location location = this.anchor.getLocation();
         if (!this.effects.isEmpty()) {
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(location);
             String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
             CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-            effect.show(location, 1d, observing);
+            effect.show(location);
         }
         // invoke ticker while active
         this.ticker.doMechanic(getContext(), Collections.singletonList(this.anchor));

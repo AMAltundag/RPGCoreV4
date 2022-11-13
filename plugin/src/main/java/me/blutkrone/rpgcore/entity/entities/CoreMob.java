@@ -10,6 +10,7 @@ import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskKill;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.ArrayList;
@@ -18,41 +19,53 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Rage is designed with points in mind, and has a soft-cap and a
- * hard cap.
- *
- * Damage is processed once per second, granting one point of rage
- * to the player who dealt the most amount of damage.
- *
- * Should the non-target have generated this point of rage, they
- * will instead reduce the rage. The "OBSESSION" attribute of the
- * rage holder will reduce this reduction.
- *
- * Rage has a hard cap, it will not accumulate beyond this.
- *
- * Rage has a soft-cap, which damage is affected by. You can use
- * skill logic to bypass the said logic and generate rage up to
- * the maximum value.
- *
- * Rage can be checked by the mob AI, allowing you to both manipulate
- * the rage as-well as enable certain behaviours only at given levels
- * of rage.
- *
- * RAGE_MAXIMUM: Mob will never increase rage past this.
- * RAGE_SOFT_LIMIT: Mob rage cannot exceed this naturally.
- * RAGE_RANGE: Mob will clear rage if target is out of range.
- * OBSESSION: If we are focused by a mob, other entities generate less rage.
- * RAGE_MAXIMUM
+ * Mobs refer to creatures with AI created off a template.
  */
 public class CoreMob extends CoreEntity {
 
+    // template we were created from
     private final CoreCreature template;
+    // everyone who contributed to killing
     private Set<UUID> killers = new HashSet<>();
+    // will prevent creature from dying
     private boolean do_not_die;
+    // prevents strolling outside of leash
+    private double leash_range;
+    private Location leash_anchor;
 
     public CoreMob(LivingEntity entity, EntityProvider provider, CoreCreature template) {
         super(entity, provider);
         this.template = template;
+    }
+
+    /**
+     * Establish a leash for the stroll mechanic, this is to prevent
+     * unnecessary leash triggers that may not look nice.
+     *
+     * @param range range of the leash
+     * @param anchor anchor of the leash
+     */
+    public void setStrollLeash(double range, Location anchor) {
+        if (this.leash_anchor != null) {
+            this.leash_range = range;
+            this.leash_anchor = anchor;
+        }
+    }
+
+    /**
+     * Check if a location is within our leash bounds.
+     *
+     * @param location the location to check against.
+     * @return true if reachable without pulling leash.
+     */
+    public boolean isValidStrollTarget(Location location) {
+        // if we have no anchor, unlimited stroll
+        if (this.leash_anchor == null) {
+            return true;
+        }
+        // if we have an anchor, stroll within range
+        double dist = this.leash_anchor.distance(location);
+        return dist <= this.leash_range;
     }
 
     /**
@@ -127,7 +140,11 @@ public class CoreMob extends CoreEntity {
             if (!rewarded.isEmpty()) {
                 // offer reward to everyone who contributed
                 for (AbstractCoreLoot loot : getTemplate().loot) {
-                    loot.offer(this, new ArrayList<>(rewarded));
+                    try {
+                        loot.offer(this, new ArrayList<>(rewarded));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 // quest progress to everyone relevant
                 for (CorePlayer player : rewarded) {

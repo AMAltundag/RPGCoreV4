@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
@@ -181,12 +180,11 @@ public class BeamProxy extends AbstractSkillProxy {
      */
     private void visualizeLine(Location location, double distance) {
         if (!this.beam_effects.isEmpty()) {
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(location);
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 // always invoke effect at anchor position
                 String effect_id = this.beam_effects.get(ThreadLocalRandom.current().nextInt(this.beam_effects.size()));
                 CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(location, 1d, observing);
+                effect.show(location);
                 // spread effect at 0.5 interval over the line
                 double remaining = distance;
                 while (remaining > 0d) {
@@ -194,7 +192,7 @@ public class BeamProxy extends AbstractSkillProxy {
                     location.add(direction.multiply(Math.min(0.5d, remaining)));
                     effect_id = this.beam_effects.get(ThreadLocalRandom.current().nextInt(this.beam_effects.size()));
                     effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                    effect.show(location, 1d, observing);
+                    effect.show(location);
                     remaining -= 0.5d;
                 }
             });
@@ -209,16 +207,15 @@ public class BeamProxy extends AbstractSkillProxy {
      */
     private void visualizeHead(Location location, double distance) {
         if (!this.head_effects.isEmpty()) {
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(location);
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 // always invoke effect at anchor position
                 String effect_id = this.head_effects.get(ThreadLocalRandom.current().nextInt(this.head_effects.size()));
                 CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(location, 1d, observing);
+                effect.show(location);
                 // spread effect at 0.5 interval over the line
                 effect_id = this.head_effects.get(ThreadLocalRandom.current().nextInt(this.head_effects.size()));
                 effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(location.clone().add(location.getDirection().clone().multiply(distance)), 1d, observing);
+                effect.show(location.clone().add(location.getDirection().clone().multiply(distance)));
             });
         }
     }

@@ -113,27 +113,21 @@ public class BBExporter {
 
         public void saveTextureToDirectory(File directory, File bbmodel) throws IOException {
             for (BBTexture texture : texture) {
-                // verify presence of external textures
-                if (texture.getName() != null) {
-                    // identify which files we draw our data from
-                    String external_texture_path = bbmodel.getName().replace(".bbmodel", "") + "_" + texture.getName() + ".png";
-                    File external_texture_file = new File(bbmodel.getParentFile(), external_texture_path);
-                    File external_mcmeta_file = new File(bbmodel.getParentFile(), external_texture_path + ".mcmeta");
-                    // track a copy of our animation specific sequence
-                    if (external_mcmeta_file.exists()) {
-                        File mcmeta_goal_file = FileUtil.file(directory, "bbmodel_" + texture.getFileId() + ".png.mcmeta");
-                        FileUtils.copyFile(external_mcmeta_file, mcmeta_goal_file);
-                    }
-                    // track a copy of our external texture
-                    if (external_texture_file.exists()) {
-                        File texture_goal_file = FileUtil.file(directory, "bbmodel_" + texture.getFileId() + ".png");
-                        FileUtils.copyFile(external_texture_file, texture_goal_file);
-                        continue;
+                String texture_path = "bbmodel_" + texture.getFileId() + ".png";
+                String mcmeta_path = texture.getMetaPath();
+
+                // dump the texture into a file
+                File dump_texture_at = FileUtil.file(directory, texture_path);
+                ImageIO.write(texture.getTexture(), "png", dump_texture_at);
+
+                // dump (optional) mcmeta texture
+                if (mcmeta_path != null) {
+                    File mcmeta_file = new File(bbmodel.getParentFile(), mcmeta_path);
+                    if (mcmeta_file.exists()) {
+                        File dump_mcmeta_at = FileUtil.file(directory, texture_path + ".mcmeta");
+                        FileUtils.copyFile(mcmeta_file, dump_mcmeta_at);
                     }
                 }
-                // since no external texture exists we can copy the embedded texture instead
-                File texture_goal_file = FileUtil.file(directory, "bbmodel_" + texture.getFileId() + ".png");
-                ImageIO.write(texture.getTexture(), "png", texture_goal_file);
             }
         }
     }

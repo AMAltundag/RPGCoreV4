@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.BukkitSerialization;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -38,7 +39,11 @@ public class ItemProtocol implements DataProtocol {
             try {
                 ItemStack[] inventory = BukkitSerialization.fromBase64(bundle.getString(0));
                 for (ItemStack item : inventory) {
-                    RPGCore.inst().getItemManager().describe(item);
+                    if (item != null && RPGCore.inst().getHUDManager().getEquipMenu().isReflected(item)) {
+                        item.setType(Material.AIR);
+                    }
+
+                    RPGCore.inst().getItemManager().describe(item, player);
                 }
                 entity.getInventory().setContents(inventory);
             } catch (IOException e) {
@@ -53,7 +58,11 @@ public class ItemProtocol implements DataProtocol {
                 String item = bundle.getString(header++);
                 try {
                     ItemStack stack = BukkitSerialization.fromBase64(item)[0];
-                    RPGCore.inst().getItemManager().describe(stack);
+                    if (stack != null && RPGCore.inst().getHUDManager().getEquipMenu().isReflected(stack)) {
+                        stack.setType(Material.AIR);
+                    }
+
+                    RPGCore.inst().getItemManager().describe(stack, player);
                     player.setEquipped(slot, stack);
                 } catch (IOException e) {
                     e.printStackTrace();

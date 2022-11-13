@@ -2,6 +2,9 @@ package me.blutkrone.rpgcore.skill.skillbar;
 
 import me.blutkrone.rpgcore.api.activity.IActivity;
 import me.blutkrone.rpgcore.skill.SkillContext;
+import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
+
+import java.util.List;
 
 public interface ISkillBind {
 
@@ -54,4 +57,12 @@ public interface ISkillBind {
      * @return true this binding created the activity
      */
     boolean isCreatorOf(IActivity activity);
+
+    /**
+     * Information about how the binding is expected to
+     * behave.
+     *
+     * @return info about how binding behaves.
+     */
+    List<CoreSkillInfo> getInfo();
 }

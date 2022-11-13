@@ -19,7 +19,20 @@ public class DebugCommand extends AbstractCommand {
 
     @Override
     public void invoke(CommandSender sender, String... args) {
-
+        // NavigationMenu.Cartography cartography = new NavigationMenu.Cartography(((Player) sender).getLocation());
+        // CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(((Player) sender));
+        // if (core_player != null) {
+        //     // grab the markers on the map
+        //     List<MapMarker> markers = RPGCore.inst().getMinimapManager()
+        //             .getMarkersOf(((Player) sender), core_player);
+        //     // track the markers on the map
+        //     for (MapMarker marker : markers) {
+        //         if (marker.getLocation().distance(((Player) sender).getLocation()) <= marker.distance) {
+        //             cartography.addMarker(marker);
+        //         }
+        //     }
+        // }
+        // cartography.finish(((Player) sender));
     }
 
     @Override

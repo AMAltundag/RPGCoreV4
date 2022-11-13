@@ -1,8 +1,9 @@
 package me.blutkrone.rpgcore.hud.editor.bundle.modifier;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class EditorModifierString implements IEditorBundle {
 
-    @EditorNumber(name = "Default Value")
+    @EditorWrite(name = "Default Value", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = "Inherent value of modifier")
     public String base_value = "undefined";
 

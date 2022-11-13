@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.skin;
 
-import com.google.gson.stream.JsonReader;
 import me.blutkrone.external.inventive.mineskin.MineskinClient;
 import me.blutkrone.external.inventive.mineskin.data.Skin;
 import me.blutkrone.external.inventive.mineskin.data.Texture;
@@ -8,8 +7,12 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -35,9 +38,12 @@ public class SkinPool {
             if (files != null) {
                 for (File file : files) {
                     try {
-                        CoreSkin loaded = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(file)), CoreSkin.class);
+                        Reader reader = Files.newBufferedReader(file.toPath());
+                        CoreSkin loaded = RPGCore.inst().getGsonPretty().fromJson(reader, CoreSkin.class);
+                        reader.close();
+
                         this.pooled.put(loaded.id, loaded);
-                    } catch (FileNotFoundException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
@@ -72,7 +78,7 @@ public class SkinPool {
                     file.getParentFile().mkdirs();
 
                     try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-                        RPGCore.inst().getGson().toJson(tracked, fw);
+                        RPGCore.inst().getGsonPretty().toJson(tracked, fw);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

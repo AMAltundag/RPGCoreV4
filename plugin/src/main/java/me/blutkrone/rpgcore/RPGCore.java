@@ -58,7 +58,8 @@ public final class RPGCore extends JavaPlugin {
     // incremented by +1 each tick
     private int timestamp;
     // GSON implementation used by the core
-    private Gson gson;
+    private Gson gson_pretty;
+    private Gson gson_ugly;
     // delegate handlers for commands
     private Map<String, AbstractCommand> commands = new HashMap<>();
     // skin handling
@@ -85,13 +86,13 @@ public final class RPGCore extends JavaPlugin {
     private IPartyManager party_manager;
     private QuestManager quest_manager;
     private MobManager mob_manager;
+    private PassiveManager passive_manager;
     // Managers providing high-level functionality for the server
     private MountManager mount_manager;
     private IGuildManager guild_manager;
     private ISocialManager social_manager;
     private LevelManager level_manager;
     private DungeonManager dungeon_manager;
-    private PassiveManager passive_manager;
 
     public static RPGCore inst() {
         return JavaPlugin.getPlugin(RPGCore.class);
@@ -139,9 +140,13 @@ public final class RPGCore extends JavaPlugin {
         }
 
         // provide the gson access for other managers to use
-        this.gson = new GsonBuilder()
+        this.gson_pretty = new GsonBuilder()
                 .serializeNulls()
                 .setPrettyPrinting()
+                .disableHtmlEscaping()
+                .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
+                .create();
+        this.gson_ugly = new GsonBuilder()
                 .disableHtmlEscaping()
                 .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
                 .create();
@@ -171,31 +176,38 @@ public final class RPGCore extends JavaPlugin {
         this.npc_manager = new NPCManager();
         this.mob_manager = new MobManager();
         this.quest_manager = new QuestManager();
+        this.passive_manager = new PassiveManager();
 
         this.mail_manager = new MailManager();
         this.hud_manager = new HUDManager();
         this.hologram_manager = new HologramManager();
 
         // initialize relevant commands
-        this.commands.put("mob", new MobCommand());
+        this.commands.put("mob", new SpawnMobCommand());
         this.commands.put("storage", new UnlockStorageCommand());
         this.commands.put("holoadd", new HologramAddCommand());
         this.commands.put("holodel", new HologramDeleteCommand());
         this.commands.put("edit", new EditorCommand());
-        this.commands.put("box", new AdminBoxCommand());
-        this.commands.put("skill", new SkillCommand());
+        this.commands.put("box", new RandomItemBoxCommand());
         this.commands.put("compile", new ResourcepackCompileCommand());
         this.commands.put("url", new ResourcepackLinkCommand());
-        this.commands.put("equip", new EquipCommand());
-        this.commands.put("logout", new LogoutCommand());
         this.commands.put("debug", new DebugCommand());
-        this.commands.put("tool", new ToolCommand());
+        this.commands.put("tool", new NodeToolCommand());
         this.commands.put("reload", new ReloadCommand());
         this.commands.put("help", new HelpCommand());
-        this.commands.put("attribute", new AttributeCommand());
+        this.commands.put("attribute", new TemporaryAttributeCommand());
+        this.commands.put("refund", new RefundPointCommand());
+        this.commands.put("passive", new PassivePointCommand());
+        this.commands.put("tree", new ViewPassiveTreeCommand());
 
         // task to update the timestamp
         Bukkit.getScheduler().runTaskTimer(this, () -> this.timestamp += 1, 1, 1);
+
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            for (World world : Bukkit.getWorlds()) {
+                world.setKeepSpawnInMemory(false);
+            }
+        }, 20, 20);
 
         // ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Server.WINDOW_ITEMS) {
         //     @Override
@@ -246,11 +258,25 @@ public final class RPGCore extends JavaPlugin {
     /**
      * A gson implementation to provide an interface to json
      * logic.
+     * <p>
+     * Formats GSON in a pretty style, making it more readable.
      *
      * @return gson instance belonging to the plugin
      */
-    public Gson getGson() {
-        return gson;
+    public Gson getGsonPretty() {
+        return gson_pretty;
+    }
+
+    /**
+     * A gson implementation to provide an interface to json
+     * logic.
+     * <p>
+     * Formats GSON in a ugly style, compressing file size.
+     *
+     * @return gson instance belonging to the plugin
+     */
+    public Gson getGsonUgly() {
+        return gson_ugly;
     }
 
     /**
@@ -379,5 +405,13 @@ public final class RPGCore extends JavaPlugin {
 
     public MobManager getMobManager() {
         return mob_manager;
+    }
+
+    public PassiveManager getPassiveManager() {
+        return passive_manager;
+    }
+
+    public MailManager getMailManager() {
+        return mail_manager;
     }
 }

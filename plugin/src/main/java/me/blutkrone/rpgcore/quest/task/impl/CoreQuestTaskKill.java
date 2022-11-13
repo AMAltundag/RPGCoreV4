@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskKill;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +19,6 @@ public class CoreQuestTaskKill extends AbstractQuestTask<String> {
 
     public CoreQuestTaskKill(CoreQuest quest, EditorQuestTaskKill editor) {
         super(quest, editor);
-
-        Bukkit.getLogger().severe("not implemented (kill task)");
     }
 
     @Override

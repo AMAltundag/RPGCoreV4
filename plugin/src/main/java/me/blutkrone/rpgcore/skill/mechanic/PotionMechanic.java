@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorPotionMechanic;
-import me.blutkrone.rpgcore.skill.mechanic.AbstractCoreMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
@@ -19,7 +18,7 @@ public class PotionMechanic extends AbstractCoreMechanic {
     private CoreModifierNumber duration;
 
     public PotionMechanic(EditorPotionMechanic editor) {
-        this.type = editor.type;
+        this.type = PotionEffectType.getByName(editor.type);
         this.amplifier = editor.amplifier.build();
         this.duration = editor.duration.build();
     }

@@ -25,7 +25,7 @@ public class AreaMechanic extends AbstractCoreMechanic {
     private List<String> effects;
 
     public AreaMechanic(EditorAreaMechanic editor) {
-        this.item = editor.item.build();
+        this.item = editor.item.isDefault() ? null : editor.item.build();
         this.duration = editor.duration.build();
         this.cooldown = editor.cooldown.build();
         this.inner_radius = editor.inner_radius.build();

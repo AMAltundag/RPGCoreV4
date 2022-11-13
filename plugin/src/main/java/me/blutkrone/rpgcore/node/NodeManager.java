@@ -1,9 +1,8 @@
 package me.blutkrone.rpgcore.node;
 
-import com.google.gson.stream.JsonReader;
 import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.command.impl.ToolCommand;
+import me.blutkrone.rpgcore.command.impl.NodeToolCommand;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeBox;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
@@ -32,8 +31,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +64,9 @@ public class NodeManager implements Listener {
             for (File node_directory : FileUtil.directory("editor/node").listFiles()) {
                 String world = node_directory.getName();
                 for (File node_file : node_directory.listFiles()) {
-                    NodeActive node = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(node_file)), NodeActive.class);
+                    Reader reader = Files.newBufferedReader(node_file.toPath());
+                    NodeActive node = RPGCore.inst().getGsonPretty().fromJson(reader, NodeActive.class);
+                    reader.close();
                     this.nodes_by_world.computeIfAbsent(world, NodeWorld::new).register(node);
                 }
             }
@@ -91,7 +93,7 @@ public class NodeManager implements Listener {
                     continue;
                 }
                 // identify if we got a tool that we can use
-                String tool = ToolCommand.getTool(player.getEquipment().getItemInMainHand());
+                String tool = NodeToolCommand.getTool(player.getEquipment().getItemInMainHand());
                 if (tool == null) {
                     continue;
                 }
@@ -165,7 +167,7 @@ public class NodeManager implements Listener {
             return;
         }
         // identify what type of tool we got
-        String tool = ToolCommand.getTool(e.getItem());
+        String tool = NodeToolCommand.getTool(e.getItem());
         if (tool == null) {
             return;
         }
@@ -192,7 +194,7 @@ public class NodeManager implements Listener {
         // if using a tool, destroy the engaged node
         if (e.getPlayer().hasPermission("rpg.admin")) {
             ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-            String tool = ToolCommand.getTool(item);
+            String tool = NodeToolCommand.getTool(item);
             if (tool != null) {
                 // check if there is a node associated
                 NodeWorld node_world = this.nodes_by_world.get(e.getPlayer().getWorld().getName());
@@ -236,7 +238,7 @@ public class NodeManager implements Listener {
         // if using a tool, destroy the engaged node
         if (e.getPlayer().hasPermission("rpg.admin")) {
             ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-            String tool = ToolCommand.getTool(item);
+            String tool = NodeToolCommand.getTool(item);
             if (tool != null) {
                 node_world.destruct(node.getID());
                 e.getPlayer().sendMessage("§cA node has been destroyed!");
@@ -268,7 +270,7 @@ public class NodeManager implements Listener {
         // if using a tool, destroy the engaged node
         if (e.getDamager().hasPermission("rpg.admin")) {
             ItemStack item = ((Player) e.getDamager()).getInventory().getItemInMainHand();
-            String tool = ToolCommand.getTool(item);
+            String tool = NodeToolCommand.getTool(item);
             if (tool != null) {
                 node_world.destruct(node.getID());
                 e.getDamager().sendMessage("§cA node has been destroyed!");

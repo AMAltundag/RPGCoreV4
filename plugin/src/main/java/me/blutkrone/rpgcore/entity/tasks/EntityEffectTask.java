@@ -29,9 +29,7 @@ public class EntityEffectTask extends BukkitRunnable {
             }
         });
         // process generic status effects
-        this.entity.getStatusEffects().forEach((clazz, effect) -> {
-            effect.entrySet().removeIf(entry -> entry.getValue().tickEffect(10));
-        });
+        this.entity.getStatusEffects().values().removeIf(effect -> effect.tickEffect(10));
         // validate presence of skills
         this.entity.updateSkills();
     }

@@ -24,7 +24,11 @@ public class DamageElement {
     private final String taken;
     // damage received from defender
     private final List<String> received;
-
+    // range of damage, and chance to roll again
+    private final List<String> minimum_range;
+    private final List<String> maximum_range;
+    private final List<String> range_lucky;
+    private final List<String> range_unlucky;
     // % of non-element gained as this element
     private final List<String> extra;
 
@@ -44,6 +48,10 @@ public class DamageElement {
         this.taken = config.getString("taken", "NOTHINGNESS");
         this.extra = config.getStringList("extra");
         this.received = config.getStringList("received");
+        this.minimum_range = config.getStringList("minimum");
+        this.maximum_range = config.getStringList("maximum");
+        this.range_lucky = config.getStringList("lucky");
+        this.range_unlucky = config.getStringList("unlucky");
     }
 
     /**
@@ -142,5 +150,49 @@ public class DamageElement {
      */
     public List<String> getReceived() {
         return received;
+    }
+
+    /**
+     * Read from attacker
+     * <p>
+     * Modifier that lowers the range of maximum damage.
+     *
+     * @return % that lowers range of damage dealt
+     */
+    public List<String> getMinimumRange() {
+        return minimum_range;
+    }
+
+    /**
+     * Read from attacker
+     * <p>
+     * Modifier that raises the range of maximum damage.
+     *
+     * @return % that raises range of damage dealt
+     */
+    public List<String> getMaximumRange() {
+        return maximum_range;
+    }
+
+    /**
+     * Read from attacker
+     * <p>
+     * Roll damage range twice, pick better.
+     *
+     * @return chance to pick better damage roll.
+     */
+    public List<String> getRangeLucky() {
+        return range_lucky;
+    }
+
+    /**
+     * Read from attacker
+     * <p>
+     * Roll damage range twice, pick worse.
+     *
+     * @return chance to pick worse damage roll.
+     */
+    public List<String> getRangeUnlucky() {
+        return range_unlucky;
     }
 }

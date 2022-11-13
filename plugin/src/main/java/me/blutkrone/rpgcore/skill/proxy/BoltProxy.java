@@ -9,6 +9,7 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -70,7 +71,7 @@ public class BoltProxy extends AbstractSkillProxy {
     @Override
     public boolean update() {
         // early termination
-        if (this.terminate || this.cycle > 200 || this.pierce < 0) {
+        if (this.terminate || this.cycle > 200) {
             if (this.item_entity != null) {
                 this.item_entity.remove();
             }
@@ -87,16 +88,24 @@ public class BoltProxy extends AbstractSkillProxy {
         if (!impacted.isEmpty()) {
             this.pierce -= impacted.size();
             this.impact.doMechanic(getContext(), new ArrayList<>(impacted));
+            if (this.pierce <= 0) {
+                this.terminate = true;
+            }
         }
         // scatter effects along travel-line
         visualize(this.anchor.getLocation().clone(), this.speed);
-        // re-locate or terminate projectile
-        if (this.anchor.rayCastBlock(this.speed) == null) {
+        // update position
+        Block block = this.anchor.rayCastBlock(this.speed).orElse(null);
+        if (block == null || block.getType().isAir()) {
+            // advance so long we did not impacted
             Location updated = anchor.getLocation();
             Vector direction = updated.getDirection();
             updated.add(direction.multiply(this.speed));
         } else {
-            this.pierce = -1;
+            // we hit a block, so we are done
+            this.terminate = true;
+            // visualize the impact against the block
+            this.impact.doMechanic(getContext(), Collections.singletonList(anchor.isolate()));
         }
         // re-locate projectile entity
         if (this.item_entity != null) {
@@ -120,12 +129,11 @@ public class BoltProxy extends AbstractSkillProxy {
      */
     private void visualize(Location location, double distance) {
         if (!this.effects.isEmpty()) {
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(location);
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 // always invoke effect at anchor position
                 String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
                 CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(location, 1d, observing);
+                effect.show(location);
                 // spread effect at 0.5 interval over the line
                 double remaining = distance;
                 while (remaining > 0d) {
@@ -133,7 +141,7 @@ public class BoltProxy extends AbstractSkillProxy {
                     location.add(direction.multiply(Math.min(0.5d, remaining)));
                     effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
                     effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                    effect.show(location, 1d, observing);
+                    effect.show(location);
                     remaining -= 0.5d;
                 }
             });

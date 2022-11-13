@@ -147,5 +147,23 @@ public class StatusMechanic extends AbstractCoreMechanic {
         public boolean isDebuff() {
             return this.debuff;
         }
+
+        @Override
+        public boolean isValid() {
+            return true;
+        }
+
+        @Override
+        public void manipulate(int stack, int duration, boolean override) {
+            if (override) {
+                this.stack = stack;
+                this.duration = duration;
+            } else {
+                this.stack = this.stack + stack;
+                this.duration = this.duration + duration;
+            }
+
+            this.timestamp = System.currentTimeMillis();
+        }
     }
 }

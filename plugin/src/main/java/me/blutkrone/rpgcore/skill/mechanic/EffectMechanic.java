@@ -6,7 +6,6 @@ import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorEffectMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +34,11 @@ public class EffectMechanic extends AbstractCoreMechanic {
         }
         // show effect at all targets
         for (IOrigin target : targets) {
-            // who will see the effect
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(target.getLocation());
             // extract the effect
             String effect = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
             CoreEffect core_effect = RPGCore.inst().getEffectManager().getIndex().get(effect);
             // present the effect
-            core_effect.show(target.getLocation(), scale, observing);
+            core_effect.show(target.getLocation(), scale);
         }
     }
 }

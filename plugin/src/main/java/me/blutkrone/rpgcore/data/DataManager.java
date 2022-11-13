@@ -135,9 +135,20 @@ public class DataManager implements Listener {
         data_protocol.put("menu", new MenuProtocol());
         data_protocol.put("quest", new QuestProtocol());
         data_protocol.put("tag", new TagProtocol());
+        data_protocol.put("passive", new PassiveProtocol());
         data_protocol.put("roster_bank", new RosterBankerProtocol());
         data_protocol.put("roster_storage", new RosterStorageProtocol());
         data_protocol.put("roster_refinement", new RosterRefinementProtocol());
+    }
+
+    /**
+     * Anchor where players are teleported while they haven't logged in
+     * properly just-yet.
+     *
+     * @return pre-login anchor.
+     */
+    public Location getPreLoginPosition() {
+        return pre_login_position;
     }
 
     /**

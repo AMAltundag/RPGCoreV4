@@ -16,7 +16,7 @@ public class AnchorMechanic extends AbstractCoreMechanic {
     private MultiMechanic ticker;
 
     public AnchorMechanic(EditorAnchorMechanic editor) {
-        this.item = editor.item.build();
+        this.item = editor.item.isDefault() ? null : editor.item.build();
         this.duration = editor.duration.build();
         this.ticker = editor.ticker.build();
     }

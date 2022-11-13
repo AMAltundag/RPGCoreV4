@@ -41,7 +41,7 @@ public class AnchorProxy extends AbstractSkillProxy {
     public AnchorProxy(IContext context, IOrigin origin, ItemStack item, MultiMechanic ticker, int duration) {
         super(context);
 
-        this.anchor = origin;
+        this.anchor = origin.isolate();
         this.ticker = ticker;
         this.duration = duration;
 
@@ -61,7 +61,7 @@ public class AnchorProxy extends AbstractSkillProxy {
             return true;
         }
         // limit execution to interval
-        if (this.cycle++ % AnchorProxy.ANCHOR_INTERVAL == 0) {
+        if (this.cycle++ % AnchorProxy.ANCHOR_INTERVAL != 0) {
             return false;
         }
         // invoke ticker while active

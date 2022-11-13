@@ -11,7 +11,7 @@ public class CoreTraitReward extends AbstractQuestReward {
     private String trait;
 
     public CoreTraitReward(EditorQuestRewardTrait editor) {
-        this.trait = editor.trait;
+        this.trait = editor.trait.toLowerCase();
     }
 
     @Override
@@ -21,6 +21,6 @@ public class CoreTraitReward extends AbstractQuestReward {
 
     @Override
     public void giveReward(CorePlayer player) {
-        player.getPersistentTags().add("quest_trait_reward_" + this.trait);
+        player.getPersistentTags().add("quest_tag_" + this.trait);
     }
 }

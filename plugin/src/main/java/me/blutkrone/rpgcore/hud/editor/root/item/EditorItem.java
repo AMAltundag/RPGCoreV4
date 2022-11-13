@@ -19,7 +19,6 @@ import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.util.ItemBuilder;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -28,7 +27,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EditorItem implements IEditorRoot<CoreItem> {
 
@@ -131,8 +132,10 @@ public class EditorItem implements IEditorRoot<CoreItem> {
     @EditorTooltip(tooltip = "Which styling rule to apply on the item")
     public String lore_style = "normal";
 
+    // this is used by items internally generated for certain purpose
+    public Map<String, String> hidden_data = new HashMap<>();
+
     private transient File file;
-    private transient ItemStack preview;
 
     public EditorItem() {
     }
@@ -150,36 +153,23 @@ public class EditorItem implements IEditorRoot<CoreItem> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 
     @Override
     public CoreItem build(String id) {
-        // construct a runtime instance which can be used
-        CoreItem item = new CoreItem(id, this);
-        // create a snapshot to respect existing logic
-        Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
-            try {
-                this.preview = item.acquire(null, 0d);
-            } catch (Exception e) {
-
-            }
-        });
-        // offer up the item which we generated
-        return item;
+        return new CoreItem(id, this);
     }
 
     @Override
     public ItemStack getPreview() {
-        if (this.preview == null) {
-            return ItemBuilder.of(Material.BARRIER)
-                    .name("§cNo preview was generated yet!")
-                    .appendLore("§fForce a preview to generate by saving!")
-                    .build();
-        } else {
-            return this.preview.clone();
+        ItemBuilder builder = ItemBuilder.of(this.material);
+        if (this.model_data != 0) {
+            builder.model((int) this.model_data);
         }
+        builder.color(Integer.parseInt(this.color_data, 16));
+        return builder.build();
     }
 
     @Override

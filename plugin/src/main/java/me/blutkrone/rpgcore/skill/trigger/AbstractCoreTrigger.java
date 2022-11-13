@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
@@ -38,22 +37,20 @@ public abstract class AbstractCoreTrigger {
     /**
      * Create an info object that can track data, if necessary.
      *
-     * @param entity which entity requested the data.
      * @return the created info wrapper
      */
-    public TriggerInfo createInfo(CoreEntity entity) {
-        return new TriggerInfo(entity);
+    public TriggerInfo createInfo() {
+        return new TriggerInfo();
     }
 
     /**
      * Information about the trigger.
      */
     public static class TriggerInfo {
-        // who did we create the info for
-        private final CoreEntity entity;
+        // most triggers work fine with 1 number
+        public double value;
 
-        public TriggerInfo(CoreEntity entity) {
-            this.entity = entity;
+        public TriggerInfo() {
         }
     }
 }

@@ -9,7 +9,6 @@ import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import me.blutkrone.rpgcore.skill.selector.ConeSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,6 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BlastProxy extends AbstractSkillProxy {
 
     private static int BLAST_PROXY_INTERVAL = 4;
+    private final double shrink_per_second;
 
     // contextual information
     private IOrigin anchor;
@@ -33,7 +33,7 @@ public class BlastProxy extends AbstractSkillProxy {
     private double expansion_per_second;
     private List<String> effects;
     private int duration;
-    private int angle;
+    private double angle;
     private double up;
 
     /**
@@ -48,7 +48,7 @@ public class BlastProxy extends AbstractSkillProxy {
      * @param expansion_per_second expansion rate per second
      * @param angle angle of the blast
      */
-    public BlastProxy(IContext context, IOrigin origin, MultiMechanic impact, List<String> effects, int duration, double start, double expansion_per_second, int angle) {
+    public BlastProxy(IContext context, IOrigin origin, MultiMechanic impact, List<String> effects, int duration, double start, double expansion_per_second, int angle, double shrink_per_second) {
         super(context);
 
         this.anchor = origin.isolate();
@@ -60,6 +60,7 @@ public class BlastProxy extends AbstractSkillProxy {
         this.distance = start;
         this.expansion_per_second = expansion_per_second / 20 * BLAST_PROXY_INTERVAL;
         this.angle = Math.max(0, Math.min(angle, 180));
+        this.shrink_per_second = shrink_per_second / 20 * BLAST_PROXY_INTERVAL;
     }
 
     @Override
@@ -74,12 +75,16 @@ public class BlastProxy extends AbstractSkillProxy {
         }
         // extend the blast
         this.distance += this.expansion_per_second;
+        this.angle = Math.max(15, this.angle - this.shrink_per_second);
+
+        // slowly shrink angle during expand
         // search for new affected entities
         List<CoreEntity> entities = this.anchor.getNearby(this.distance);
         entities.removeIf(e -> this.blacklist.contains(e.getUniqueId()));
         entities.remove(getContext().getCoreEntity());
         List<IOrigin> filtered = ConeSelector.filter(this.anchor, Math.max(0d, this.distance - 2), this.distance,
                 this.angle, new ArrayList<>(entities));
+
         // put the entity on the blacklist
         for (IOrigin origin : filtered) {
             this.blacklist.add(((CoreEntity) origin).getUniqueId());
@@ -89,13 +94,12 @@ public class BlastProxy extends AbstractSkillProxy {
             this.impact.doMechanic(getContext(), filtered);
         }
         // render a cone of blast elements
-        List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.anchor.getLocation());
         Location anchor = this.anchor.getLocation().clone();
         double distance = this.distance;
         Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
             // generate a ring to indicate our blast
             List<IOrigin> positions = new ArrayList<>();
-            int samples = (int) (Math.PI * distance * distance);
+            int samples = (int) ((Math.PI * distance * distance * 0.5d) / Math.sqrt(distance));
             for (int i = 0; i <= samples; i++) {
                 Location position = anchor.clone();
                 position.setPitch(0f);
@@ -109,11 +113,11 @@ public class BlastProxy extends AbstractSkillProxy {
             for (IOrigin position : positions) {
                 String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));
                 CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(effect_id);
-                effect.show(position.getLocation(), 1d, observing);
+                effect.show(position.getLocation());
             }
         });
         // terminate if we ran out of duration
-        return this.duration < this.cycle;
+        return this.cycle > this.duration;
     }
 
     @Override

@@ -21,10 +21,17 @@ public class EditorTrapMechanic extends AbstractEditorMechanic {
     @EditorCategory(info = "General", icon = Material.CHEST)
     @EditorBundle(name = "Duration")
     @EditorTooltip(tooltip = "Trap is removed after ticks have passed.")
-    public EditorModifierNumber duration = new EditorModifierNumber();
+    public EditorModifierNumber duration = new EditorModifierNumber(200.0d);
+    @EditorBundle(name = "Multi")
+    @EditorTooltip(tooltip = "Throws multiple traps at once.")
+    public EditorModifierNumber multi = new EditorModifierNumber(1.0d);
+    @EditorBundle(name = "Limit")
+    @EditorTooltip(tooltip = "Maximum traps placed, 0 means we cannot place anymore.")
+    public EditorModifierNumber limit = new EditorModifierNumber(12.0d);
     @EditorBundle(name = "Radius")
     @EditorTooltip(tooltip = "Triggers trap if entity is within radius.")
-    public EditorModifierNumber radius = new EditorModifierNumber();
+    public EditorModifierNumber radius = new EditorModifierNumber(3.0d);
+
     @EditorCategory(info = "Logic", icon = Material.ENDER_CHEST)
     @EditorBundle(name = "Impact")
     @EditorTooltip(tooltip = "Logic triggered on entities within radius.")
@@ -58,9 +65,11 @@ public class EditorTrapMechanic extends AbstractEditorMechanic {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("Trap Mechanic");
-        instruction.add("The summoner will use the skill at the location of the trap, once");
-        instruction.add("A valid entity approached it. The summoner themselves will never be");
-        instruction.add("Able to set off the trap.");
+        instruction.add("Create a trap, when an enemy is close enough the trap");
+        instruction.add("Will trigger and apply the logic.");
+        instruction.add("");
+        instruction.add("The caster will use the skill, NOT the trap. The cast");
+        instruction.add("Just happens on the location of the trap.");
         return instruction;
     }
 }

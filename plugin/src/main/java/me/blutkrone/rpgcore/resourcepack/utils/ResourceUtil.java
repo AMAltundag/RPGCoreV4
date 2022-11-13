@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.resourcepack.utils;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.resourcepack.component.ResourcePackFont;
@@ -233,10 +232,8 @@ public class ResourceUtil {
     public static void saveToDisk(JSONObject object, File file, boolean escaped) throws IOException, ParseException {
         file.getParentFile().mkdirs();
 
-        Gson gson = RPGCore.inst().getGson();
-
         try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            RPGCore.inst().getGson().toJson(object, osw);
+            RPGCore.inst().getGsonUgly().toJson(object, osw);
         }
     }
 
@@ -249,10 +246,8 @@ public class ResourceUtil {
     public static void saveToDisk(JsonObject object, File file, boolean escaped) throws IOException, ParseException {
         file.getParentFile().mkdirs();
 
-        Gson gson = RPGCore.inst().getGson();
-
         try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            RPGCore.inst().getGson().toJson(object, osw);
+            RPGCore.inst().getGsonUgly().toJson(object, osw);
         }
     }
 

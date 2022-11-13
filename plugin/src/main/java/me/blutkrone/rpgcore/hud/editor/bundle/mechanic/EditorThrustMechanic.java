@@ -44,6 +44,7 @@ public class EditorThrustMechanic extends AbstractEditorMechanic {
         instruction.add("Thrust Mechanic");
         instruction.add("Thrusts forward where the player looks.");
         instruction.add("Negative numbers to thrust backwards.");
+        instruction.add("Drag of zero adds thrust, instead of overriding.");
         return instruction;
     }
 }

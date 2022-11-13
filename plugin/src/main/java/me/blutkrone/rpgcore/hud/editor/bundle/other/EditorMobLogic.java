@@ -20,10 +20,7 @@ import java.util.List;
 public class EditorMobLogic implements IEditorBundle {
 
     @EditorWrite(name = "Group", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {
-            "Shares a namespace with any other Logic.",
-            "Logic sharing a namespace will block each other."
-    })
+    @EditorTooltip(tooltip = {"Shares a namespace with any other Logic.", "Logic sharing a namespace will block each other."})
     public String group = "DEFAULT";
     @EditorList(name = "Condition", constraint = SelectorConstraint.class)
     @EditorTooltip(tooltip = {"This behaves like a generic skill selector", "If any target remains, condition is met.", "§cOriginal target is the entity itself."})

@@ -19,7 +19,7 @@ public class EditorItemWithQuantity implements IEditorBundle {
     public String item = "NOTHINGNESS";
     @EditorNumber(name = "Quantity", minimum = 1.0)
     @EditorTooltip(tooltip = "Rounded down to the nearest integer.")
-    public double quantity;
+    public double quantity = 0.0d;
 
     public EditorItemWithQuantity() {
     }

@@ -22,6 +22,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -50,6 +53,7 @@ public class HUDManager implements Listener {
     private VendorMenu vendor_menu;
     private DialogueMenu dialogue_menu;
     private QuestMenu quest_menu;
+    private PlayerMenu player_menu;
 
     public HUDManager() {
         // load the appropriate UX components
@@ -74,6 +78,7 @@ public class HUDManager implements Listener {
             this.vendor_menu = new VendorMenu();
             this.dialogue_menu = new DialogueMenu();
             this.quest_menu = new QuestMenu();
+            this.player_menu = new PlayerMenu();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -125,6 +130,10 @@ public class HUDManager implements Listener {
 
         // events for UX, primarily maintaining bossbar logic
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+    }
+
+    public PlayerMenu getPlayerMenu() {
+        return player_menu;
     }
 
     public SkillMenu getSkillMenu() {
@@ -220,5 +229,31 @@ public class HUDManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onBossbarCleanUpWorld(PlayerGameModeChangeEvent e) {
         e.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    private void onWantOpenPlayerMenu(InventoryClickEvent e) {
+        if (e.getClickedInventory() == null) {
+            return;
+        }
+        if (e.getClickedInventory().getType() != InventoryType.CRAFTING) {
+            return;
+        }
+        e.setCancelled(true);
+        getPlayerMenu().present((Player) e.getWhoClicked());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    private void onWantOpenPlayerMenu(InventoryDragEvent e) {
+        if (e.getView().getType() != InventoryType.CRAFTING) {
+            return;
+        }
+        for (int i = 0; i < 5; i++) {
+            if (e.getRawSlots().contains(i)) {
+                e.setCancelled(true);
+                getPlayerMenu().present((Player) e.getWhoClicked());
+                return;
+            }
+        }
     }
 }

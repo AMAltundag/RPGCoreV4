@@ -12,6 +12,7 @@ import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.AttributeAndFactor
 import me.blutkrone.rpgcore.hud.editor.constraint.enums.ModifierStyleConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.enums.ModifierTypeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.SkillConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
@@ -51,8 +52,15 @@ public class EditorModifier implements IEditorRoot<CoreModifier> {
 
     // which attributes are gained while equipped
     @EditorList(name = "Effects", constraint = AttributeAndFactorConstraint.class)
-    @EditorTooltip(tooltip = "Attributes gained when item is in use.")
+    @EditorTooltip(tooltip = "Attributes gained while item is in use.")
     public List<EditorAttributeAndFactor> attribute_effects = new ArrayList<>();
+    @EditorList(name = "Tags", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = "A tag gained while item is in use.")
+    public List<String> tag_effects = new ArrayList<>();
+    @EditorList(name = "Skills", constraint = SkillConstraint.class)
+    @EditorTooltip(tooltip = {"Hidden skills will be unlocked from this"})
+    public List<String> skill_effects = new ArrayList<>();
+
     // how to apply the modifier to the relevant entity
     @EditorWrite(name = "Type", constraint = ModifierTypeConstraint.class)
     @EditorTooltip(tooltip = "What scope the attributes apply on.")
@@ -61,6 +69,7 @@ public class EditorModifier implements IEditorRoot<CoreModifier> {
     @EditorWrite(name = "Readable", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Description of modifier, usage depends on style.", "§cThis is a language code, NOT plaintext."})
     public String lc_readable = "NOTHINGNESS";
+
     // how to present the style
     @EditorWrite(name = "Style", constraint = ModifierStyleConstraint.class)
     @EditorTooltip(tooltip = {"Readable Style", "How to present the readable information."})
@@ -84,6 +93,8 @@ public class EditorModifier implements IEditorRoot<CoreModifier> {
                 .appendLore("§fWeight: " + String.format("%.3f", weight))
                 .appendLore("§fWeight Per Quality: " + String.format("%.3f", weight_per_quality))
                 .appendLore("§fTotal Modifiers: " + attribute_effects.size())
+                .appendLore("§fTotal Tags: " + tag_effects.size())
+                .appendLore("§fTotal Skills: " + skill_effects.size())
                 .build();
     }
 
@@ -113,7 +124,7 @@ public class EditorModifier implements IEditorRoot<CoreModifier> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 

@@ -8,7 +8,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierBoolean;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.ActionConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.CostConstraint;
-import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.TraitConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.TriggerConstraint;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -21,21 +21,21 @@ import java.util.List;
 public class EditorBehaviour implements IEditorBundle {
 
     @EditorBundle(name = "Icon")
-    @EditorTooltip(tooltip = "Icon used to render the effect")
-    public EditorModifierString icon = new EditorModifierString("default");
+    @EditorTooltip(tooltip = "Icon shown while behaviour is shown")
+    public EditorModifierString icon = new EditorModifierString("none");
     @EditorBundle(name = "Debuff")
     @EditorTooltip(tooltip = "Whether to render as a debuff")
     public EditorModifierBoolean debuff = new EditorModifierBoolean();
     @EditorBundle(name = "Hidden")
     @EditorTooltip(tooltip = "Hide icon while on cooldown")
     public EditorModifierBoolean hidden = new EditorModifierBoolean();
-    @EditorList(name = "Trigger", singleton = true, constraint = TraitConstraint.class)
+    @EditorList(name = "Trigger", singleton = true, constraint = TriggerConstraint.class)
     @EditorTooltip(tooltip = "Trigger for the behaviour")
     public List<IEditorBundle> trigger = new ArrayList<>();
-    @EditorList(name = "Cost", singleton = true, constraint = CostConstraint.class)
+    @EditorList(name = "Cost", constraint = CostConstraint.class)
     @EditorTooltip(tooltip = "Costs consumed after triggering")
     public List<IEditorBundle> costs = new ArrayList<>();
-    @EditorList(name = "Action", singleton = true, constraint = ActionConstraint.class)
+    @EditorList(name = "Action", constraint = ActionConstraint.class)
     @EditorTooltip(tooltip = "Actions to invoke when conditions met")
     public List<IEditorBundle> actions = new ArrayList<>();
 

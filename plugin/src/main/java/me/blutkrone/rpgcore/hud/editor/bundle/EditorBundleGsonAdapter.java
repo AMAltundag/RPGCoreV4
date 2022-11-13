@@ -12,10 +12,6 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
     private static Map<String, String> LEGACY_MAPPING = new HashMap<>();
 
     static {
-        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAudio", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorAudio");
-        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorParticleBrush", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticleBrush");
-        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorParticlePoint", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticlePoint");
-        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorWait", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorWait");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixChance", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixChance");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixLimit", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixLimit");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorLoot", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot");
@@ -31,6 +27,32 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorStorageTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorStorageTrait");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorTalkTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorTalkTrait");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.root.npc.EditorVendorTrait", "me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorVendorTrait");
+
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorAudio", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectAudio");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorCircle", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectCircle");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorDirection", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectDirection");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorForward", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectForward");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorLine", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectLine");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorModel", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectModel");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticleBrush", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectBrush");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticlePoint", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectPoint");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorParticleSphere", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectSphere");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorRadiator", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRadiator");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorRotor", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRotor");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorWait", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectWait");
+
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAudio", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectAudio");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorCircle", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectCircle");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorDirection", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectDirection");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorForward", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectForward");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorLine", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectLine");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorModel", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectModel");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorParticleBrush", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectBrush");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorParticlePoint", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectPoint");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorParticleSphere", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectSphere");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorRadiator", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRadiator");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorRotor", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRotor");
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorWait", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectWait");
     }
 
     @Override

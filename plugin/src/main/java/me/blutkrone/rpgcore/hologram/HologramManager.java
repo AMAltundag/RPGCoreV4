@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.hologram;
 
-import com.google.gson.stream.JsonReader;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hologram.impl.StationaryHologram;
 import me.blutkrone.rpgcore.util.io.FileUtil;
@@ -15,6 +14,7 @@ import org.bukkit.util.Vector;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -52,11 +52,13 @@ public class HologramManager {
                     if (holograms != null) {
                         for (File holo_file : holograms) {
                             try {
-                                StationaryHologram node = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(holo_file)), StationaryHologram.class);
+                                Reader reader = Files.newBufferedReader(holo_file.toPath());
+                                StationaryHologram node = RPGCore.inst().getGsonPretty().fromJson(reader, StationaryHologram.class);
+                                reader.close();
                                 synchronized (this.thread_sync) {
                                     this.holograms.computeIfAbsent(world, (k -> new HashMap<>())).put(node.getId(), node);
                                 }
-                            } catch (FileNotFoundException e) {
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -158,7 +160,7 @@ public class HologramManager {
         File file = FileUtil.file("editor/hologram/" + where.getWorld().getName(), hologram.getId() + ".rpgcore");
         file.getParentFile().mkdirs();
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(hologram, fw);
+            RPGCore.inst().getGsonPretty().toJson(hologram, fw);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -5,6 +5,9 @@ import me.blutkrone.rpgcore.hud.editor.root.job.EditorJob;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * A job used to scale player power.
  */
@@ -16,6 +19,8 @@ public class CoreJob {
     private ItemStack emblem;
     // itemized primary class weapon
     private ItemStack weapon;
+    // relevant passive trees we are unlocking
+    private List<String> passive_tree;
 
     public CoreJob(String id, EditorJob editor) {
         this.id = id;
@@ -27,6 +32,10 @@ public class CoreJob {
                 .persist("job-id", getId()).build();
         IChestMenu.setBrand(this.emblem, RPGCore.inst(), "job-id", getId());
         IChestMenu.setBrand(this.weapon, RPGCore.inst(), "job-id", getId());
+        this.passive_tree = editor.passive_tree.stream()
+                .map(String::toLowerCase)
+                .filter(string -> !string.startsWith("skill_"))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -67,5 +76,14 @@ public class CoreJob {
      */
     public ItemStack getWeaponIcon() {
         return weapon;
+    }
+
+    /**
+     * The passive trees which are unlocked by the job.
+     *
+     * @return the relevant passive trees.
+     */
+    public List<String> getPassiveTree() {
+        return passive_tree;
     }
 }

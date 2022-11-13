@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
 
@@ -32,27 +31,22 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
 
     @Override
     public List<IEntityEffect> prepare(CorePlayer core_player, Player bukkit_player) {
-        List<IEntityEffect> flatten = new ArrayList<>();
-        for (Map<String, IEntityEffect> effectMap : core_player.getStatusEffects().values()) {
-            flatten.addAll(effectMap.values());
-        }
+        // flatten.add(new Test(1112, 332, "placeholder", true));
+        // flatten.add(new Test(4432, 62145, "placeholder", true));
+        // flatten.add(new Test(1251, 1233, "placeholder", true));
+        // flatten.add(new Test(1, 4412, "placeholder", true));
+        // flatten.add(new Test(25221, 125812, "placeholder", true));
+        // flatten.add(new Test(1, 125125, "placeholder", true));
+        // flatten.add(new Test(22134, 4423, "placeholder", true));
+        // flatten.add(new Test(3221, 5522, "placeholder", false));
+        // flatten.add(new Test(52, 124124, "placeholder", false));
+        // flatten.add(new Test(14444, 2255, "placeholder", false));
+        // flatten.add(new Test(13, 1114, "placeholder", false));
+        // flatten.add(new Test(1, 6643, "placeholder", false));
+        // flatten.add(new Test(55, 214122, "placeholder", false));
+        // flatten.add(new Test(2, 44321, "placeholder", false));
 
-        flatten.add(new Test(1112, 332, "placeholder", true));
-        flatten.add(new Test(4432, 62145, "placeholder", true));
-        flatten.add(new Test(1251, 1233, "placeholder", true));
-        flatten.add(new Test(1, 4412, "placeholder", true));
-        flatten.add(new Test(25221, 125812, "placeholder", true));
-        flatten.add(new Test(1, 125125, "placeholder", true));
-        flatten.add(new Test(22134, 4423, "placeholder", true));
-        flatten.add(new Test(3221, 5522, "placeholder", false));
-        flatten.add(new Test(52, 124124, "placeholder", false));
-        flatten.add(new Test(14444, 2255, "placeholder", false));
-        flatten.add(new Test(13, 1114, "placeholder", false));
-        flatten.add(new Test(1, 6643, "placeholder", false));
-        flatten.add(new Test(55, 214122, "placeholder", false));
-        flatten.add(new Test(2, 44321, "placeholder", false));
-
-        return flatten;
+        return new ArrayList<>(core_player.getStatusEffects().values());
     }
 
     @Override
@@ -105,6 +99,8 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
         // write duration if it did not exceed time limit
         if (time != Integer.MAX_VALUE) {
             String time_string = RPGCore.inst().getLanguageManager().formatShortTicks(time);
+            workspace.actionbar().shiftCentered(renderpoint + 12 + 1, Utility.measureWidthExact(time_string));
+            workspace.actionbar().shadow(time_string, "hud_status_time_lower");
             workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(time_string));
             workspace.actionbar().append(time_string, "hud_status_time_lower");
         }
@@ -115,51 +111,6 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
             workspace.actionbar().shadow(stack_string, "hud_status_stack_lower");
             workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(stack_string));
             workspace.actionbar().append(stack_string, "hud_status_stack_lower");
-        }
-    }
-
-    private class Test implements IEntityEffect {
-
-        private final int stacks;
-        private final int duration;
-        private final String icon;
-        private final boolean debuff;
-
-        private Test(int stacks, int duration, String icon, boolean debuff) {
-            this.stacks = stacks;
-            this.duration = duration;
-            this.icon = icon;
-            this.debuff = debuff;
-        }
-
-        @Override
-        public boolean tickEffect(int delta) {
-            return false;
-        }
-
-        @Override
-        public int getStacks() {
-            return stacks;
-        }
-
-        @Override
-        public int getDuration() {
-            return duration;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
-
-        @Override
-        public long getLastUpdated() {
-            return 0;
-        }
-
-        @Override
-        public boolean isDebuff() {
-            return debuff;
         }
     }
 }

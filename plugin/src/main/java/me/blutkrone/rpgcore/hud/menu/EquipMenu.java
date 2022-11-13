@@ -71,8 +71,12 @@ public class EquipMenu implements Listener {
      * @param player whose items to reflect.
      */
     public void applyEquipChange(CorePlayer player) {
-        // acquire the item as a vanilla variant
         Player entity = player.getEntity();
+        if (entity.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+
+        // acquire the item as a vanilla variant
         for (Slot slot : this.slots) {
             // retrieve, non-null, item from slot
             ItemStack equipped = player.getEquipped(slot.id);
@@ -140,6 +144,24 @@ public class EquipMenu implements Listener {
         return reflected == 1;
     }
 
+    /**
+     * Extract an item from the equipment we are holding.
+     *
+     * @param player whose items are we checking
+     * @param slot the bukkit slot we want to match
+     * @return the item that was extracted
+     */
+    public ItemStack getBukkitEquipment(CorePlayer player, BukkitSlot slot) {
+        // search for any slot that may have the item
+        for (Slot possible : this.slots) {
+            if (possible.target == slot) {
+                return player.getEquipped(possible.id);
+            }
+        }
+        // fallback in case it does not exist
+        return new ItemStack(Material.AIR);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     void onEquipmentGameModeSwap(PlayerGameModeChangeEvent e) {
         Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
@@ -148,14 +170,16 @@ public class EquipMenu implements Listener {
                 return;
             }
 
-            GameMode mode = e.getPlayer().getGameMode();
-            if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
-                // hide reflected items in creative mode
-                for (BukkitSlot slot : BukkitSlot.values()) {
-                    slot.setSlotMethod.accept(e.getPlayer(), new ItemStack(Material.AIR));
+            // purge away reflected items (including dupes)
+            for (ItemStack stack : e.getPlayer().getInventory().getContents()) {
+                if (stack != null && isReflected(stack)) {
+                    stack.setType(Material.AIR);
                 }
-            } else {
-                // recover reflected items when exiting creative
+            }
+
+            // recover reflected items when exiting creative
+            GameMode mode = e.getPlayer().getGameMode();
+            if (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) {
                 applyEquipChange(core_player);
             }
         });

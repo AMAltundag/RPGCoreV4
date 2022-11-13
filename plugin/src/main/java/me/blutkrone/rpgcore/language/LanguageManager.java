@@ -12,12 +12,15 @@ import org.bukkit.Material;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
  * A manager responsible for everything text specific.
  */
 public class LanguageManager {
+
+    private static final DecimalFormat FORMAT = new DecimalFormat("##.##");
 
     // string mapped language constants
     private Map<String, List<String>> translation = new HashMap<>();
@@ -123,6 +126,52 @@ public class LanguageManager {
             return String.format("%02d:%02d", minutes, seconds % 60);
         // time is hidden if longer then a hour
         return "";
+    }
+
+    /*
+     * Internal formatting of decimals into a range-like.
+     *
+     * @param value the value we are formatting
+     * @return the formatted range
+     */
+    private static String formatAsRange(double value) {
+        if (value <= 0.001d) {
+            return "0";
+        }
+        if ((value % 1.0) <= 0.01 || (value % 1.0) >= 0.99) {
+            return String.valueOf(Math.round(value));
+        }
+        return ((int) value) + "-" + (1 + (int) value);
+    }
+
+    /**
+     * Format a versatile string with numeric parameters
+     *
+     * @param string the string to be formatted
+     * @param values the values to format it with
+     * @return the formatted string
+     */
+    public String formatAsVersatile(String string, Map<String, Double> values) {
+        // replace arbitrary matches
+        Map.Entry<String, Double> entry_auto = values.entrySet().iterator().next();
+        double value_auto = entry_auto.getValue();
+        string = string.replace("{INTEGER}", String.valueOf((int) value_auto));
+        string = string.replace("{DECIMAL}", FORMAT.format(value_auto));
+        string = string.replace("{PERCENT}", FORMAT.format(value_auto * 100d) + "%");
+        string = string.replace("{RANGE}", formatAsRange(value_auto));
+        string = string.replace("{BOOLEAN}", (value_auto >= 1d) ? "yes" : "no");
+        string = string.replace("{TIME}", String.format("%.1fs", value_auto / 20d));
+        // replace with exact matches by attribute
+        for (Map.Entry<String, Double> entry : values.entrySet()) {
+            double value = entry.getValue();
+            string = string.replace("{" + entry.getKey() + ":INTEGER}", String.valueOf((int) value));
+            string = string.replace("{" + entry.getKey() + ":DECIMAL}", FORMAT.format(value));
+            string = string.replace("{" + entry.getKey() + ":PERCENT}", FORMAT.format(value * 100d) + "%");
+            string = string.replace("{" + entry.getKey() + ":BOOLEAN}", (value >= 1d) ? "yes" : "no");
+            string = string.replace("{" + entry.getKey() + ":TIME}", String.format("%.1fs", value / 20d));
+            string = string.replace("{" + entry.getKey() + ":RANGE}", formatAsRange(value));
+        }
+        return string;
     }
 
     /**

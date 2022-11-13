@@ -14,12 +14,15 @@ import me.blutkrone.rpgcore.mob.ai.CoreMobLogic;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.AbstractEntityRoutine;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import me.blutkrone.rpgcore.util.Utility;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class CoreCreature {
 
@@ -100,6 +103,10 @@ public class CoreCreature {
      * @param level the level to spawn at
      */
     public CoreMob spawn(Location where, int level) {
+        if (!Utility.isChunkLoaded(where)) {
+            return null;
+        }
+
         // initialization within bukkit space
         LivingEntity bukkit_entity = this.mob_factory.create(where);
         bukkit_entity.setCustomName(this.getName());

@@ -24,7 +24,7 @@ public abstract class AbstractCoreTrait {
         this.symbol = editor.getCortexSymbol();
         this.icon_lc = editor.getIconLC();
         this.uuid = UUID.randomUUID();
-        this.unlock = editor.getUnlockFlag();
+        this.unlock = editor.getUnlockFlag().toLowerCase();
     }
 
     /**
@@ -35,7 +35,7 @@ public abstract class AbstractCoreTrait {
      */
     public boolean isAvailable(CorePlayer player) {
         // always show default traits
-        if (this.getUnlock().equalsIgnoreCase("none")) {
+        if (this.getUnlock().equalsIgnoreCase("quest_tag_none")) {
             return true;
         }
         // non-default trait should check player tags
@@ -52,7 +52,7 @@ public abstract class AbstractCoreTrait {
      * @return the player flag/tag necessary to unlock this trait.
      */
     public String getUnlock() {
-        return "quest_trait_reward_" + this.unlock;
+        return "quest_tag_" + this.unlock;
     }
 
     /**

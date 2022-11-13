@@ -30,7 +30,7 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
     @EditorCategory(icon = Material.BUNDLE, info = "Quest")
     @EditorWrite(name = "Info", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = "Description within Quest Log")
-    public String lc_info;
+    public String lc_info = "NOTHINGNESS";
     @EditorList(name = "Tasks", constraint = QuestTaskConstraint.class)
     @EditorTooltip(tooltip = "Tasks in sequential order to complete")
     public List<IEditorBundle> tasks = new ArrayList<>();
@@ -83,7 +83,7 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
     @Override
     public void save() throws IOException {
         try (FileWriter fw = new FileWriter(file, Charset.forName("UTF-8"))) {
-            RPGCore.inst().getGson().toJson(this, fw);
+            RPGCore.inst().getGsonPretty().toJson(this, fw);
         }
     }
 

@@ -178,6 +178,8 @@ public class DamageAilment extends AbstractAilment {
                 ailment.flat_damage.forEach((element, damage) -> interaction.setDamage(element, damage * ratio));
                 // track inherited multiplier
                 interaction.getAttribute("DOT_MULTIPLIER").create(ailment.multi_inherited);
+                // put blame on a secondary ailment
+                interaction.setDamageBlame("ailment");
                 // inflict the damage
                 damage_manager.damage(interaction);
             }

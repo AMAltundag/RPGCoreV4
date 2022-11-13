@@ -1,5 +1,7 @@
 package me.blutkrone.rpgcore.resourcepack;
 
+import com.googlecode.pngtastic.core.PngImage;
+import com.googlecode.pngtastic.core.PngOptimizer;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.resourcepack.bbmodel.BBExporter;
@@ -37,10 +39,7 @@ import org.json.simple.JSONObject;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,6 +118,8 @@ public class ResourcePackManager implements Listener {
             = FileUtil.directory("resourcepack/generated/quest");
     private static final File INPUT_FOCUS_SIGIL
             = FileUtil.directory("resourcepack/generated/focus");
+    private static final File INPUT_PASSIVE
+            = FileUtil.directory("resourcepack/generated/passive");
 
     private static final File OUTPUT_FONT
             = FileUtil.directory("resourcepack/working/assets/minecraft/textures/font");
@@ -151,11 +152,14 @@ public class ResourcePackManager implements Listener {
     private Map<Character, Integer> chars_measurement = null;
     // cache of frequent requests
     private Map<String, Integer> measure_cache = new ConcurrentHashMap<>();
+    // whether to apply image compression
+    private boolean do_compression;
 
     public ResourcePackManager() {
         // basic configuration for the RP manager
         try {
             ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("resourcepack", "config.yml"));
+            do_compression = config.getBoolean("compress");
             download_link = config.getString("download-url");
             if (download_link != null && download_link.contains("dropbox")) {
                 download_link = download_link.replace("?dl=0", "?dl=1");
@@ -318,7 +322,8 @@ public class ResourcePackManager implements Listener {
             clock.loop();
             TextGenerator.measurement(INPUT_TEXT).forEach((c, len) -> {
                 indexed_parameter.put("char_length_" + ((int) c), 0d + len);
-            });            // Notify about what've done
+            });
+            // Notify about what've done
             Bukkit.getLogger().info(String.format("Processed font measurements in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -428,10 +433,12 @@ public class ResourcePackManager implements Listener {
             // reset the clock used to measure time
             clock.loop();
             // prepare the respective font rendering pages
-            TextGenerator.construct(INPUT_TEXT, rules.text_offset, rules.text_opacity, OUTPUT_FONT)
+            TextGenerator.construct(INPUT_TEXT, rules, OUTPUT_FONT)
                     .forEach((id, list) -> {
                         fonts.computeIfAbsent(id, (k -> new ArrayList<>())).addAll(list);
                     });
+            // Notify about what've done
+            Bukkit.getLogger().info(String.format("Loading fonts with special offsets %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -475,7 +482,8 @@ public class ResourcePackManager implements Listener {
                             tile = upscale;
                         }
                         // supply the texture file to operate with
-                        ImageIO.write(tile, "png", FileUtil.file(OUTPUT_FONT, "minimap_" + minimap_slice + ".png"));
+                        File output = FileUtil.file(OUTPUT_FONT, "minimap_" + minimap_slice + ".png");
+                        ImageIO.write(tile, "png", output);
                         // symbols used by the generated font entries
                         List<String> symbols = new ArrayList<>();
                         for (int i = 0; i < 16; i++) {
@@ -486,7 +494,7 @@ public class ResourcePackManager implements Listener {
                             symbols.add(sb.toString());
                         }
                         // register to RP and offer an access-point
-                        for (int offset = 0; offset < 9; offset++) {
+                        for (int offset = 0; offset < 14; offset++) {
                             // register to the resourcepack
                             List<ResourcePackFont> font = fonts.computeIfAbsent("minimap_" + current_table + "_" + offset, (k -> {
                                 List<ResourcePackFont> generated = new ArrayList<>();
@@ -534,6 +542,7 @@ public class ResourcePackManager implements Listener {
                                 }
                             }
                         }
+
                         // increment the resourcepack addressing
                         minimap_slice += 1;
                         if (current_page++ >= 232) {
@@ -610,7 +619,7 @@ public class ResourcePackManager implements Listener {
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "skill_cooldown.png"), "interface_base", rules.skillbar_offset, interface_base_space));
             Bukkit.getLogger().info(String.format("Generated 'misc' font textures in %sms", clock.loop()));
             // track symbols used to build the lore
-            indexed_fonts.putAll(LoreGenerator.construct(INPUT_LORE_STYLE, INPUT_LORE_ICON, INPUT_LORE_JEWEL, rules, new StaticGenerator.PooledSymbolSpace()));
+            indexed_fonts.putAll(LoreGenerator.construct(INPUT_LORE_STYLE, INPUT_LORE_ICON, INPUT_LORE_JEWEL, INPUT_SKILLBAR, rules, new StaticGenerator.PooledSymbolSpace()));
             Bukkit.getLogger().info(String.format("Generated 'lore' font textures in %sms", clock.loop()));
             // generate job portraits
             StaticGenerator.PooledSymbolSpace portrait_symbol_space = new StaticGenerator.PooledSymbolSpace();
@@ -624,6 +633,9 @@ public class ResourcePackManager implements Listener {
             // generate slot based menu animations
             indexed_fonts.putAll(AnimationGenerator.createSlotAnimation(INPUT_ANIMATION_SLOT));
             Bukkit.getLogger().info(String.format("Generated 'slot animation' font textures in %sms", clock.loop()));
+            // passive texture
+            indexed_fonts.putAll(PassiveGenerator.createSlotAnimation(INPUT_PASSIVE));
+            Bukkit.getLogger().info(String.format("Generated 'passive' font textures in %sms", clock.loop()));
             // generate cortex menu textures
             indexed_fonts.putAll(CortexGenerator.constructSmall(INPUT_CORTEX_SMALL));
             indexed_fonts.putAll(CortexGenerator.constructMedium(INPUT_CORTEX_MEDIUM));
@@ -792,11 +804,14 @@ public class ResourcePackManager implements Listener {
             for (File file_bb_model : FileUtil.buildAllFiles(INPUT_BBMODEL)) {
                 // identify which item backs up the given model
                 String model_name = file_bb_model.getName();
-                if (!model_name.endsWith(".bbmodel"))
+                if (!model_name.endsWith(".bbmodel")) {
                     continue;
+                }
                 model_name = model_name.replace(".bbmodel", "");
                 int split_point = model_name.lastIndexOf('_');
-                if (split_point == -1) continue;
+                if (split_point == -1) {
+                    continue;
+                }
                 // transform the blockbench file into an acceptable workspace
                 BBExporter.Exported bb_export = BBExporter.export(file_bb_model);
                 // export the textures we got buffered to the resourcepack
@@ -895,6 +910,50 @@ public class ResourcePackManager implements Listener {
             }
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Building font index in %sms", clock.loop()));
+        });
+        worker.add(true, () -> {
+            if (do_compression) {
+                File[] files = FileUtil.buildAllFiles(WORKSPACE_WORKING);
+                long last_stamp = System.currentTimeMillis();
+                clock.loop();
+
+                // count how many image files we have
+                int total = 0;
+                for (File file : files) {
+                    if (file.getName().endsWith(".png")) {
+                        total += 1;
+                    }
+                }
+
+                int processed = 0;
+                PngOptimizer optimizer = new PngOptimizer();
+                for (File file : files) {
+                    // ensure we have a file that can be compressed
+                    if (!file.getName().endsWith(".png")) {
+                        continue;
+                    }
+                    // load as a PNG image
+                    PngImage image;
+                    try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(file))) {
+                        image = new PngImage(is);
+                    }
+                    // handle compression
+                    optimizer.optimize(image);
+                    // write back the image
+                    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                        image.writeDataOutputStream(os);
+                        image.export(file.getAbsolutePath(), os.toByteArray());
+                    }
+                    // provide info on what we've got
+                    processed++;
+                    if ((System.currentTimeMillis() - last_stamp) > 6000L) {
+                        last_stamp = System.currentTimeMillis();
+                        Bukkit.getLogger().info("Compressing " + processed + " of " + total + " files!");
+                    }
+                }
+                // Notify about what've done
+                Bukkit.getLogger().info(String.format("Image compression pass done in %sms", clock.loop()));
+            }
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -1025,6 +1084,16 @@ public class ResourcePackManager implements Listener {
         if (result == null)
             throw new NullPointerException("Could not find index of '" + parameter + "' parameter!");
         return result;
+    }
+
+    /**
+     * Check if a parameter exists.
+     *
+     * @param parameter the parameter to check
+     * @return true if parameter exists
+     */
+    public boolean hasParameter(String parameter) {
+        return indexed_parameter.containsKey(parameter);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

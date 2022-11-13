@@ -7,8 +7,10 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
 import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootItem;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
@@ -19,8 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ItemCoreLoot extends AbstractCoreLoot {
 
-    // which items we can drop
-    private WeightedRandomMap<String> item_choice = new WeightedRandomMap<>();
     // number of items to be dropped
     private double quantity;
     private Map<String, Double> quantity_killed;
@@ -34,12 +34,10 @@ public class ItemCoreLoot extends AbstractCoreLoot {
     private Map<String, Double> quality_killed;
     private Map<String, Double> quality_killer;
 
+    // cache of any item that we match up
+    private IndexAttachment<CoreItem, WeightedRandomMap<CoreItem>> item_weight_cached;
+
     public ItemCoreLoot(EditorLootItem editor) {
-        for (IEditorBundle bundle : editor.item_weights) {
-            EditorLoot casted = (EditorLoot) bundle;
-            item_choice.add(casted.weight, casted.tag);
-        }
-        
         quality = editor.quality;
         quality_killer = EditorAttributeAndFactor.unwrap(editor.quality_killer);
         quality_killed = EditorAttributeAndFactor.unwrap(editor.quality_killed);
@@ -51,6 +49,34 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         quantity = editor.quantity;
         quantity_killer = EditorAttributeAndFactor.unwrap(editor.quantity_killer);
         quantity_killed = EditorAttributeAndFactor.unwrap(editor.quantity_killed);
+
+        Map<String, Double> weights = new HashMap<>();
+        for (IEditorBundle bundle : editor.item_weights) {
+            EditorLoot casted = (EditorLoot) bundle;
+            weights.put(casted.tag.toLowerCase(), casted.weight);
+        }
+
+        item_weight_cached = RPGCore.inst().getItemManager().getItemIndex().createAttachment((index -> {
+            WeightedRandomMap<CoreItem> weighed = new WeightedRandomMap<>();
+
+            for (CoreItem item : index.getAll()) {
+                // accumulate the weight
+                double weight = 0d;
+                for (String tag : item.getTags()) {
+                    weight += weights.getOrDefault(tag.toLowerCase(), 0d);
+                }
+                // track item with the weight
+                if (weight > 0d) {
+                    weighed.add(item, weight);
+                }
+            }
+
+            if (weighed.isEmpty()) {
+                Bukkit.getLogger().severe("No items can drop with weights " + weights);
+            }
+
+            return weighed;
+        }));
     }
 
     @Override
@@ -64,6 +90,12 @@ public class ItemCoreLoot extends AbstractCoreLoot {
             throw new NullPointerException("No location to drop items at!");
         }
 
+        // ensure there are any items matching within tags
+        WeightedRandomMap<CoreItem> item_choice = item_weight_cached.get();
+        if (item_choice.isEmpty()) {
+            return;
+        }
+
         // base information on our drops
         double rarity = Math.max(0d, getRarity(killed, killer));
         double quantity = Math.max(0d, getQuantity(killed, killer));
@@ -71,13 +103,8 @@ public class ItemCoreLoot extends AbstractCoreLoot {
 
         // quantity trims off at certain breakpoints
         quantity = Math.sqrt(quantity);
-        if (Math.random() < quantity % 1d) {
-            quantity = quantity + 1;
-        }
-
-        // fetch random items to drop
-        for (int i = 0; i < quantity; i++) {
-            List<String> picked = new ArrayList<>();
+        while (Math.random() < quantity--) {
+            List<CoreItem> picked = new ArrayList<>();
             // one item is always picked
             picked.add(item_choice.next());
             // additional items picked via rarity
@@ -85,16 +112,15 @@ public class ItemCoreLoot extends AbstractCoreLoot {
             while (Math.random() <= working_rarity--) {
                 picked.add(item_choice.next());
             }
-            // only item with lowest weight is used
-            String item_to_drop = picked.stream().min(Comparator.comparingDouble(item -> item_choice.weight(item))).orElse(null);
-            if (item_to_drop == null) {
+            // pick the most valuable item we have
+            CoreItem rarest_option = picked.stream().min(Comparator.comparingDouble(item_choice::weight)).orElse(null);
+            if (rarest_option == null) {
                 continue;
             }
-            CoreItem core_item = RPGCore.inst().getItemManager().getItemIndex().get(item_to_drop);
             // drop a physical copy of the item
-            ItemStack bukkit_stack = core_item.acquire(killer, (0.3 * quality) + (0.7 * Math.random() * quality));
+            ItemStack bukkit_stack = rarest_option.acquire(killer, (0.3 * quality) + (0.7 * Math.random() * quality));
             Item item_entity = location.getWorld().dropItem(location, bukkit_stack);
-            item_entity.setVelocity(new Vector(Math.random()*2-1, 0.7d, Math.random()*2-1));
+            item_entity.setVelocity(new Vector(Math.random()*2-1, 0.7d, Math.random()*2-1).multiply(0.25d));
         }
     }
 

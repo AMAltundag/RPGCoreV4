@@ -10,8 +10,12 @@ import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobLogic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.mechanic.*;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
+import org.bukkit.Bukkit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A wrapper for mechanics to run a subset of targets.
@@ -19,9 +23,9 @@ import java.util.*;
 public class CoreAction {
 
     // transmute the original set of targets
-    protected List<AbstractCoreSelector> selectors = new ArrayList<>();
+    public List<AbstractCoreSelector> selectors = new ArrayList<>();
     // the mechanics to be invoked
-    protected List<AbstractCoreMechanic> mechanics = new ArrayList<>();
+    public List<AbstractCoreMechanic> mechanics = new ArrayList<>();
 
     /**
      *
@@ -50,23 +54,6 @@ public class CoreAction {
         }
         for (IEditorBundle mechanic : editor.mechanics) {
             this.mechanics.add(((AbstractEditorMechanic) mechanic).build());
-        }
-    }
-
-    /**
-     * Invoke the action within the given context.
-     *
-     * @param context which context to invoke in.
-     * @param targets the targets we've invoked.
-     */
-    public void doAction(IContext context, List<IOrigin> targets) {
-        // grab the target list
-        for (AbstractCoreSelector selector : this.selectors) {
-            targets = selector.doSelect(context, targets);
-        }
-        // run mechanics on the targets
-        for (AbstractCoreMechanic mechanic : this.mechanics) {
-            mechanic.doMechanic(context, targets);
         }
     }
 
@@ -168,6 +155,7 @@ public class CoreAction {
             }
 
             // work off the actions we've queried
+            A:
             while (!this.working.isEmpty()) {
                 ActionWorker worker = this.working.get(0);
 
@@ -186,14 +174,14 @@ public class CoreAction {
                             workers.add(new ActionWorker(action));
                         }
                         this.working.addAll(0, workers);
-                        break;
+                        break A;
                     } else if (next instanceof MultiMechanic) {
                         List<ActionWorker> workers = new ArrayList<>();
                         for (CoreAction action : ((MultiMechanic) next).getActions()) {
                             workers.add(new ActionWorker(action));
                         }
                         this.working.addAll(0, workers);
-                        break;
+                        break A;
                     } else if (next instanceof BarrierMechanic) {
                         // invoke a barrier on the mob
                         barrier = ((BarrierMechanic) next).activate(core_entity);
@@ -211,9 +199,10 @@ public class CoreAction {
                         return true;
                     } else {
                         // generic execution of the mechanic
-                        next.doMechanic(core_entity, targets);
+                        next.doMechanic(context, targets);
                     }
                 }
+
                 this.working.remove(0);
             }
 

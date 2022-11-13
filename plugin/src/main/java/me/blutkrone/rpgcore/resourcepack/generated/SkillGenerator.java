@@ -49,7 +49,7 @@ public class SkillGenerator {
             for (int y = 0; y < image.getHeight(); y++) {
                 Color c = new Color(image.getRGB(x, y));
                 float[] hsv = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
-                copied.setRGB(x, y, 0xff000000 | Color.HSBtoRGB(hsv[0], hsv[1] - hsv[1] * 0.7f, hsv[2] - hsv[2] * 0.7f));
+                copied.setRGB(x, y, 0xff000000 | Color.HSBtoRGB(hsv[0], hsv[1] - hsv[1] * 0.5f, hsv[2] - hsv[2] * 0.5f));
             }
         }
         return copied;

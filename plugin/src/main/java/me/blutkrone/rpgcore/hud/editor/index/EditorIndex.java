@@ -1,14 +1,14 @@
 package me.blutkrone.rpgcore.hud.editor.index;
 
-import com.google.gson.stream.JsonReader;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -206,7 +206,10 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
             File file = FileUtil.file(this.getDirectory(), id + ".rpgcore");
 
             if (file.exists()) {
-                Q editor = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(file)), this.editor_class);
+                Reader reader = Files.newBufferedReader(file.toPath());
+                Q editor = RPGCore.inst().getGsonPretty().fromJson(reader, this.editor_class);
+                reader.close();
+
                 editor.setFile(file);
                 return editor;
             } else {
@@ -275,9 +278,12 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
                 File config_file = FileUtil.file(this.directory, key.toLowerCase() + ".rpgcore");
                 if (config_file.exists()) {
                     try {
-                        editor = RPGCore.inst().getGson().fromJson(new JsonReader(new FileReader(config_file)), this.editor_class);
+                        Reader reader = Files.newBufferedReader(config_file.toPath());
+                        editor = RPGCore.inst().getGsonPretty().fromJson(reader, this.editor_class);
+                        reader.close();
                     } catch (Throwable e) {
                         Bukkit.getLogger().severe("Corrupted file: " + config_file.getPath() + "");
+                        e.printStackTrace();
                         editor = editor_factory.get();
                     }
                     editor.setFile(config_file);

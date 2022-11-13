@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.skill.skillbar;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
@@ -17,7 +18,7 @@ public class OwnedSkillbar {
     // whose skillbar is this
     private final CorePlayer player;
     // the skill slots we have
-    private final CoreSkill[] bindings = new CoreSkill[6];
+    private final String[] bindings = new String[6];
 
     /**
      * A per-player manager for their skillbar.
@@ -35,7 +36,11 @@ public class OwnedSkillbar {
      * @param skill    the skill to update to
      */
     public void setSkill(int position, CoreSkill skill) {
-        this.bindings[position] = skill;
+        if (skill == null) {
+            this.bindings[position] = null;
+        } else {
+            this.bindings[position] = skill.getId();
+        }
     }
 
     /**
@@ -45,40 +50,18 @@ public class OwnedSkillbar {
      * @return the skill that was fetched
      */
     public CoreSkill getSkill(int position) {
-        return this.bindings[position];
-    }
-
-    /**
-     * Check if the player is able to afford costs of a skill, if
-     * no skill exists we cannot afford it.
-     *
-     * @param position the index of the skill.
-     * @return whether the skill cost is affordable.
-     */
-    public boolean isAffordable(int position) {
-        // ensure we got a skill
-        CoreSkill skill = this.bindings[position];
-        if (skill == null) {
-            return false;
+        // ensure something was bound
+        if (this.bindings[position] == null) {
+            return null;
         }
-        // ensure we can afford all costs
-        return skill.getBinding().isAffordable(this.player.createSkillContext(skill));
-    }
-
-    /**
-     * Check the ticks the trigger is on a cooldown.
-     *
-     * @param position if the player is on a cooldown.
-     * @return the ticks we are on cooldown
-     */
-    public int getCooldown(int position) {
-        // ensure we got a skill
-        CoreSkill skill = this.bindings[position];
-        if (skill == null) {
-            return 0;
+        // grab the skill backing the ID
+        CoreSkill skill = RPGCore.inst().getSkillManager().getIndex().get(this.bindings[position]);
+        // check if we can actually hold this skill
+        if (skill.isHidden() && !player.checkForTag("skill_" + skill.getId())) {
+            return null;
         }
-        // ensure we are not on a cooldown
-        return skill.getBinding().getCooldown(this.player.createSkillContext(skill));
+        // offer up the skill since it isn't hidden to us
+        return skill;
     }
 
     /**
@@ -93,7 +76,7 @@ public class OwnedSkillbar {
             return;
         }
         // ensure we got a skill on the position
-        CoreSkill skill = this.bindings[position];
+        CoreSkill skill = getSkill(position);
         if (skill == null) {
             return;
         }

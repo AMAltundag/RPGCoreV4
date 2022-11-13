@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.hud.editor.constraint.reference.index;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
-import me.blutkrone.rpgcore.hud.editor.design.Design;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.menu.EditorMenu;
@@ -101,7 +100,7 @@ public abstract class AbstractIndexConstraint implements IEditorConstraint {
         // create an editor element to use
         IEditorRoot<?> root = getIndex().edit(id);
         // put focus on the selected element
-        editor.getFocus().setFocusToRoot(id, root);
+        editor.getFocus().setFocusToRoot(id, root, getIndex());
         // flush the editor
         editor.getMenu().queryRebuild();
         // we can always focus from here

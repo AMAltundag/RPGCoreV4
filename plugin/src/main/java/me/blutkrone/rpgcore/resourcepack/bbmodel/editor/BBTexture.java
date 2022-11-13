@@ -11,20 +11,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class BBTexture {
 
-    public static AtomicInteger TEXTURE_UID = new AtomicInteger(0);
+    // global ID so we do not overlap model textures
+    private static AtomicInteger TEXTURE_UID = new AtomicInteger(0);
 
-    private String name;
-    private int id; // this id is unique locally
+    // ID of texture within model
+    private int id;
+    // unique ID for texture generation
+    private int file_id;
+    // texture encoded into the model
     private BufferedImage texture;
-    private int file_id; // this id is unique globally
+    // metadata file (optional texture)
+    private String mcmeta_path;
 
     public BBTexture(JsonObject json) {
-        // track the name of the texture
-        if (json.has("name"))
-            this.name = json.get("name").getAsString().replace(".png", "");
-        // identify this specific texture
+        // extract id of texture
         this.id = json.get("id").getAsInt();
-        // decode the b64 texture serialisation
+        // allocate unique identifier
+        this.file_id = TEXTURE_UID.getAndIncrement();
+        // serialize the texture
         String b64 = json.get("source").getAsString();
         byte[] bytes = Base64.getDecoder().decode(b64.split(",")[1]);
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
@@ -32,12 +36,16 @@ public class BBTexture {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // allocate a random unique identifier
-        this.file_id = TEXTURE_UID.getAndIncrement();
+        // identify mcmeta texture
+        if (json.has("relative_path")) {
+            this.mcmeta_path = json.get("relative_path").getAsString().substring(3) + ".mcmeta";
+        } else {
+            this.mcmeta_path = null;
+        }
     }
 
-    public String getName() {
-        return name;
+    public String getMetaPath() {
+        return mcmeta_path;
     }
 
     public int getId() {

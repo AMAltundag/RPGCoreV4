@@ -14,7 +14,7 @@ public class EditorItemWithQuantityConstraint extends AbstractMonoConstraint {
 
     @Override
     public void addElement(List container, String value) {
-        container.add(value);
+        container.add(new EditorItemWithQuantity());
     }
 
     @Override

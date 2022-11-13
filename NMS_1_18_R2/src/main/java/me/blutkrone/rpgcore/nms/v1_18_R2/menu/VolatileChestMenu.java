@@ -11,6 +11,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.Containers;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage;
@@ -180,7 +181,11 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
 
     @Override
     public ItemStack getItemAt(int slot) {
-        return getItem(slot);
+        ItemStack item = getItem(slot);
+        if (item == null) {
+            item = new ItemStack(Material.AIR);
+        }
+        return item;
     }
 
     @Override

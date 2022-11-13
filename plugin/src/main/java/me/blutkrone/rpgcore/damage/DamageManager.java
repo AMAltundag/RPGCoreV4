@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
+import me.blutkrone.rpgcore.api.party.IActiveParty;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.ailments.AttributeAilment;
@@ -14,16 +15,21 @@ import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.damage.interaction.types.SpellDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.TimeDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.WeaponDamageType;
+import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import me.blutkrone.rpgcore.skill.trigger.CoreDealDamageTrigger;
+import me.blutkrone.rpgcore.skill.trigger.CoreTakeDamageTrigger;
+import me.blutkrone.rpgcore.skill.trigger.CoreWardBreakTrigger;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -107,6 +113,67 @@ public final class DamageManager implements IDamageManager, Listener {
         // prepare the initial snapshot of the damage to inflict
         interaction.getType().process(interaction);
 
+        // triggers for damage events
+        interaction.getDefender().proliferateTrigger(CoreTakeDamageTrigger.class, interaction);
+        if (interaction.getAttacker() != null) {
+            interaction.getAttacker().proliferateTrigger(CoreDealDamageTrigger.class, interaction);
+        }
+
+        // players should track damage for metric purposes
+        if (interaction.getAttacker() instanceof CorePlayer) {
+            for (DamageElement element : getElements()) {
+                double damage = interaction.getDamage(element);
+                if (damage > 0d) {
+                    ((CorePlayer) interaction.getAttacker()).getMetric(interaction.getDamageBlame() + "_" + element.getId())
+                            .track(interaction.getDefender().getUniqueId(), damage);
+                }
+            }
+        }
+
+        // transform damage by the variance factor
+        if (interaction.getAttacker() != null) {
+            for (DamageElement element : getElements()) {
+                double damage = interaction.getDamage(element);
+                if (damage <= 0d) {
+                    continue;
+                }
+                // ranges of damage that can be dealt
+                double minimum = 1d;
+                for (String attribute : element.getMinimumRange()) {
+                    minimum += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                }
+                double maximum = 1d;
+                for (String attribute : element.getMaximumRange()) {
+                    maximum += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                }
+                double lucky = 0d;
+                for (String attribute : element.getRangeLucky()) {
+                    lucky += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                }
+                double unlucky = 0d;
+                for (String attribute : element.getRangeUnlucky()) {
+                    unlucky += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                }
+                // normalize minimum/maximum
+                double real_minimum = Math.min(minimum, maximum);
+                double real_maximum = Math.max(minimum, maximum);
+                // roll for the damage range
+                double range = real_minimum + (Math.random() * (real_maximum - real_minimum));
+                // lucky will pick better range
+                if (Math.random() <= lucky) {
+                    double lucky_range = real_minimum + (Math.random() * (real_maximum - real_minimum));
+                    range = Math.max(range, lucky_range);
+                }
+                // unlucky will pick worse range
+                if (Math.random() <= unlucky) {
+                    double unlucky_range = real_minimum + (Math.random() * (real_maximum - real_minimum));
+                    range = Math.min(range, unlucky_range);
+                }
+                // multiply damage with the range
+                interaction.setDamage(element, damage * range);
+            }
+        }
+
         // if mob got a barrier phase absorb that
         if (interaction.getDefender().soakForBarrier((int) interaction.getDamage())) {
             return;
@@ -123,7 +190,7 @@ public final class DamageManager implements IDamageManager, Listener {
             }
             // if ward broke, fire a trigger about that
             if (ward.getCurrentAmount() <= 0d) {
-                Bukkit.getLogger().severe("not implemented (ward break skill trigger)");
+                interaction.getDefender().proliferateTrigger(CoreWardBreakTrigger.class, interaction);
             }
         }
 
@@ -163,6 +230,14 @@ public final class DamageManager implements IDamageManager, Listener {
 
             if (attacker instanceof CorePlayer) {
                 ((CoreMob) interaction.getDefender()).addContribution((CorePlayer) attacker);
+                IActiveParty party = RPGCore.inst().getPartyManager().getPartyOf(((CorePlayer) attacker));
+                if (party != null) {
+                    for (IOfflineCorePlayer partied : party.getAllMembers()) {
+                        if (partied instanceof CorePlayer) {
+                            ((CoreMob) interaction.getDefender()).addContribution(((CorePlayer) partied));
+                        }
+                    }
+                }
             }
         }
 
@@ -180,7 +255,6 @@ public final class DamageManager implements IDamageManager, Listener {
                         interaction.getDefender().die(interaction);
                         Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
 
-
                         Bukkit.getLogger().severe("not implemented (kill trigger)");
                         Bukkit.getLogger().severe("not implemented (died trigger)");
                     });
@@ -196,6 +270,7 @@ public final class DamageManager implements IDamageManager, Listener {
         // zero damage inflicted for vanilla hurt effect
         interaction.getDefender().getEntity().damage(0d);
         // inform skills about the damage inflicted
+
         Bukkit.getLogger().severe("not implemented (dealt damage trigger)");
         Bukkit.getLogger().severe("not implemented (took damage trigger)");
     }
@@ -226,6 +301,11 @@ public final class DamageManager implements IDamageManager, Listener {
     @Override
     public List<DamageElement> getElements(List<String> elements) {
         return elements.stream().map(this::getElement).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getElementIds() {
+        return new ArrayList<>(this.damage_elements.keySet());
     }
 
     @Override
@@ -260,6 +340,14 @@ public final class DamageManager implements IDamageManager, Listener {
             CoreEntity attacker = null;
             CoreEntity defender = null;
 
+            // non-weapon slot cannot deal any damage
+            if (((EntityDamageByEntityEvent) e).getDamager() instanceof Player) {
+                Player player = (Player) ((EntityDamageByEntityEvent) e).getDamager();
+                if (player.getInventory().getHeldItemSlot() != 0) {
+                    return;
+                }
+            }
+
             // retrieve relevant entities that we are using
             Entity vanilla_attacker = ((EntityDamageByEntityEvent) e).getDamager();
             Entity vanilla_defender = e.getEntity();
@@ -277,7 +365,9 @@ public final class DamageManager implements IDamageManager, Listener {
             // only inflict damage if both parties exist
             if (attacker != null && defender != null) {
                 // inflict weapon type damage on the entity
-                damage(getType("WEAPON").create(defender, attacker));
+                DamageInteraction interaction = getType("WEAPON").create(defender, attacker);
+                interaction.setDamageBlame("autoattack");
+                damage(interaction);
                 // update the rage on the given mob
                 if (defender instanceof CoreMob) {
                     IEntityBase base = ((CoreMob) defender).getBase();

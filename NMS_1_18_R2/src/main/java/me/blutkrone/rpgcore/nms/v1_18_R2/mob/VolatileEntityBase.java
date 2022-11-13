@@ -21,10 +21,9 @@ import org.bukkit.craftbukkit.v1_18_R2.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMob;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.util.NumberConversions;
-import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -53,14 +52,36 @@ public class VolatileEntityBase implements IEntityBase {
     }
 
     @Override
-    public boolean walkTo(Entity entity, double speed) {
-        return walkTo(entity.getLocation(), speed);
+    public boolean walkTo(LivingEntity entity, double speed) {
+        // ensure location is in the same world
+        if (entity.getWorld() != this.getBukkitHandle().getWorld()) {
+            return false;
+        }
+        // make sure we can walk towards target
+        Location where = entity.getLocation();
+        if (!this.getInsentient().D().a(where.getX(), where.getY(), where.getZ(), speed)) {
+            return false;
+        }
+        // look at the target location
+        this.look(entity.getEyeLocation());
+        // we are done
+        return true;
     }
 
     @Override
     public boolean walkTo(Location where, double speed) {
-        return where.getWorld() == this.getBukkitHandle().getWorld()
-                && this.getInsentient().D().a(where.getX(), where.getY(), where.getZ(), speed);
+        // ensure location is in the same world
+        if (where.getWorld() != this.getBukkitHandle().getWorld()) {
+            return false;
+        }
+        // make sure we can walk towards target
+        if (!this.getInsentient().D().a(where.getX(), where.getY(), where.getZ(), speed)) {
+            return false;
+        }
+        // look at the target location
+        this.look(where);
+        // we are done
+        return true;
     }
 
     @Override
@@ -69,15 +90,26 @@ public class VolatileEntityBase implements IEntityBase {
     }
 
     @Override
-    public boolean stroll(int minimum, int maximum, double speed) {
+    public boolean stroll(int minimum, int maximum, double speed, Predicate<Location> predicate) {
         EntityInsentient insentient = getInsentient();
         if (insentient instanceof EntityCreature) {
             EntityCreature creature = (EntityCreature) insentient;
+            org.bukkit.World world = insentient.getBukkitEntity().getWorld();
+
             // find a location to stroll towards
-            Vec3D where = LandRandomPos.a(creature, maximum, minimum);
-            if (where == null) {
-                where = DefaultRandomPos.a(creature, maximum, minimum);
+            Vec3D where = null;
+            for (int i = 0; i < 6 && where == null; i++) {
+                // pool a random location
+                where = LandRandomPos.a(creature, maximum, minimum);
+                if (where == null) {
+                    where = DefaultRandomPos.a(creature, maximum, minimum);
+                }
+                // ensure it matches condition
+                if (where != null && !predicate.test(new Location(world, where.b, where.c, where.d))) {
+                    where = null;
+                }
             }
+
             // if we got the target, stroll there
             if (where != null) {
                 return insentient.D().a(where.b, where.c, where.d, speed);
@@ -94,21 +126,8 @@ public class VolatileEntityBase implements IEntityBase {
 
     @Override
     public void look(Location location) {
-        if (location.getWorld() == this.getBukkitHandle().getWorld()) {
-            Vector v1 = location.toVector();
-            Vector v2 = getBukkitHandle().getLocation().toVector();
-            Vector v3 = v1.subtract(v2).normalize();
-
-            double theta = Math.atan2(-v3.getX(), v3.getZ());
-            double x2 = NumberConversions.square(v3.getX());
-            double z2 = NumberConversions.square(v3.getZ());
-            double xz = Math.sqrt(x2 + z2);
-
-            float yaw = (float) Math.toDegrees((theta + (2*Math.PI)) % (2*Math.PI));
-            float pitch = (float) Math.toDegrees(Math.atan(-v3.getY() / xz));
-
-            getBukkitHandle().setRotation(yaw, pitch);
-        }
+        EntityInsentient insentient = getInsentient();
+        insentient.z().a(location.getX(), location.getY(), location.getZ());
     }
 
     @Override
@@ -174,6 +193,16 @@ public class VolatileEntityBase implements IEntityBase {
         // no routine found, we can just die
         callback.run();
         return true;
+    }
+
+    @Override
+    public void resetRage() {
+        // clear off rage related parameters
+        getAI().rage_entity = null;
+        getAI().rage_value = 0;
+        getAI().rage_cooldown = 0;
+        getAI().rage_focus = 0;
+        getAI().rage_maximum = 0;
     }
 
     @Override

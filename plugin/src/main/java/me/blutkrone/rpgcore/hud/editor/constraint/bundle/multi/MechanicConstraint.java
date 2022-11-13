@@ -46,6 +46,10 @@ public class MechanicConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("face", EditorFaceMechanic::new);
         id_to_constructor.put("effect", EditorEffectMechanic::new);
         id_to_constructor.put("hint", EditorHintMechanic::new);
+        id_to_constructor.put("stack", EditorStackMechanic::new);
+        id_to_constructor.put("ward", EditorWardMechanic::new);
+        id_to_constructor.put("instant", EditorInstantMechanic::new);
+        id_to_constructor.put("trigger", EditorTriggerMechanic::new);
 
         class_to_id.put(EditorLogicBranchMechanic.class, "branch");
         class_to_id.put(EditorLogicMultiMechanic.class, "multi");
@@ -77,6 +81,11 @@ public class MechanicConstraint extends AbstractMultiConstraint {
         class_to_id.put(EditorFaceMechanic.class, "face");
         class_to_id.put(EditorEffectMechanic.class, "effect");
         class_to_id.put(EditorHintMechanic.class, "hint");
+        class_to_id.put(EditorStackMechanic.class, "stack");
+        class_to_id.put(EditorWardMechanic.class, "ward");
+        class_to_id.put(EditorInstantMechanic.class, "instant");
+        class_to_id.put(EditorTriggerMechanic.class, "trigger");
+
     }
 
     @Override

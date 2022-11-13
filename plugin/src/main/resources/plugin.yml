@@ -12,7 +12,8 @@ libraries:
 - "net.objecthunter:exp4j:0.4.8"
 - "org.mongodb:mongo-java-driver:3.12.7"
 - "org.jsoup:jsoup:1.15.2"
-softdepend: [ProtocolLib, WorldGuard, ModelEngine, BeautyQuests, AccountsPlugin, Citizens]
+- "com.github.depsypher:pngtastic:1.7"
+softdepend: [ProtocolLib, WorldGuard, ModelEngine]
 
 commands:
   rpg:

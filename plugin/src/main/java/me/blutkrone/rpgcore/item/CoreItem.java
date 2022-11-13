@@ -18,10 +18,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CoreItem {
     private final String id;
@@ -63,6 +60,8 @@ public class CoreItem {
     private String bank_group;
     private int bank_quantity;
     private String bank_symbol;
+
+    private Map<String, String> hidden_data;
 
     /**
      * A container for information on how the given item
@@ -109,6 +108,17 @@ public class CoreItem {
         this.bank_group = editor.bank_group;
         this.bank_quantity = Math.max(1, (int) editor.bank_quantity);
         this.bank_symbol = editor.bank_symbol;
+        this.hidden_data = new HashMap<>(editor.hidden_data);
+    }
+
+    /**
+     * Check hidden internal data, this may be null.
+     *
+     * @param id tag to search for.
+     * @return value associated with tag.
+     */
+    public Optional<String> getHidden(String id) {
+        return Optional.ofNullable(this.hidden_data.get(id.toLowerCase()));
     }
 
     /**
@@ -145,7 +155,7 @@ public class CoreItem {
         }
 
         // generate appropriate lore for the item
-        manager.describe(item);
+        manager.describe(item, player);
 
         // offer up the item that was generated
         return item;
@@ -178,7 +188,7 @@ public class CoreItem {
         }
 
         // generate appropriate lore for the item
-        manager.describe(item);
+        manager.describe(item, player);
 
         // offer up the item that was generated
         return item;
@@ -207,7 +217,7 @@ public class CoreItem {
         data.set(keying, PersistentDataType.STRING, this.getId());
         item.setItemMeta(meta);
         // describe item to use
-        manager.describe(item);
+        manager.describe(item, null);
 
         return item;
     }

@@ -6,6 +6,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.design.Design;
 import me.blutkrone.rpgcore.hud.editor.design.DesignCategory;
 import me.blutkrone.rpgcore.hud.editor.design.designs.DesignList;
+import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
@@ -30,10 +31,11 @@ public class FocusQueue {
      * of relevant elements.
      *
      * @param menu the menu we are linked to
+     * @param index the original index we are editing
      */
-    public FocusQueue(EditorMenu menu) {
+    public FocusQueue(EditorMenu menu, EditorIndex<?, ?> index) {
         this.menu = menu;
-        this.queue.add(new NullFocus());
+        this.queue.add(new NullFocus(index));
     }
 
     /**
@@ -65,8 +67,7 @@ public class FocusQueue {
      * Reset the entire focus queue.
      */
     public void clearFocus() {
-        this.queue.clear();
-        this.queue.add(new NullFocus());
+        this.queue.subList(1, this.queue.size()).clear();
     }
 
     /**
@@ -97,11 +98,12 @@ public class FocusQueue {
      * Set the focus on a root element, we may precede with other
      * root elements for cross reference related things.
      *
-     * @param id the identifier of the root element
+     * @param id the identifier of the root element.
      * @param root the element we are focusing on.
+     * @param index the index we've pulled from.
      */
-    public void setFocusToRoot(String id, IEditorRoot root) {
-        this.queue.add(new ElementFocus(id, root));
+    public void setFocusToRoot(String id, IEditorRoot root, EditorIndex index) {
+        this.queue.add(new ElementFocus(id, index, root));
     }
 
     /**
@@ -137,6 +139,13 @@ public class FocusQueue {
          * @return size of the viewport
          */
         public abstract int getSize();
+
+        /**
+         * Grab the index from this focus, this may not exist.
+         *
+         * @return the index we've grabbed
+         */
+        public abstract EditorIndex getIndex();
     }
 
     /**
@@ -145,14 +154,25 @@ public class FocusQueue {
      */
     public class NullFocus extends AbstractFocus {
 
+        private final EditorIndex<?, ?> index;
+
+        public NullFocus(EditorIndex<?, ?> index) {
+            this.index = index;
+        }
+
         @Override
         public int getSize() {
             // size is the editing history of the user
             Player viewer = menu.getMenu().getViewer();
             CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(viewer);
             List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
-            filtered_history.removeIf(history -> !menu.getIndex().has(history));
+            filtered_history.removeIf(history -> !getIndex().has(history));
             return filtered_history.size();
+        }
+
+        @Override
+        public EditorIndex getIndex() {
+            return index;
         }
     }
 
@@ -167,13 +187,15 @@ public class FocusQueue {
 
         Design design;
 
+        EditorIndex index;
+
         /**
          * Used for bundle elements.
          *
          * @param bundle the bundle to focus
          */
         ElementFocus(IEditorBundle bundle) {
-            this(null, bundle);
+            this(null, null, bundle);
         }
 
         /**
@@ -182,10 +204,11 @@ public class FocusQueue {
          * @param id root element identifier
          * @param bundle bundle or root element
          */
-        ElementFocus(String id, IEditorBundle bundle) {
+        ElementFocus(String id, EditorIndex index, IEditorBundle bundle) {
             this.id = id;
             this.bundle = bundle;
             this.design = menu.getDesigns().computeIfAbsent(bundle.getClass(), Design::new);
+            this.index = index;
             if (design.getCategories().size() == 1) {
                 this.category = this.design.getCategories().get(0);
             }
@@ -268,13 +291,6 @@ public class FocusQueue {
             return design;
         }
 
-        /**
-         * This is either the number of categories, if we haven't scoped
-         * on a category, or the number of elements in the category we did
-         * scope on.
-         *
-         * @return current size factor.
-         */
         @Override
         public int getSize() {
             if (this.category == null) {
@@ -282,6 +298,11 @@ public class FocusQueue {
             } else {
                 return this.category.getElements().size();
             }
+        }
+
+        @Override
+        public EditorIndex getIndex() {
+            return index;
         }
     }
 
@@ -333,6 +354,11 @@ public class FocusQueue {
         @Override
         public int getSize() {
             return getValues().size();
+        }
+
+        @Override
+        public EditorIndex getIndex() {
+            return null;
         }
 
         /**

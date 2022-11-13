@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -189,7 +188,7 @@ public class CoreRefinerRecipe {
     public void playEffectWorking(Player player) {
         if (!this.effect_working.equalsIgnoreCase("NOTHINGNESS")) {
             CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(this.effect_working);
-            effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+            effect.show(player.getLocation(), player);
         }
     }
 
@@ -201,7 +200,7 @@ public class CoreRefinerRecipe {
     public void playEffectFinished(Player player) {
         if (!this.effect_finished.equalsIgnoreCase("NOTHINGNESS")) {
             CoreEffect effect = RPGCore.inst().getEffectManager().getIndex().get(this.effect_finished);
-            effect.show(player.getLocation(), 1d, Collections.singletonList(player));
+            effect.show(player.getLocation(), player);
         }
     }
 }

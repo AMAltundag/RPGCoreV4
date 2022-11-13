@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
@@ -14,6 +15,7 @@ import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
 import me.blutkrone.rpgcore.item.styling.DefaultItemDescriptor;
 import me.blutkrone.rpgcore.item.styling.ItemStylingRule;
+import me.blutkrone.rpgcore.item.styling.SkillItemDescriptor;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
@@ -36,8 +38,10 @@ import org.bukkit.persistence.PersistentDataType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Manages all itemization available across the core.
@@ -59,7 +63,10 @@ public class ItemManager implements Listener {
 
     // rules which process item design
     private Map<String, ItemStylingRule> styling_rules = new HashMap<>();
-    private IItemDescriber describer;
+    private Map<String, IItemDescriber> describers = new HashMap<>();
+
+    // previews of items used by core
+    private IndexAttachment<CoreItem, Map<String, ItemStack>> preview_attachment;
 
     public ItemManager() {
         this.item_index = new EditorIndex<>("item", EditorItem.class, EditorItem::new);
@@ -81,19 +88,39 @@ public class ItemManager implements Listener {
             ex.printStackTrace();
         }
 
-        this.describer = new DefaultItemDescriptor();
+        this.describers.put("default", new DefaultItemDescriptor());
+        this.describers.put("skill", new SkillItemDescriptor());
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+
+        this.preview_attachment = this.item_index.createAttachment((index) -> {
+            Map<String, ItemStack> previews = new HashMap<>();
+            for (CoreItem item : index.getAll()) {
+                previews.put(item.getId(), item.acquire(null, 0d));
+            }
+            return previews;
+        });
     }
 
     /**
-     * Define a custom implementation which generates the lore
-     * of an item.
+     * Previews are prepared for items, this is necessary as to ensure
+     * that the pipeline is completely initialized.
      *
-     * @param describer which descriptor to use.
+     * @return the previews we've prepared, should be up-to-date but isn't
+     *         guaranteed to.
      */
-    public void setDescriber(IItemDescriber describer) {
-        this.describer = describer;
+    public IndexAttachment<CoreItem, Map<String, ItemStack>> getPreviews() {
+        return preview_attachment;
+    }
+
+    /**
+     * A describer controls how to lore of an item is to be
+     * rendered.
+     *
+     * @return what describers we have registered.
+     */
+    public Map<String, IItemDescriber> getDescribers() {
+        return describers;
     }
 
     /**
@@ -226,8 +253,9 @@ public class ItemManager implements Listener {
      * Generate an appropriate description for the item.
      *
      * @param item the item we are to describe.
+     * @param player who will see the item.
      */
-    public void describe(ItemStack item) {
+    public void describe(ItemStack item, CorePlayer player) {
         if (item == null) {
             return;
         }
@@ -239,39 +267,33 @@ public class ItemManager implements Listener {
         }
 
         try {
-            this.describer.describe(item);
-
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
+            ItemDataGeneric data = getItemData(item, ItemDataGeneric.class);
+            if (data != null) {
+                // check what describer we want to utilize
+                IItemDescriber describer = null;
+                ItemStylingRule rule = getStylingRule(data.getItem().getStyling());
+                if (rule != null) {
+                    describer = getDescribers().get(rule.getRender());
+                }
+                // apply description, or show an error
+                if (describer == null) {
+                    ItemMeta meta = item.getItemMeta();
+                    meta.setLore(Collections.singletonList("Item ID " + data.getItem().getId() + " has no proper styling!"));
+                    item.setItemMeta(meta);
+                } else {
+                    describer.describe(item, player);
+                }
+                // apply flags to hide unwanted details
+                ItemMeta meta = item.getItemMeta();
                 meta.addItemFlags(ItemFlag.values());
+                item.setItemMeta(meta);
             }
+        } catch (Exception e) {
+            ItemMeta meta = item.getItemMeta();
+            meta.setLore(Collections.singletonList("Something went wrong!"));
             item.setItemMeta(meta);
-        } catch (Exception e) {
             Bukkit.getLogger().severe("Something went wrong while describing an item ...");
-        }
-    }
-
-    /**
-     * Generate an appropriate description for the item.
-     *
-     * @param item         the item we are to describe.
-     * @param unidentified scramble or hide information.
-     */
-    public void describe(ItemStack item, boolean unidentified) {
-        if (item == null) {
-            return;
-        }
-        if (item.getType().isAir()) {
-            return;
-        }
-        if (!item.hasItemMeta()) {
-            return;
-        }
-
-        try {
-            this.describer.describe(item);
-        } catch (Exception e) {
-            Bukkit.getLogger().severe("Something went wrong while describing an item ...");
+            e.printStackTrace();
         }
     }
 
@@ -303,6 +325,18 @@ public class ItemManager implements Listener {
             RPGCore.inst().getHUDManager().getJewelMenu().open((Player) e.getWhoClicked());
             return;
         }
+    }
+
+    /**
+     * Grab the core item from the stack, this will <b>only</b> return
+     * nothing should the stack not be created by rpgcore.
+     *
+     * @param stack the stack to check
+     * @return the template the stack was created from
+     */
+    public Optional<CoreItem> getItemFrom(ItemStack stack) {
+        ItemDataGeneric data = getItemData(stack, ItemDataGeneric.class);
+        return data == null ? Optional.empty() : Optional.of(data.getItem());
     }
 
     /**

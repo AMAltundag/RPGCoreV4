@@ -8,8 +8,8 @@ import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
 import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindCast;
+import me.blutkrone.rpgcore.skill.trigger.CoreCastTrigger;
 import me.blutkrone.rpgcore.util.Utility;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
@@ -47,6 +47,11 @@ public class CastSkillActivity implements ISkillActivity {
         this.time_have = 0;
         this.instability = 0d;
         this.snapshot = context.getLocation();
+
+        // instant cast should max out cast time
+        if (context.getCoreEntity().hasInstantCast(getSkill(), true)) {
+            this.time_have = this.time_want;
+        }
     }
 
     @Override
@@ -78,11 +83,13 @@ public class CastSkillActivity implements ISkillActivity {
         this.instability *= 0.95d;
         // gain an appropriate amount of cast progress
         this.time_have += 1d / Math.sqrt(1d + this.instability);
-        Bukkit.getLogger().severe(String.format("CAST %.1f/%.1f", this.time_have, this.time_want));
 
         // if we didn't cap, we are done
         if (this.time_have < this.time_want)
             return false;
+
+        // invoke the skill trigger
+        this.context.getCoreEntity().proliferateTrigger(CoreCastTrigger.class, this);
 
         // track the working pipelines
         for (CoreAction action : this.binding.actions) {

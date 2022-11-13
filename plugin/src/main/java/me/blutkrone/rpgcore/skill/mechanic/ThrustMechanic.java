@@ -22,16 +22,26 @@ public class ThrustMechanic extends AbstractCoreMechanic {
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         double power = this.power.evalAsDouble(context);
-        double drag = Math.sqrt(1d+Math.max(0d, this.drag.evalAsDouble(context)));
-        drag = 1d - (1d / drag);
-
+        double drag = this.drag.evalAsDouble(context);
+        if (drag >= 0.01d) {
+            drag = Math.sqrt(1d+Math.max(0d, drag));
+            drag = 1d - (1d / drag);
+        }
         for (IOrigin target : targets) {
             if (target instanceof CoreEntity) {
                 LivingEntity entity = ((CoreEntity) target).getEntity();
                 Vector before = entity.getVelocity();
-                Vector after = entity.getEyeLocation().getDirection();
-                Vector merge = before.multiply(drag).add(after.multiply(1d-drag));
-                entity.setVelocity(merge.normalize().multiply(power));
+                if (drag <= 0.01d) {
+                    // adds to velocity
+                    Vector after = entity.getEyeLocation().getDirection();
+                    before.add(after.multiply(power));
+                    entity.setVelocity(before);
+                } else {
+                    // sets as velocity
+                    Vector after = entity.getEyeLocation().getDirection();
+                    Vector merge = before.multiply(drag).add(after.multiply(1d-drag));
+                    entity.setVelocity(merge.normalize().multiply(power));
+                }
             }
         }
     }
