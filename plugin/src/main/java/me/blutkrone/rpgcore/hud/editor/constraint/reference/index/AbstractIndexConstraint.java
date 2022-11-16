@@ -12,11 +12,11 @@ public abstract class AbstractIndexConstraint implements IEditorConstraint {
 
     /**
      * Which index we are linked to.
-     * 
+     *
      * @return index we are linked to
      */
     public abstract EditorIndex<?, ?> getIndex();
-    
+
     @Override
     public List<String> getHint(String value) {
         value = value.toLowerCase();

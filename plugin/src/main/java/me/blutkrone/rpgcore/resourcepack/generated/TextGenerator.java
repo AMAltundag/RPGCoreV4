@@ -136,41 +136,41 @@ public class TextGenerator {
      *
      * @return
      */
-    private static List<ResourcePackFont> newList() {
+    public static List<ResourcePackFont> newList() {
         List<ResourcePackFont> generated = new ArrayList<>();
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -3, Collections.singletonList("\uF801")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -4, Collections.singletonList("\uF802")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -5, Collections.singletonList("\uF803")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -6, Collections.singletonList("\uF804")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -7, Collections.singletonList("\uF805")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -8, Collections.singletonList("\uF806")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -9, Collections.singletonList("\uF807")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -10, Collections.singletonList("\uF808")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -18, Collections.singletonList("\uF809")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -34, Collections.singletonList("\uF80a")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -66, Collections.singletonList("\uF80b")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -130, Collections.singletonList("\uF80c")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -258, Collections.singletonList("\uF80d")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -514, Collections.singletonList("\uF80e")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -1026, Collections.singletonList("\uF80f")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, -0, Collections.singletonList("\uF821")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 1, Collections.singletonList("\uF821")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 2, Collections.singletonList("\uF822")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 3, Collections.singletonList("\uF823")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 3, Collections.singletonList("\uF824")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 4, Collections.singletonList("\uF825")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 5, Collections.singletonList("\uF826")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 6, Collections.singletonList("\uF827")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 7, Collections.singletonList("\uF828")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 15, Collections.singletonList("\uF829")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 31, Collections.singletonList("\uF82a")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 63, Collections.singletonList("\uF82b")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 127, Collections.singletonList("\uF82c")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 255, Collections.singletonList("\uF82d")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 511, Collections.singletonList("\uF82e")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 1023, Collections.singletonList("\uF82f")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32770, -32770, Collections.singletonList("\uF800")));
-        generated.add(new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, 32767, Collections.singletonList("\uF820")));
+
+        generated.add(ResourcePackFont.getAsAmberSpace(-3,    "\uF801"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-4,    "\uF802"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-5,    "\uF803"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-6,    "\uF804"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-7,    "\uF805"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-8,    "\uF806"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-9,    "\uF807"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-10,   "\uF808"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-18,   "\uF809"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-34,   "\uF80a"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-66,   "\uF80b"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-130,  "\uF80c"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-258,  "\uF80d"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-514,  "\uF80e"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-1026, "\uF80f"));
+
+        generated.add(ResourcePackFont.getAsAmberSpace(1,     "\uF821"));
+        generated.add(ResourcePackFont.getAsAmberSpace(2,     "\uF822"));
+        generated.add(ResourcePackFont.getAsAmberSpace(3,     "\uF823"));
+        generated.add(ResourcePackFont.getAsAmberSpace(3,     "\uF824"));
+        generated.add(ResourcePackFont.getAsAmberSpace(4,     "\uF825"));
+        generated.add(ResourcePackFont.getAsAmberSpace(5,     "\uF826"));
+        generated.add(ResourcePackFont.getAsAmberSpace(6,     "\uF827"));
+        generated.add(ResourcePackFont.getAsAmberSpace(7,     "\uF828"));
+        generated.add(ResourcePackFont.getAsAmberSpace(15,    "\uF829"));
+        generated.add(ResourcePackFont.getAsAmberSpace(31,    "\uF82a"));
+        generated.add(ResourcePackFont.getAsAmberSpace(63,    "\uF82b"));
+        generated.add(ResourcePackFont.getAsAmberSpace(127,   "\uF82c"));
+        generated.add(ResourcePackFont.getAsAmberSpace(255,   "\uF82d"));
+        generated.add(ResourcePackFont.getAsAmberSpace(511,   "\uF82e"));
+        generated.add(ResourcePackFont.getAsAmberSpace(1023,  "\uF82f"));
+
         return generated;
     }
 
@@ -188,7 +188,7 @@ public class TextGenerator {
         int global = -1;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (((image.getRGB(x, y) >> 24) & 0xff) != 0) {
+                if ((image.getRGB(x, y) >> 24 & 0xff) != 0) {
                     global = Math.max(global, x);
                 }
             }

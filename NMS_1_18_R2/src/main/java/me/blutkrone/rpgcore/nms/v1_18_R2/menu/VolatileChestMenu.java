@@ -22,8 +22,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class VolatileChestMenu extends CraftInventoryCustom implements IChestMenu {
@@ -51,8 +49,6 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     private Consumer<InventoryCloseEvent> close_event_handler;
     private Consumer<InventoryCreativeEvent> creative_event_handler;
     private Runnable rebuild_handler;
-    // data object wrapper for the menu
-    private Map<String, Object> data = new HashMap<>();
     // ticker, only while menu is being viewed
     private Runnable ticking_handler;
     // used to not send packets (interaction detection fails.)

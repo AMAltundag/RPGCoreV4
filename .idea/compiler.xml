@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="api" />
         <module name="NMS_1_18_R1" />
+        <module name="NMS_1_19_R1" />
         <module name="plugin" />
         <module name="rpgcore-api" />
         <module name="rpgcore-nms-1_18_R1" />
@@ -16,6 +17,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="9">
+      <module name="NMS_1_19_R1" target="1.8" />
       <module name="rpgcore-api" target="1.8" />
       <module name="rpgcore-nms-1_18_R2" target="1.8" />
       <module name="rpgcore-parent" target="1.8" />

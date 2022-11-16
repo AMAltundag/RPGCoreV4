@@ -29,12 +29,8 @@ public final class Utility {
         return world.isChunkLoaded(x, z);
     }
 
-    public static int measureWidthExact(String message) {
-        return measureWidth(message) - 1;
-    }
-
-    public static int measureWidth(String message) {
-        return RPGCore.inst().getResourcePackManager().measure(message);
+    public static int measure(String message) {
+        return RPGCore.inst().getResourcePackManager().measure(message) - 1;
     }
 
     public static String makeMMSS(long seconds) {

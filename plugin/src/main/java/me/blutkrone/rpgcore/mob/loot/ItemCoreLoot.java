@@ -108,7 +108,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
             // one item is always picked
             picked.add(item_choice.next());
             // additional items picked via rarity
-            double working_rarity = Math.sqrt(100*rarity)*0.01;
+            double working_rarity = Math.sqrt(100 * rarity) * 0.01;
             while (Math.random() <= working_rarity--) {
                 picked.add(item_choice.next());
             }
@@ -120,7 +120,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
             // drop a physical copy of the item
             ItemStack bukkit_stack = rarest_option.acquire(killer, (0.3 * quality) + (0.7 * Math.random() * quality));
             Item item_entity = location.getWorld().dropItem(location, bukkit_stack);
-            item_entity.setVelocity(new Vector(Math.random()*2-1, 0.7d, Math.random()*2-1).multiply(0.25d));
+            item_entity.setVelocity(new Vector(Math.random() * 2 - 1, 0.7d, Math.random() * 2 - 1).multiply(0.25d));
         }
     }
 

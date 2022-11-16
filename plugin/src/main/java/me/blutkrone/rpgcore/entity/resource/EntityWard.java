@@ -204,7 +204,7 @@ public class EntityWard implements IEntityEffect {
             this.current_amount = Math.min(this.maximum_amount, stack);
             this.duration = duration;
         } else {
-            this.current_amount = Math.min(this.maximum_amount, this.current_amount+stack);
+            this.current_amount = Math.min(this.maximum_amount, this.current_amount + stack);
             this.duration = this.duration + duration;
         }
 

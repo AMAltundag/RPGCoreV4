@@ -24,7 +24,7 @@ public class ThrustMechanic extends AbstractCoreMechanic {
         double power = this.power.evalAsDouble(context);
         double drag = this.drag.evalAsDouble(context);
         if (drag >= 0.01d) {
-            drag = Math.sqrt(1d+Math.max(0d, drag));
+            drag = Math.sqrt(1d + Math.max(0d, drag));
             drag = 1d - (1d / drag);
         }
         for (IOrigin target : targets) {
@@ -39,7 +39,7 @@ public class ThrustMechanic extends AbstractCoreMechanic {
                 } else {
                     // sets as velocity
                     Vector after = entity.getEyeLocation().getDirection();
-                    Vector merge = before.multiply(drag).add(after.multiply(1d-drag));
+                    Vector merge = before.multiply(drag).add(after.multiply(1d - drag));
                     entity.setVelocity(merge.normalize().multiply(power));
                 }
             }

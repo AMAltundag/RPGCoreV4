@@ -87,9 +87,9 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
         workspace.bossbar().shiftToExact(render_point);
         workspace.bossbar().append(rpm.texture("static_focus_front"));
         // draw the name atop the focus bar
-        workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2 + 1, Utility.measureWidthExact(prepared.name));
+        workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2 + 1, Utility.measure(prepared.name));
         workspace.bossbar().shadow(prepared.name, "hud_focus_name");
-        workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2, Utility.measureWidthExact(prepared.name));
+        workspace.bossbar().shiftCentered(core_player.getSettings().screen_width / 2, Utility.measure(prepared.name));
         workspace.bossbar().append(prepared.name, "hud_focus_name");
     }
 
@@ -111,15 +111,15 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
         // write duration if it did not exceed time limit
         if (time != Integer.MAX_VALUE) {
             String time_string = RPGCore.inst().getLanguageManager().formatShortTicks(time);
-            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12, Utility.measureWidthExact(time_string));
+            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12, Utility.measure(time_string));
             workspace.bossbar().append(time_string, "hud_status_time_focus");
         }
         // write stack count into the frame
         if (stack > 1) {
             String stack_string = RPGCore.inst().getLanguageManager().formatShortNumber(stack);
-            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12 + 1, Utility.measureWidthExact(stack_string));
+            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12 + 1, Utility.measure(stack_string));
             workspace.bossbar().shadow(stack_string, "hud_status_stack_focus");
-            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12, Utility.measureWidthExact(stack_string));
+            workspace.bossbar().shiftCentered(renderpoint + this.focus_status_offset + (index * 26) + 12, Utility.measure(stack_string));
             workspace.bossbar().append(stack_string, "hud_status_stack_focus");
         }
     }
@@ -168,7 +168,7 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
                 IActivity activity = entity.getActivity();
                 if (activity instanceof ISkillActivity) {
                     ISkillActivity skill_activity = (ISkillActivity) activity;
-                    this.info_text= skill_activity.getInfoText();
+                    this.info_text = skill_activity.getInfoText();
                 }
             }
             // info on mob rage/sigils

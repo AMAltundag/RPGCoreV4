@@ -10,7 +10,6 @@ import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobLogic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.mechanic.*;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +27,6 @@ public class CoreAction {
     public List<AbstractCoreMechanic> mechanics = new ArrayList<>();
 
     /**
-     *
      * @param editor
      */
     public CoreAction(EditorMobLogic editor) {
@@ -45,7 +43,6 @@ public class CoreAction {
     }
 
     /**
-     *
      * @param editor
      */
     public CoreAction(EditorAction editor) {

@@ -13,7 +13,7 @@ import java.util.List;
  * Stalls execution of a logic thread, until a certain amount
  * of damage is dealt. The damage will not be passed on to the
  * health of the mob.
- *
+ * <p>
  * You cannot have multiple barriers at once.
  */
 public class BarrierMechanic extends AbstractCoreMechanic {

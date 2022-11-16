@@ -40,7 +40,7 @@ public class CoreEffect {
     /**
      * Show an effect to the given entities.
      *
-     * @param where   anchor within absolute space
+     * @param where anchor within absolute space
      * @return linked effect task
      */
     public BukkitTask show(Location where) {
@@ -59,8 +59,8 @@ public class CoreEffect {
     /**
      * Show an effect to the given entities.
      *
-     * @param where   anchor within absolute space
-     * @param scale   additional size scaling for effect
+     * @param where anchor within absolute space
+     * @param scale additional size scaling for effect
      */
     public void show(Location where, double scale) {
         ActiveEffect active = new ActiveEffect(where, scale, new EffectObservation(where), this.parts);

@@ -13,7 +13,7 @@ public class CorePassiveEntityAttribute extends AbstractCorePassive {
 
     public CorePassiveEntityAttribute(EditorPassiveEntityAttribute editor) {
         for (EditorAttributeAndFactor factor : editor.factors) {
-            this.factor.merge(factor.attribute.toLowerCase(), factor.factor, (a,b) -> a+b);
+            this.factor.merge(factor.attribute.toLowerCase(), factor.factor, (a, b) -> a + b);
         }
     }
 

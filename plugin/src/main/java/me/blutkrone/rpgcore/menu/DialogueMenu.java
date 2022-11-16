@@ -192,13 +192,13 @@ public class DialogueMenu extends AbstractCoreMenu {
 
             // create lines with word length limits
             StringBuilder sb = new StringBuilder();
-            int length = Utility.measureWidth(words.get(0));
+            int length = Utility.measure(words.get(0));
             sb.append(words.remove(0));
 
             // remaining words are to be appended
             for (String word : words) {
                 // accumulate words until linebreak
-                int word_length = Utility.measureWidth(" " + word);
+                int word_length = Utility.measure(" " + word);
                 if ((length + word_length) > 234) {
                     output.add(sb.toString());
                     sb = new StringBuilder();

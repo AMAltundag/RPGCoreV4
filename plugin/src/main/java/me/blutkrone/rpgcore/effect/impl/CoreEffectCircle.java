@@ -45,7 +45,7 @@ public class CoreEffectCircle implements CoreEffect.IEffectPart {
             for (int i = 0; i < density; i++) {
                 double theta = i * PHI;
                 double r = Math.sqrt(i) / Math.sqrt(density);
-                if (Math.abs(r*maximum) >= minimum) {
+                if (Math.abs(r * maximum) >= minimum) {
                     // identify the point on the disk
                     double x = r * maximum * Math.cos(theta);
                     double y = r * maximum * Math.sin(theta);
@@ -98,7 +98,7 @@ public class CoreEffectCircle implements CoreEffect.IEffectPart {
 
     @Override
     public List<CoreEffect.ISubPart> process(Location where, WeightedRandomMap<CoreEffectBrush> brush, double scale, EffectObservation viewing) {
-        if (Math.abs(maximum_diameter-minimum_diameter) > 0.01d) {
+        if (Math.abs(maximum_diameter - minimum_diameter) > 0.01d) {
             fiboCircle(where, brush, scale, viewing);
         } else {
             edgeCircle(where, brush, scale, viewing);

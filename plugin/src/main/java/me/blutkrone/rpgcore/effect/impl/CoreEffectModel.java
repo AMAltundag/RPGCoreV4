@@ -30,7 +30,7 @@ public class CoreEffectModel implements CoreEffect.IEffectPart {
     public List<CoreEffect.ISubPart> process(Location where, WeightedRandomMap<CoreEffectBrush> brush, double scale, EffectObservation viewing) {
         Location anchor = where.clone();
         if (scale > 0.01d) {
-            anchor.add(Math.random()*scale*scatter, Math.random()*scale*scatter, Math.random()*scale*scatter);
+            anchor.add(Math.random() * scale * scatter, Math.random() * scale * scatter, Math.random() * scale * scatter);
         }
         return Collections.singletonList(new Model(anchor, duration));
     }

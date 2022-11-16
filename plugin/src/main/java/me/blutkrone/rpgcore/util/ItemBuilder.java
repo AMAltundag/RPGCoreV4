@@ -1,7 +1,10 @@
 package me.blutkrone.rpgcore.util;
 
 import me.blutkrone.rpgcore.RPGCore;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -211,6 +214,7 @@ public class ItemBuilder {
 
         return this;
     }
+
     public ItemStack build() {
         this.stack.setItemMeta(this.meta);
         return this.stack;

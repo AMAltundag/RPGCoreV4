@@ -1,8 +1,13 @@
 package me.blutkrone.rpgcore.command.impl;
 
 import me.blutkrone.rpgcore.command.AbstractCommand;
+import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
+import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.List;
 
@@ -19,6 +24,7 @@ public class DebugCommand extends AbstractCommand {
 
     @Override
     public void invoke(CommandSender sender, String... args) {
+        new Test().finish(((Player) sender));
         // NavigationMenu.Cartography cartography = new NavigationMenu.Cartography(((Player) sender).getLocation());
         // CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(((Player) sender));
         // if (core_player != null) {
@@ -38,5 +44,41 @@ public class DebugCommand extends AbstractCommand {
     @Override
     public List<String> suggest(CommandSender sender, String... args) {
         return null;
+    }
+
+    private class Test extends AbstractCoreMenu {
+
+        public Test() {
+            super(3);
+        }
+
+        @Override
+        public void rebuild() {
+            MagicStringBuilder msb = new MagicStringBuilder();
+
+            if (Math.random() <= 0.5d) {
+                for (int i = 0; i < 50; i++) {
+                    if (i % 2 == 0) {
+                        msb.advance(i).append(".", ChatColor.RED);
+                    } else {
+                        msb.advance(i).append(".", ChatColor.BLUE);
+                    }
+                }
+            } else {
+                for (int i = 0; i < 50; i++) {
+                    if (i % 2 == 0) {
+                        msb.retreat(i).append(".", ChatColor.RED);
+                    } else {
+                        msb.retreat(i).append(".", ChatColor.BLUE);
+                    }
+                }
+            }
+
+            getMenu().setTitle(msb.compile());
+        }
+
+        @Override
+        public void click(InventoryClickEvent event) {
+        }
     }
 }

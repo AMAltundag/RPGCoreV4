@@ -20,35 +20,15 @@ public class ConeSelector extends AbstractCoreSelector {
     public ConeSelector(IEditorBundle editor) {
     }
 
-    @Override
-    public List<IOrigin> doSelect(IContext context, List<IOrigin> previous) {
-        double radius_min = this.radius_min.evalAsDouble(context);
-        double radius_max = this.radius_max.evalAsDouble(context);
-        double angle = this.angle.evalAsDouble(context);
-        // identify the anchor to base the cone off
-        List<IOrigin> origin = Arrays.asList(context.getCoreEntity());
-        for (AbstractCoreSelector selector : this.origin) {
-            origin = selector.doSelect(context, origin);
-        }
-        // no origin means filter failed
-        if (origin.isEmpty()) {
-            return previous;
-        }
-        // the pivot we are operating
-        IOrigin pivot = origin.iterator().next();
-        // filter the entities to the filtered entities
-        return ConeSelector.filter(pivot, radius_min, radius_max, angle, previous);
-    }
-
     /**
      * Applies a filter on the given subset of entities, the output
      * given is the
      *
-     * @param pivot the pivot to expand the cone from
+     * @param pivot      the pivot to expand the cone from
      * @param radius_min the radius of the cone
      * @param radius_max the radius of the cone
-     * @param angle the angle of the cone
-     * @param targets the entities to filter
+     * @param angle      the angle of the cone
+     * @param targets    the entities to filter
      * @return the targets within the cone shape
      */
     public static List<IOrigin> filter(IOrigin pivot, double radius_min, double radius_max, double angle, List<IOrigin> targets) {
@@ -81,5 +61,25 @@ public class ConeSelector extends AbstractCoreSelector {
         }
 
         return result;
+    }
+
+    @Override
+    public List<IOrigin> doSelect(IContext context, List<IOrigin> previous) {
+        double radius_min = this.radius_min.evalAsDouble(context);
+        double radius_max = this.radius_max.evalAsDouble(context);
+        double angle = this.angle.evalAsDouble(context);
+        // identify the anchor to base the cone off
+        List<IOrigin> origin = Arrays.asList(context.getCoreEntity());
+        for (AbstractCoreSelector selector : this.origin) {
+            origin = selector.doSelect(context, origin);
+        }
+        // no origin means filter failed
+        if (origin.isEmpty()) {
+            return previous;
+        }
+        // the pivot we are operating
+        IOrigin pivot = origin.iterator().next();
+        // filter the entities to the filtered entities
+        return ConeSelector.filter(pivot, radius_min, radius_max, angle, previous);
     }
 }

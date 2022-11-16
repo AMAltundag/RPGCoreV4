@@ -1,13 +1,11 @@
 package me.blutkrone.rpgcore.hud.editor.bundle.trigger;
 
-import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
 import me.blutkrone.rpgcore.skill.trigger.AbstractCoreTrigger;
 import me.blutkrone.rpgcore.skill.trigger.CoreWardBreakTrigger;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;

@@ -23,14 +23,14 @@ public class StallMechanic extends AbstractCoreMechanic {
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         throw new UnsupportedOperationException("Cannot be invoked directly!");
-     }
+    }
 
     /**
      * The mob is allowed to continue with their AI logic, once they've
      * fulfilled the condition.
      *
      * @return condition is fulfilled if we pass the mob thorough every
-     *         selector and have anyone remaining at the end of it.
+     * selector and have anyone remaining at the end of it.
      */
     public List<AbstractCoreSelector> getCondition() {
         return conditions;

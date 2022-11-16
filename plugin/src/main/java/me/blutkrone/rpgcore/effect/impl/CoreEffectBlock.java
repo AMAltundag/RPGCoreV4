@@ -62,9 +62,9 @@ public class CoreEffectBlock implements CoreEffect.IEffectPart {
             // one pass to sample random locations and go down
             for (int i = 0; i < samples; i++) {
                 // random offset
-                int diffX = (int) ((Math.random()*2-1) * distance);
-                int diffY = (int) ((Math.random()*2-1) * distance);
-                int diffZ = (int) ((Math.random()*2-1) * distance);
+                int diffX = (int) ((Math.random() * 2 - 1) * distance);
+                int diffY = (int) ((Math.random() * 2 - 1) * distance);
+                int diffZ = (int) ((Math.random() * 2 - 1) * distance);
                 // sample the block
                 Block block = anchor.getBlock().getRelative(diffX, diffY, diffZ);
                 // check if we can do down
@@ -83,9 +83,9 @@ public class CoreEffectBlock implements CoreEffect.IEffectPart {
             // one pass to sample random locations and go up
             for (int i = 0; i < samples; i++) {
                 // random offset
-                int diffX = (int) ((Math.random()*2-1) * distance);
-                int diffY = (int) ((Math.random()*2-1) * distance);
-                int diffZ = (int) ((Math.random()*2-1) * distance);
+                int diffX = (int) ((Math.random() * 2 - 1) * distance);
+                int diffY = (int) ((Math.random() * 2 - 1) * distance);
+                int diffZ = (int) ((Math.random() * 2 - 1) * distance);
                 // sample the block
                 Block block = anchor.getBlock().getRelative(diffX, diffY, diffZ);
                 // check if we can do down
@@ -104,13 +104,13 @@ public class CoreEffectBlock implements CoreEffect.IEffectPart {
             // one pass to throw random ray-traces (with random offset)
             for (int i = 0; i < samples; i++) {
                 // random offset
-                int diffX = (int) ((Math.random()*2-1) * distance);
-                int diffY = (int) ((Math.random()*2-1) * distance);
-                int diffZ = (int) ((Math.random()*2-1) * distance);
+                int diffX = (int) ((Math.random() * 2 - 1) * distance);
+                int diffY = (int) ((Math.random() * 2 - 1) * distance);
+                int diffZ = (int) ((Math.random() * 2 - 1) * distance);
                 // create random origin
                 Location origin = anchor.clone().add(diffX, diffY, diffZ);
                 // throw ray-trace to random direction
-                Vector vector = new Vector(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1);
+                Vector vector = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
                 RayTraceResult traced = world.rayTraceBlocks(origin, vector, spread, FluidCollisionMode.NEVER, true);
                 if (traced != null && traced.getHitBlock() != null && traced.getHitBlock().getType().isSolid()) {
                     sampled.add(traced.getHitBlock());

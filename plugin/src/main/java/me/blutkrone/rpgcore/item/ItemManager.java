@@ -107,7 +107,7 @@ public class ItemManager implements Listener {
      * that the pipeline is completely initialized.
      *
      * @return the previews we've prepared, should be up-to-date but isn't
-     *         guaranteed to.
+     * guaranteed to.
      */
     public IndexAttachment<CoreItem, Map<String, ItemStack>> getPreviews() {
         return preview_attachment;
@@ -252,7 +252,7 @@ public class ItemManager implements Listener {
     /**
      * Generate an appropriate description for the item.
      *
-     * @param item the item we are to describe.
+     * @param item   the item we are to describe.
      * @param player who will see the item.
      */
     public void describe(ItemStack item, CorePlayer player) {

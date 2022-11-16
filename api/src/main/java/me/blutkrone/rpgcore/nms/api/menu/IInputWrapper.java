@@ -37,7 +37,7 @@ public interface IInputWrapper {
      * Finish the construction of this menu, showing it to the
      * player and handling initialization.
      *
-     * @param player who will receive the menu.
+     * @param player   who will receive the menu.
      * @param defaults what message to start with.
      */
     void finish(Player player, String defaults);

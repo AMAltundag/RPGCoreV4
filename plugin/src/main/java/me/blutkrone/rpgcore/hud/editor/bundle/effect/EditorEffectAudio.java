@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.effect.impl.CoreEffectAudio;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
-import me.blutkrone.rpgcore.hud.editor.constraint.enums.SoundConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.SoundConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;

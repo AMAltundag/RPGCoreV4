@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.hud.editor;
 
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.design.Design;
 import me.blutkrone.rpgcore.menu.EditorMenu;
 
 import java.util.List;
@@ -125,7 +124,7 @@ public interface IEditorConstraint {
      * An attempt of focusing on an element, if the element doesn't
      * match any type we know we can return an error.
      *
-     * @param editor the editor we originate from
+     * @param editor  the editor we originate from
      * @param element the element we want to focus
      * @return true if we've focused
      */

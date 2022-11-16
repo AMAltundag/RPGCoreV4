@@ -13,8 +13,10 @@ public final class FontMagicConstant {
     }
 
     public static String advance(int depth) {
-        synchronized (THREAD_SAFETY) {
-            if (advance == null) init();
+        if (advance == null) {
+            synchronized (THREAD_SAFETY) {
+                if (advance == null) init();
+            }
         }
         if (depth == 0) return "";
         if (depth < 0) throw new IllegalArgumentException("Bad depth: " + depth);
@@ -28,8 +30,10 @@ public final class FontMagicConstant {
     }
 
     public static String retreat(int depth) {
-        synchronized (THREAD_SAFETY) {
-            if (advance == null) init();
+        if (advance == null) {
+            synchronized (THREAD_SAFETY) {
+                if (advance == null) init();
+            }
         }
         if (depth == 0) return "";
         if (depth < 0) throw new IllegalArgumentException("Bad depth: " + depth);

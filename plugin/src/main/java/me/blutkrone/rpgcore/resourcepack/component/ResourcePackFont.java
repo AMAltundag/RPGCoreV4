@@ -3,9 +3,29 @@ package me.blutkrone.rpgcore.resourcepack.component;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ResourcePackFont {
+
+    /**
+     * Create a spacing provider
+     *
+     * @return spacing provider
+     */
+    public static JSONObject getAsSpace(String symbol, int size) {
+        JSONObject object = new JSONObject();
+        object.put("type", "space");
+        JSONObject advances = new JSONObject();
+        advances.put(symbol, size);
+        object.put("advances", advances);
+        return object;
+    }
+
+    public static ResourcePackFont getAsAmberSpace(long height, String chars) {
+        return new ResourcePackFont("bitmap", "negative_space:font/pixel.png", -32768, height, Collections.singletonList(chars));
+    }
+
     public final String type;
     public final String file;
     public final long ascent;

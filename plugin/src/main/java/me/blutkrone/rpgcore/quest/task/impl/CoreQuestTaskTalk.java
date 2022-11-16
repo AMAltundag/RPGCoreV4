@@ -30,7 +30,7 @@ public class CoreQuestTaskTalk extends AbstractQuestTask<CoreDialogue> {
 
         for (IEditorBundle talk : editor.talks) {
             EditorTalk e = (EditorTalk) talk;
-            this.talks.put(e.npc, e.dialogue);
+            this.talks.put(e.npc.toLowerCase(), e.dialogue.toLowerCase());
         }
     }
 
@@ -76,16 +76,17 @@ public class CoreQuestTaskTalk extends AbstractQuestTask<CoreDialogue> {
      * @return a dialogue that is available
      */
     public QuestDialogue getWaiting(CorePlayer player, CoreNPC npc) {
-        // search for any unclaimed dialogue with the given NPC
-        for (Map.Entry<String, String> entry : this.talks.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(npc.getId())) {
-                if (player.getProgressQuests().getOrDefault(this.getUniqueId() + "_" + entry.getKey(), 0) == 0) {
-                    return new QuestDialogue(entry.getKey(), RPGCore.inst().getQuestManager().getIndexDialogue().get(entry.getValue()), this);
-                }
-            }
+        // ensure that there is any dialogue for the NPC
+        String dialogue = this.talks.get(npc.getId());
+        if (dialogue == null) {
+            return null;
         }
-        // no dialogue for this NPC
-        return null;
+        // check if the dialogue was already handled
+        if (player.getProgressQuests().getOrDefault(this.getUniqueId() + "_" + npc.getId(), 0) != 0) {
+            return null;
+        }
+        // offer up the dialogue
+        return new QuestDialogue(npc.getId(), RPGCore.inst().getQuestManager().getIndexDialogue().get(dialogue), this);
     }
 
     public class QuestDialogue {

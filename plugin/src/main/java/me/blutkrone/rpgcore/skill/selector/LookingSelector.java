@@ -6,7 +6,6 @@ import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.EditorLookingSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
-import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -20,7 +19,7 @@ import java.util.List;
 
 public class LookingSelector extends AbstractCoreSelector {
 
-    private static final float[] CORRECTION_ANGLES = new float[]{ 5f, 10f, 20f, 30f, 50f, 80f };
+    private static final float[] CORRECTION_ANGLES = new float[]{5f, 10f, 20f, 30f, 50f, 80f};
 
     private final CoreModifierNumber distance;
     private final CoreModifierBoolean surface;
@@ -66,7 +65,7 @@ public class LookingSelector extends AbstractCoreSelector {
                 Location position = trace.getHitBlock().getLocation().add(0.5, 0.5, 0.5);
                 position.add(trace.getHitBlockFace().getDirection().multiply(0.5d));
                 output.add(new IOrigin.SnapshotOrigin(position));
-            } else if (trace.getHitBlockFace() == BlockFace.UP){
+            } else if (trace.getHitBlockFace() == BlockFace.UP) {
                 // top is exposed, map to that
                 Location position = trace.getHitBlock().getLocation().add(0.5, 1.0d, 0.5);
                 output.add(new IOrigin.SnapshotOrigin(position));

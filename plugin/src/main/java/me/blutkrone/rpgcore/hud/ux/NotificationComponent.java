@@ -96,14 +96,14 @@ public class NotificationComponent implements IUXComponent<List<NotificationComp
             if (notification == null)
                 continue;
             if (notification.color == null) {
-                workspace.actionbar().shiftCentered(center + 1, Utility.measureWidthExact(notification.text) + 1);
+                workspace.actionbar().shiftCentered(center + 1, Utility.measure(notification.text) + 1);
                 workspace.actionbar().shadow(notification.text, "hud_notification_" + (i + 1));
-                workspace.actionbar().shiftCentered(center, Utility.measureWidthExact(notification.text) + 1);
+                workspace.actionbar().shiftCentered(center, Utility.measure(notification.text) + 1);
                 workspace.actionbar().append(notification.text, "hud_notification_" + (i + 1));
             } else {
-                workspace.actionbar().shiftCentered(center + 1, Utility.measureWidthExact(notification.text) + 1);
+                workspace.actionbar().shiftCentered(center + 1, Utility.measure(notification.text) + 1);
                 workspace.actionbar().shadow(notification.text, "hud_notification_" + (i + 1));
-                workspace.actionbar().shiftCentered(center, Utility.measureWidthExact(notification.text) + 1);
+                workspace.actionbar().shiftCentered(center, Utility.measure(notification.text) + 1);
                 workspace.actionbar().append(notification.text, "hud_notification_" + (i + 1), notification.color);
             }
         }

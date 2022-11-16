@@ -57,7 +57,7 @@ public class SkillContext implements IContext, IOrigin {
     /**
      * Other skills which we have a link to, this is intended
      * for the "trigger" mechanics to invoke another skill.
-     *
+     * <p>
      * Triggered skills will inherit this skill context, however
      * without any linked skills.
      *

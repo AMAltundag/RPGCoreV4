@@ -66,6 +66,8 @@
                             <target>
                                 <copy file="target/RPGCore-4.0.0.jar"
                                       tofile="D:/_Development/devbox/1.18/plugins/update/rpgcore.jar"/>
+                                <copy file="target/RPGCore-4.0.0.jar"
+                                      tofile="D:/_Development/devbox/1.19/plugins/update/rpgcore.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -212,6 +214,11 @@
         <dependency>
             <groupId>me.blutkrone</groupId>
             <artifactId>rpgcore-nms-1_18_R2</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>me.blutkrone</groupId>
+            <artifactId>rpgcore-nms-1_19_R1</artifactId>
             <version>4.0.0</version>
         </dependency>
     </dependencies>

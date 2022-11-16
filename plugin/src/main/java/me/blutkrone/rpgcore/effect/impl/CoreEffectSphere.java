@@ -46,7 +46,7 @@ public class CoreEffectSphere implements CoreEffect.IEffectPart {
                 double x = Math.cos(t) * r;
                 double z = Math.sin(t) * r;
                 // transform into euclidean coordinates
-                Vector relative = new Vector(x, y, z).multiply(minimum + (Math.random() * (maximum-minimum)));
+                Vector relative = new Vector(x, y, z).multiply(minimum + (Math.random() * (maximum - minimum)));
                 // apply random offset on the sample point
                 if (this.scatter > 0d) {
                     double _x = ThreadLocalRandom.current().nextDouble(-this.scatter, +this.scatter);

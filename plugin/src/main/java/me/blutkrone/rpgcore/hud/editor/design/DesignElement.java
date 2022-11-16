@@ -105,9 +105,9 @@ public class DesignElement {
     /**
      * Open an editor bound to the given bundle.
      *
-     * @param bundle   the object we are editing.
-     * @param viewer   who will receive the editor.
-     * @param editor   the editor we work with
+     * @param bundle the object we are editing.
+     * @param viewer who will receive the editor.
+     * @param editor the editor we work with
      */
     public void edit(IEditorBundle bundle, Player viewer, me.blutkrone.rpgcore.menu.EditorMenu editor) {
         this.editor.edit(bundle, viewer, editor);

@@ -28,8 +28,8 @@ public abstract class AbstractCoreTrigger {
      * invoke it.
      *
      * @param context context provided by the skill.
-     * @param event event supplied by the trigger.
-     * @param info data that persists until triggered.
+     * @param event   event supplied by the trigger.
+     * @param info    data that persists until triggered.
      * @return true if we can trigger.
      */
     public abstract boolean update(SkillContext context, Object event, TriggerInfo info);

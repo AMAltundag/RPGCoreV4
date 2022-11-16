@@ -1,40 +1,29 @@
 package me.blutkrone.rpgcore.npc;
 
-import me.blutkrone.external.juliarn.npc.NPC;
-import me.blutkrone.external.juliarn.npc.NPCPool;
-import me.blutkrone.external.juliarn.npc.modifier.MetadataModifier;
-import me.blutkrone.external.juliarn.npc.profile.Profile;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.npc.AbstractEditorNPCTrait;
 import me.blutkrone.rpgcore.hud.editor.root.npc.EditorNPC;
 import me.blutkrone.rpgcore.menu.CortexMenu;
+import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileGameProfile;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreQuestTrait;
 import me.blutkrone.rpgcore.quest.CoreQuest;
+import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskDeliver;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.skin.CoreSkin;
-import me.blutkrone.rpgcore.util.Utility;
-import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 
 /**
  * Entity meant for miscellaneous purposes.
@@ -43,18 +32,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class CoreNPC extends AbstractNode {
 
-    // metadata wrapper for making name of NPC visible
-    private static MetadataModifier.EntityMetadata<Boolean, Boolean> ENTITY_CUSTOM_NAME_VISIBLE =
-            new MetadataModifier.EntityMetadata<>(
-                    3,
-                    Boolean.class,
-                    Collections.emptyList(),
-                    flag -> flag
-            );
-
     // language ID for NPC name
     private String lc_name;
-    // makes the npc look at a player
     private boolean staring;
     // the string to use for the NPC
     private String skin = null;
@@ -90,107 +69,176 @@ public class CoreNPC extends AbstractNode {
         this.quest_blacklist = new ArrayList<>(editor.quest_forbidden);
     }
 
-    @Override
-    public void tick(World world, NodeActive active, List<Player> players) {
-        Location where = new Location(world, active.getX() + 0.5d, active.getY(), active.getZ() + 0.5d);
-
-        // do not update if no players are nearby
-        if (players.isEmpty()) {
-            return;
-        }
-
-        // create data if missing
-        NodeDataSpawnerNPC data = (NodeDataSpawnerNPC) active.getData();
-        if (data == null) {
-            // initial creation of the NPC
-            data = new NodeDataSpawnerNPC();
-            data.active = RPGCore.inst().getNPCManager().create(this.getId(), where, active);
-            active.setData(data);
-        } else {
-            // replace NPC if their template changed
-            CoreNPC old_design = RPGCore.inst().getNPCManager().getDesign(data.active);
-            if (old_design != this) {
-                RPGCore.inst().getNPCManager().remove(data.active);
-                data.active = RPGCore.inst().getNPCManager().create(this.getId(), where, active);
-            }
-        }
-    }
-
-    @Override
-    public void right(World world, NodeActive active, Player player) {
-        // interaction is handled separately.
-    }
-
-    @Override
-    public void left(World world, NodeActive active, Player player) {
-        // interaction is handled separately.
+    /**
+     * Quests that cannot be completed to be visible
+     *
+     * @return blacklisted quests
+     */
+    public List<String> getQuestBlacklist() {
+        return quest_blacklist;
     }
 
     /**
-     * Language ID for the name.
+     * Quests that must be completed to be visible
      *
-     * @return the name identifier.
+     * @return whitelisted quests
+     */
+    public List<String> getQuestWhitelist() {
+        return quest_whitelist;
+    }
+
+    /**
+     * Will rotate to always look at player
+     *
+     * @return stare at player
+     */
+    public boolean isStaring() {
+        return staring;
+    }
+
+    /**
+     * Language code for the name of the NPC
+     *
+     * @return language code for name
      */
     public String getNameLC() {
         return lc_name;
     }
 
     /**
-     * Create a nameplate description for an NPC instance.
+     * Which traits the NPC has
      *
-     * @return nameplate description
+     * @return traits of the NPC
      */
-    public BaseComponent[] describe(Player player) {
-        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-        if (core_player == null) {
-            return new BaseComponent[0];
-        }
+    public List<AbstractCoreTrait> getTraits() {
+        return traits;
+    }
 
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        MagicStringBuilder msb = new MagicStringBuilder();
-
-        // retrieve the description for the mob
-        List<String> contents = RPGCore.inst().getLanguageManager().getTranslationList(this.getNameLC());
-        // if we got a header, draw that as the background
-        if (rpm.textures().containsKey(contents.get(0))) {
-            String header = contents.remove(0);
-            IndexedTexture background_texture = RPGCore.inst().getResourcePackManager().texture(header);
-            msb.shiftCentered(0, background_texture.width).append(background_texture);
-        }
-        // draw remaining lines backwards
-        Collections.reverse(contents);
-        for (int i = 0; i < contents.size() && i < 24; i++) {
-            msb.shiftCentered(0, Utility.measureWidthExact(contents.get(i)));
-            msb.append(contents.get(i), "nameplate_" + i);
-        }
-        // special symbols for quests
-        List<AbstractCoreTrait> traits = getSymbolTraits(core_player);
-        for (AbstractCoreTrait trait : traits) {
-            if (trait instanceof CoreQuestTrait) {
-                // identify a quest symbol to work with
-                IndexedTexture texture = null;
-                if (((CoreQuestTrait) trait).getQuestUnclaimed(player, this) != null) {
-                    texture = rpm.texture("static_reward_quest_icon");
-                } else if (((CoreQuestTrait) trait).getQuestDialogue(player, this) != null) {
-                    texture = rpm.texture("static_dialogue_quest_icon");
-                } else if (((CoreQuestTrait) trait).getQuestDelivery(player, this) != null) {
-                    texture = rpm.texture("static_delivery_quest_icon");
-                } else {
-                    List<CoreQuest> available = ((CoreQuestTrait) trait).getQuestAvailable(core_player);
-                    if (!available.isEmpty()) {
-                        texture = rpm.texture(available.get(0).getSymbol());
-                    }
-                }
-
-                // make sure we generated a texture
-                if (texture != null) {
-                    msb.shiftCentered(0, texture.width);
-                    msb.append(texture);
-                }
+    /**
+     * Search for a trait exactly of the given class.
+     *
+     * @param clazz the trait class to search
+     * @return the trait that was found.
+     */
+    public <K> K getTrait(Class<K> clazz) {
+        for (AbstractCoreTrait trait : this.traits) {
+            if (trait.getClass() == clazz) {
+                return (K) trait;
             }
         }
 
-        return msb.shiftToExact(-2).compile();
+        return null;
+    }
+
+    /**
+     * Skin of the NPC
+     *
+     * @return the skin of the NPC
+     */
+    public String getSkin() {
+        return skin;
+    }
+
+    /**
+     * Supply a new profile, which should belong to a distinct
+     * copy of this NPC template.
+     *
+     * @return a new profile for a distinct NPC instance.
+     */
+    public VolatileGameProfile profile() {
+        // setup a profile including a skin
+        VolatileGameProfile profile = new VolatileGameProfile();
+        // initialize the skin for the profile
+        if (this.skin != null) {
+            CoreSkin fetched = RPGCore.inst().getSkinPool().get(this.skin);
+            if (fetched != null) {
+                profile.addProperty("textures", fetched.value, fetched.signature);
+            } else {
+                Bukkit.getLogger().severe("NPC was requested before skin has finished!");
+            }
+        }
+        // offer up the profile we built
+        return profile;
+    }
+
+    /**
+     * Search for any reward offer pending for the player.
+     *
+     * @param player whose quests to check against
+     * @return the offer if available
+     */
+    public CoreQuest getQuestRewardOffer(CorePlayer player) {
+        // grab quest list from the quest trait
+        Set<String> offered_quests = new HashSet<>();
+        Optional.ofNullable(getTrait(CoreQuestTrait.class)).ifPresent(trait -> {
+            offered_quests.addAll(trait.getQuests());
+        });
+        // search for any quest that has no more tasks (finished)
+        for (String id : player.getActiveQuestIds()) {
+            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+            // ensure this NPC can actually offer the rewards
+            String npc = quest.getRewardNPC();
+            if (npc == null) {
+                if (!offered_quests.contains(id)) {
+                    continue;
+                }
+            } else if (!npc.equalsIgnoreCase(this.getId())) {
+                continue;
+            }
+            // if no tasks are left, we can claim a reward
+            if (quest.getCurrentTask(player) == null) {
+                return quest;
+            }
+        }
+        // this NPC has no quests to claim
+        return null;
+    }
+
+    /**
+     * Search for any quest dialogue pending for the player.
+     *
+     * @param player whose quests to check against
+     * @return the offer if available
+     */
+    public CoreQuestTaskTalk.QuestDialogue getQuestDialogueOffer(CorePlayer player) {
+        // search for any quest task with open dialogue
+        for (String id : player.getActiveQuestIds()) {
+            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+            AbstractQuestTask task = quest.getCurrentTask(player);
+            if (task instanceof CoreQuestTaskTalk) {
+                CoreQuestTaskTalk.QuestDialogue dialogue = ((CoreQuestTaskTalk) task).getWaiting(player, this);
+                if (dialogue != null) {
+                    return dialogue;
+                }
+            }
+        }
+        // no dialogue is pending.
+        return null;
+    }
+
+    /**
+     * Search for any delivery task pending for the player
+     *
+     * @param player whose quests to check against
+     * @return the offer if available
+     */
+    public CoreQuestTaskDeliver getQuestDeliverOffer(CorePlayer player) {
+        // search for any dialogue which is pending
+        for (String id : player.getActiveQuestIds()) {
+            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+            // ensure we got a delivery task
+            AbstractQuestTask task = quest.getCurrentTask(player);
+            if (!(task instanceof CoreQuestTaskDeliver)) {
+                continue;
+            }
+            // ensure the NPC accepts drop-offs for that task
+            CoreQuestTaskDeliver delivery = (CoreQuestTaskDeliver) task;
+            if (delivery.isDropOff(this) && delivery.canMeetDemandApproximation(player.getUniqueId())) {
+                return delivery;
+            }
+        }
+        // no delivery job is pending.
+        return null;
     }
 
     /**
@@ -198,50 +246,44 @@ public class CoreNPC extends AbstractNode {
      * menu.
      *
      * @param player    who wants to view the cortex
-     * @param shortcuts jump to prioritized traits
+     * @param shortcut  bypass cortex selection if we have a priority
      */
-    public void showCortex(Player player, boolean shortcuts) {
+    public void interact(Player player, boolean shortcut) {
         CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
         if (core_player == null) {
             return;
         }
-        List<AbstractCoreTrait> traits = getCortexTraits(core_player);
 
-        // interaction requires traits
+        // find the traits we can interact with
+        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
+        traits.removeIf((trait -> !trait.isAvailable(core_player)));
         if (traits.isEmpty()) {
             return;
         }
 
-        // if we got a quest priority, flag it as such
-        if (shortcuts) {
-            for (AbstractCoreTrait trait : traits) {
-                if ((trait instanceof CoreQuestTrait)) {
-                    CoreQuestTrait qt = (CoreQuestTrait) trait;
-
-                    // if we got a reward, we present that one
-                    CoreQuest reward = qt.getQuestUnclaimed(player, this);
-                    if (reward != null) {
-                        RPGCore.inst().getHUDManager().getQuestMenu().reward(reward, player, this);
-                        return;
-                    }
-
-                    // if we got dialogue, we present that one
-                    CoreQuestTaskTalk.QuestDialogue dialogue = qt.getQuestDialogue(player, this);
-                    if (dialogue != null) {
-                        RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, dialogue.task.getUniqueId() + "_" + dialogue.npc);
-                        return;
-                    }
-
-                    // if we got a delivery, we present that one
-                    CoreQuestTaskDeliver delivery = qt.getQuestDelivery(player, this);
-                    if (delivery != null) {
-                        RPGCore.inst().getHUDManager().getQuestMenu().delivery(delivery, player, this);
-                        return;
-                    }
-                }
+        // handle shortcuts if appropriate
+        if (shortcut) {
+            // if we got a reward, we present that one
+            CoreQuest reward = getQuestRewardOffer(core_player);
+            if (reward != null) {
+                RPGCore.inst().getHUDManager().getQuestMenu().reward(reward, player, this);
+                return;
+            }
+            // if we got dialogue, we present that one
+            CoreQuestTaskTalk.QuestDialogue dialogue = getQuestDialogueOffer(core_player);
+            if (dialogue != null) {
+                RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, dialogue.task.getUniqueId() + "_" + dialogue.npc);
+                return;
+            }
+            // if we got a delivery, we present that one
+            CoreQuestTaskDeliver delivery = getQuestDeliverOffer(core_player);
+            if (delivery != null) {
+                RPGCore.inst().getHUDManager().getQuestMenu().delivery(delivery, player, this);
+                return;
             }
         }
 
+        // present the cortex menu itself
         if (traits.size() == 1) {
             traits.get(0).engage(player, this);
         } else if (traits.size() == 2) {
@@ -257,100 +299,42 @@ public class CoreNPC extends AbstractNode {
         }
     }
 
-    /*
-     * Construct an instance of this NPC at the given
-     * location.
-     *
-     * @param pool     which pool to construct thorough
-     * @param location where to spawn the NPC
-     * @return the NPC that was created
-     */
-    NPC create(NPCPool pool, Location location) {
-        // setup a profile including a skin
-        Profile profile = new Profile(UUID.randomUUID());
-        profile.setName("rpgcore" + ThreadLocalRandom.current().nextInt(1, 99999));
+    @Override
+    public void tick(World world, NodeActive active, List<Player> players) {
+        Location where = new Location(world, active.getX() + 0.5d, active.getY(), active.getZ() + 0.5d);
 
-        if (this.skin != null) {
-            CoreSkin fetched = RPGCore.inst().getSkinPool().get(this.skin);
-            if (fetched != null) {
-                profile.setProperty(new Profile.Property("textures", fetched.value, fetched.signature));
-            } else {
-                Bukkit.getLogger().severe("NPC was requested before skin has finished!");
-            }
+        // do not update if no players are nearby
+        if (players.isEmpty()) {
+            return;
         }
 
-        profile.complete();
-        // configure the basic NPC settings
-        NPC.Builder builder = NPC.builder();
-        builder.profile(profile);
-        builder.lookAtPlayer(this.staring);
-        builder.location(location);
-        // apply visibility filtering
-        builder.visible((player -> {
-            // must have logged on to load NPC
-            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-            if (core_player == null) {
-                return false;
-            }
-            // cannot have completed any blacklist quests
-            for (String id : this.quest_blacklist) {
-                if (core_player.getCompletedQuests().contains(id)) {
-                    return false;
-                }
-            }
-            // must have completed all whitelist quests
-            for (String id : this.quest_whitelist) {
-                if (!core_player.getCompletedQuests().contains(id)) {
-                    return false;
-                }
-            }
-            // npc can be shown
-            return true;
-        }));
-        // spawn preparation for the NPC
-        builder.spawnCustomizer((npc, player) -> {
-            // hide name of the NPC
-            MetadataModifier metadata = npc.metadata();
-            metadata.queue(ENTITY_CUSTOM_NAME_VISIBLE, true);
-            metadata.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true);
-            metadata.send(player);
-        });
-        return builder.build(pool);
+        // create data if missing
+        NodeDataSpawnerNPC data = (NodeDataSpawnerNPC) active.getData();
+        if (data == null) {
+            data = new NodeDataSpawnerNPC();
+            data.active = RPGCore.inst().getNPCManager().create(this.getId(), where, active);
+            active.setData(data);
+        }
+
+        // handle re-sync in case NPC template changed
+        if (data.active.template() != this) {
+            data.abandon();
+            active.setData(null);
+        }
     }
 
-    /*
-     * Fetch the first six traits which can be shown on
-     * a cortex menu.
-     *
-     * @return up to six cortex-able traits
-     */
-    private List<AbstractCoreTrait> getCortexTraits(CorePlayer core_player) {
-        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
-        traits.removeIf((trait -> !trait.isAvailable(core_player)));
-
-        return traits;
+    @Override
+    public void right(World world, NodeActive active, Player player) {
     }
 
-    /*
-     * Fetch the first six traits which can be shown on
-     * a cortex menu.
-     *
-     * @return up to six cortex-able traits
-     */
-    private List<AbstractCoreTrait> getSymbolTraits(CorePlayer core_player) {
-        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
-        traits.removeIf((trait -> !trait.isAvailable(core_player)));
-        traits.removeIf(trait -> trait.getSymbol().equalsIgnoreCase("default"));
-        return traits;
+    @Override
+    public void left(World world, NodeActive active, Player player) {
     }
 
-    /*
-     * A wrapper to help us keep track of NPC spawns.
-     */
     private class NodeDataSpawnerNPC extends NodeData {
 
         // active instance of the npc
-        private NPC active;
+        private ActiveCoreNPC active;
 
         NodeDataSpawnerNPC() {
         }

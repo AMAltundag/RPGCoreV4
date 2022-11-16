@@ -66,7 +66,7 @@ public class CoreEffectRepeat implements CoreEffect.IEffectPart {
                 return true;
             }
             // query another cycle
-            this.working = new ActiveEffect(where, scale * (1d*(expansion*cycle)), viewing, parts, brush.snapshot());
+            this.working = new ActiveEffect(where, scale * (1d * (expansion * cycle)), viewing, parts, brush.snapshot());
             this.cycle += 1;
             this.working.debug = true;
             return false;

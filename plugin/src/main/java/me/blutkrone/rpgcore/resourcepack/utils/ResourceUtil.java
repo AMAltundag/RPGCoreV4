@@ -51,10 +51,10 @@ public class ResourceUtil {
      * @return the updated texture
      */
     public static BufferedImage fontCopyPaddedBottom(BufferedImage input, int bottom, double opacity, int height, int width) {
-        BufferedImage out_texture = new BufferedImage(16*width, (height + bottom) * (input.getHeight()/height), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage out_texture = new BufferedImage(16 * width, (height + bottom) * (input.getHeight() / height), BufferedImage.TYPE_INT_ARGB);
 
         for (int charX = 0; charX < 16; charX++) {
-            for (int charY = 0; charY < input.getHeight()/height; charY++) {
+            for (int charY = 0; charY < input.getHeight() / height; charY++) {
                 // starting point to draw from
                 int pixelStartX = charX * width;
                 int pixelStartY = charY * (height + bottom);

@@ -225,7 +225,7 @@ public class EditorMenu extends AbstractCoreMenu {
                         // text about the relevant category
                         String left = viewport_element.getDesignName();
                         String right = viewport_element.getDesignInfo(casted.getBundle());
-                        msb.shiftToExact(135 - Utility.measureWidthExact(right)).append(right, "editor_viewport_" + (i + 1));
+                        msb.shiftToExact(135 - Utility.measure(right)).append(right, "editor_viewport_" + (i + 1));
                         msb.shiftToExact(27).append(left, "editor_viewport_" + (i + 1)); // todo trim left text to not overlap
                         // left-most slot will get the full itemized category
                         ItemStack preview = viewport_element.getDesignIcon(casted.getBundle()).clone();

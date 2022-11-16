@@ -30,7 +30,7 @@ public class FocusQueue {
      * A queue structure used by the editor, tracing the editing
      * of relevant elements.
      *
-     * @param menu the menu we are linked to
+     * @param menu  the menu we are linked to
      * @param index the original index we are editing
      */
     public FocusQueue(EditorMenu menu, EditorIndex<?, ?> index) {
@@ -44,7 +44,7 @@ public class FocusQueue {
      */
     public void drop() {
         if (this.queue.size() > 1) {
-            this.queue.remove(this.queue.size()-1);
+            this.queue.remove(this.queue.size() - 1);
             getHeader().setScrollOffset(0);
         }
     }
@@ -88,7 +88,7 @@ public class FocusQueue {
      * Set the focus on a list within the bundle.
      *
      * @param bundle the bundle that contains the list
-     * @param list a design element that handles lists
+     * @param list   a design element that handles lists
      */
     public void setFocusToList(IEditorBundle bundle, DesignList list) {
         this.queue.add(new ListFocus(bundle, list));
@@ -98,8 +98,8 @@ public class FocusQueue {
      * Set the focus on a root element, we may precede with other
      * root elements for cross reference related things.
      *
-     * @param id the identifier of the root element.
-     * @param root the element we are focusing on.
+     * @param id    the identifier of the root element.
+     * @param root  the element we are focusing on.
      * @param index the index we've pulled from.
      */
     public void setFocusToRoot(String id, IEditorRoot root, EditorIndex index) {
@@ -201,7 +201,7 @@ public class FocusQueue {
         /**
          * Used for root elements.
          *
-         * @param id root element identifier
+         * @param id     root element identifier
          * @param bundle bundle or root element
          */
         ElementFocus(String id, EditorIndex index, IEditorBundle bundle) {
@@ -264,15 +264,6 @@ public class FocusQueue {
         }
 
         /**
-         * Categproes allowed for this element.
-         *
-         * @return categories we have available.
-         */
-        public List<DesignCategory> getCategories() {
-            return this.design.getCategories();
-        }
-
-        /**
          * Narrow the scope of the bundle.
          *
          * @param category updated category.
@@ -280,6 +271,15 @@ public class FocusQueue {
         public void setCategory(DesignCategory category) {
             this.category = category;
             this.scroll_offset = 0;
+        }
+
+        /**
+         * Categproes allowed for this element.
+         *
+         * @return categories we have available.
+         */
+        public List<DesignCategory> getCategories() {
+            return this.design.getCategories();
         }
 
         /**

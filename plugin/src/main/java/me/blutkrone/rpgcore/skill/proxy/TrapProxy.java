@@ -47,12 +47,12 @@ public class TrapProxy extends AbstractSkillProxy {
      * Has a fixed location where a mechanic is invoked, until
      * the duration expires.
      *
-     * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param item item that marks the projectile
-     * @param impact ticked while the proxy is active
+     * @param context  the context provided by the skill
+     * @param origin   location to anchor proxy at
+     * @param item     item that marks the projectile
+     * @param impact   ticked while the proxy is active
      * @param duration how many ticks the proxy lasts
-     * @param radius trigger range for the trap
+     * @param radius   trigger range for the trap
      */
     public TrapProxy(IContext context, IOrigin origin, ItemStack item, int duration, double radius, MultiMechanic impact, List<AbstractCoreSelector> filter) {
         super(context);
@@ -66,7 +66,7 @@ public class TrapProxy extends AbstractSkillProxy {
 
         if (item != null) {
             Vector direction = anchor.getLocation().getDirection();
-            this.anchor.getLocation().setDirection(new Vector(Math.random()*2-1, 0d, Math.random()*2-1));
+            this.anchor.getLocation().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
 
             this.thrown_entity = (ArmorStand) anchor.getLocation().getWorld().spawnEntity(this.anchor.getLocation(), EntityType.ARMOR_STAND);
             this.thrown_entity.setInvisible(true);
@@ -80,7 +80,7 @@ public class TrapProxy extends AbstractSkillProxy {
             this.thrown_entity.setRemoveWhenFarAway(false);
             this.thrown_entity.getEquipment().setItemInMainHand(item);
 
-            Vector random = new Vector(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1);
+            Vector random = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
             this.thrown_entity.setVelocity(direction.multiply(0.75).add(random.multiply(0.15d)).add(new Vector(0.0d, 0.6d, 0.0)));
         }
     }

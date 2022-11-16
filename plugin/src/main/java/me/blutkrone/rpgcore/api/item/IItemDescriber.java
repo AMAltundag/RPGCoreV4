@@ -8,7 +8,7 @@ public interface IItemDescriber {
      * Describe an item within RPGCore specification, do note that if we
      * are called by non RPGCore items ignore this call.
      *
-     * @param item the item to describe.
+     * @param item   the item to describe.
      * @param player
      */
     void describe(ItemStack item, CorePlayer player);

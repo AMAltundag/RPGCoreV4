@@ -1,19 +1,12 @@
 package me.blutkrone.rpgcore.effect;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IBlockMutator;
+import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -89,65 +82,38 @@ public class EffectManager {
                 });
 
                 // organize into relevant chunk organization
-                Map<BlockPosition, Map<BlockPosition, Material>> packet_prepared = new HashMap<>();
+                Map<Vector, Map<Vector, Material>> packet_prepared = new HashMap<>();
                 updates.forEach((position, material) -> {
                     // unwrap position
                     int x = position.getBlockX();
                     int y = position.getBlockY();
                     int z = position.getBlockZ();
                     // identify the positions
-                    BlockPosition chunk_position = new BlockPosition(x>>4, y>>4, z>>4);
-                    BlockPosition local_position = new BlockPosition(x, y, z);
+                    Vector chunk_position = new Vector(x >> 4, y >> 4, z >> 4);
+                    Vector local_position = new Vector(x, y, z);
                     // track the information we got
                     packet_prepared.computeIfAbsent(chunk_position, (k -> new HashMap<>())).put(local_position, material);
                 });
 
                 // construct appropriate packets
                 Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    World world = player.getWorld();
+                    IVolatilePackets packets = RPGCore.inst().getVolatileManager().getPackets();
+
                     packet_prepared.forEach((chunk, changes) -> {
-                        List<Short> raw_locations = new ArrayList<>();
-                        List<WrappedBlockData> raw_blocks = new ArrayList<>();
-
+                        IBlockMutator mutator = packets.blocks(world, chunk.getBlockX(), chunk.getBlockY(), chunk.getBlockZ());
                         changes.forEach((position, material) -> {
-                            // data of the block itself
-                            BlockData block = player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()).getBlockData();
-                            WrappedBlockData data = WrappedBlockData.createData(block);
-                            if (material != null) {
-                                data.setType(material);
-                            }
-                            // update the data we have linked
-                            raw_locations.add((short) ((position.getX() & 0xF) << 8 | (position.getZ() & 0xF) << 4 | (position.getY() & 0xF)));
-                            raw_blocks.add(data);
-
+                            // query a block change packet
+                            Material applied = mutator.mutate(position.getBlockX() % 16, position.getBlockY() % 16, position.getBlockZ() % 16, material);
                             // scatter some particles on change
                             for (int i = 0; i < 4; i++) {
                                 Location location = position.toLocation(player.getWorld());
                                 location.add(new Vector(0.5d, 0.5d, 0.5d));
-                                location.add(new Vector(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).multiply(1.5));
-                                player.spawnParticle(Particle.BLOCK_CRACK, location, 1, data.getType().createBlockData());
+                                location.add(new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).multiply(1.5));
+                                player.spawnParticle(Particle.BLOCK_CRACK, location, 1, applied.createBlockData());
                             }
                         });
-
-                        short[] locations = new short[raw_locations.size()];
-                        for (int i = 0; i < raw_locations.size(); i++) {
-                            locations[i] = raw_locations.get(i);
-                        }
-                        WrappedBlockData[] blocks = new WrappedBlockData[raw_blocks.size()];
-                        for (int i = 0; i < raw_blocks.size(); i++) {
-                            blocks[i] = raw_blocks.get(i);
-                        }
-
-                        PacketContainer container = new PacketContainer(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
-                        container.getSectionPositions().write(0, chunk);
-                        container.getBlockDataArrays().write(0, blocks);
-                        container.getShortArrays().write(0, locations);
-
-                        try {
-                            ProtocolLibrary.getProtocolManager().sendServerPacket(player, container);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
+                        mutator.dispatch(player);
                     });
                 });
 
@@ -164,13 +130,13 @@ public class EffectManager {
      * Intensity refers to how many particle effects the player
      * is currently dealing with, falls off over time.
      *
-     * @param player whose intensity to update
+     * @param player    whose intensity to update
      * @param intensity the intensity of the player
      */
     public void addIntensity(Player player, int intensity) {
         synchronized (sync_intensity) {
             this.intensity.computeIfAbsent(player.getUniqueId(), (k) -> new TreeMap<>())
-                    .merge(RPGCore.inst().getTimestamp(), intensity, (a,b) -> a+b);
+                    .merge(RPGCore.inst().getTimestamp(), intensity, (a, b) -> a + b);
         }
     }
 
@@ -180,7 +146,7 @@ public class EffectManager {
      *
      * @param player whose intensity to check
      * @return approximate particle density player has, approximately
-     *         one particle call per
+     * one particle call per
      */
     public int getIntensity(Player player) {
         synchronized (sync_intensity) {
@@ -190,7 +156,7 @@ public class EffectManager {
             }
             // only sample the past 6 seconds
             int timestamp = RPGCore.inst().getTimestamp();
-            approximation.subMap(0, timestamp-120).clear();
+            approximation.subMap(0, timestamp - 120).clear();
             // contribute density (older = less value)
             double total = 0;
             for (Map.Entry<Integer, Integer> sample : approximation.entrySet()) {
@@ -216,7 +182,7 @@ public class EffectManager {
      * Request a packet-based disguise of a block, respecting the shape of the said
      * block. Block disguise is not guaranteed to apply instantly.
      *
-     * @param player who wants the disguise
+     * @param player   who wants the disguise
      * @param location where to put the disguise
      * @param disguise the material to disguise into
      * @param duration how long to wait

@@ -26,9 +26,6 @@ import java.util.Map;
 
 public class CoreCreature {
 
-    private String id;
-    private String name;
-
     // factory which can supply us with the mob
     public EntityProvider mob_factory;
     // attributes granted upon spawning
@@ -49,6 +46,8 @@ public class CoreCreature {
     public List<String> tags_friendly;
     // symbol used on the creature
     public String focus_sigil;
+    private String id;
+    private String name;
 
     public CoreCreature(String id, EditorCreature editor) {
         this.id = id;
@@ -123,7 +122,7 @@ public class CoreCreature {
 
         // allocate relevant attributes
         this.attributes_base.forEach((id, value) -> core_entity.getAttribute(id).create(value));
-        this.attributes_level.forEach((id, value) -> core_entity.getAttribute(id).create(value*level));
+        this.attributes_level.forEach((id, value) -> core_entity.getAttribute(id).create(value * level));
 
         // initialize relevant behaviours
         IEntityBase base_entity = RPGCore.inst().getVolatileManager().getEntity(bukkit_entity);

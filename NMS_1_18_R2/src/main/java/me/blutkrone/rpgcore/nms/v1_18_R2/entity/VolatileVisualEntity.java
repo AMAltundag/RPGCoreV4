@@ -157,7 +157,6 @@ public class VolatileVisualEntity extends EntityArmorStand implements IEntityVis
 
     @Override
     public EnumInteractionResult a(EntityHuman entityhuman, Vec3D vec3d, EnumHand enumhand) {
-        Bukkit.getLogger().severe("INTERACT FAIL");
         // never allow the stand being equipped
         return EnumInteractionResult.e;
     }

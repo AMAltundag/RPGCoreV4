@@ -8,51 +8,37 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedEnumEntityUseAction;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import me.blutkrone.external.juliarn.npc.event.PlayerNPCHideEvent;
 import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
-import me.blutkrone.external.juliarn.npc.modifier.NPCModifier;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Represents the main management point for {@link NPC}s.
+ * Represents the main management point for {@link AbstractPlayerNPC}s.
  */
 public class NPCPool implements Listener {
-
-    private static final Random RANDOM = new Random();
 
     private final Plugin plugin;
 
     private final double spawnDistance;
     private final double actionDistance;
-    private final long tabListRemoveTicks;
+    private final int tabListRemoveTicks;
 
-    private final Map<Integer, NPC> npcMap = new ConcurrentHashMap<>();
-
-    /**
-     * Creates a new NPC pool which handles events, spawning and destruction of the NPCs for players.
-     * Please use {@link #createDefault(Plugin)} instead, this constructor will be private in a
-     * further release.
-     *
-     * @param plugin the instance of the plugin which creates this pool
-     * @deprecated Use {@link #createDefault(Plugin)} instead
-     */
-    @Deprecated
-    public NPCPool(@NotNull Plugin plugin) {
-        this(plugin, 50, 20, 30);
-    }
+    private final Map<Integer, AbstractPlayerNPC> registered = new ConcurrentHashMap<>();
 
     /**
      * Creates a new NPC pool which handles events, spawning and destruction of the NPCs for players.
@@ -65,40 +51,137 @@ public class NPCPool implements Listener {
      * @param tabListRemoveTicks the time in ticks after which the NPC will be removed from the
      *                           players tab
      */
-    @Deprecated
-    public NPCPool(@NotNull Plugin plugin, int spawnDistance, int actionDistance,
-                   long tabListRemoveTicks) {
-        Preconditions.checkArgument(spawnDistance > 0 && actionDistance > 0, "Distance has to be > 0!");
-        Preconditions.checkArgument(actionDistance <= spawnDistance,
-                "Action distance cannot be higher than spawn distance!");
-
+    private NPCPool(@NotNull Plugin plugin, int spawnDistance, int actionDistance, int tabListRemoveTicks) {
         this.plugin = plugin;
-
-        // limiting the spawn distance to the Bukkit view distance to avoid NPCs not being shown
-        this.spawnDistance = Math.min(
-                spawnDistance * spawnDistance,
-                Math.pow(Bukkit.getViewDistance() << 4, 2));
+        this.spawnDistance = Math.min(spawnDistance * spawnDistance, Math.pow(Bukkit.getViewDistance() << 4, 2));
         this.actionDistance = actionDistance * actionDistance;
         this.tabListRemoveTicks = tabListRemoveTicks;
-
+        // handle events relating to NPCs
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        // handle ticking behaviour of NPCs
+        Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            Collection<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+            Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> this.tick(players));
+        }, 20, 2);
+        // handle packet interactions with NPCs
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this.plugin, PacketType.Play.Client.USE_ENTITY) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer container = event.getPacket();
+                int targetId = container.getIntegers().read(0);
+                if (NPCPool.this.registered.containsKey(targetId)) {
+                    AbstractPlayerNPC npc = NPCPool.this.registered.get(targetId);
+                    WrappedEnumEntityUseAction useAction = container.getEnumEntityUseActions().read(0);
 
-        this.addInteractListener();
-        this.npcTick();
+                    PlayerNPCInteractEvent.EntityUseAction[] actions = PlayerNPCInteractEvent.EntityUseAction.values();
+                    PlayerNPCInteractEvent.EntityUseAction action = actions[useAction.getAction().ordinal()];
+                    EquipmentSlot slot = EquipmentSlot.HAND;
+                    if (action != PlayerNPCInteractEvent.EntityUseAction.ATTACK) {
+                        if (useAction.getHand() == EnumWrappers.Hand.OFF_HAND) {
+                            slot = EquipmentSlot.OFF_HAND;
+                        }
+                    }
+
+                    PlayerNPCInteractEvent bukkit_event = new PlayerNPCInteractEvent(event.getPlayer(), npc, action, slot);
+                    Bukkit.getScheduler().runTask(NPCPool.this.plugin, () -> Bukkit.getPluginManager().callEvent(bukkit_event));
+                }
+            }
+        });
+    }
+
+    public double getSpawnDistance() {
+        return spawnDistance;
+    }
+
+    public double getActionDistance() {
+        return actionDistance;
+    }
+
+    public int getTabListRemoveTicks() {
+        return tabListRemoveTicks;
     }
 
     /**
-     * Creates a new npc pool with the default values of a npc pool. The default values of a builder
-     * are {@code spawnDistance} to {@code 50}, {@code actionDistance} to {@code 20} and {@code
-     * tabListRemoveTicks} to {@code 30}.
+     * Plugin which created the pool.
      *
-     * @param plugin the instance of the plugin which creates this pool.
-     * @return the created npc pool with the default values of a pool.
-     * @since 2.5-SNAPSHOT
+     * @return the plugin we are working with.
      */
-    @NotNull
-    public static NPCPool createDefault(@NotNull Plugin plugin) {
-        return NPCPool.builder(plugin).build();
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    /**
+     * Fetches the npc associated with that entity ID
+     *
+     * @param id the entity id of the npc to get.
+     * @return The NPC associated with the ID
+     */
+    public AbstractPlayerNPC get(int id) {
+        return this.registered.get(id);
+    }
+
+    /**
+     * Removes the npc associated with that entity ID
+     *
+     * @param id the entity id of the npc to get.
+     */
+    public void remove(int id) {
+        AbstractPlayerNPC npc = this.get(id);
+        if (npc != null) {
+            this.registered.remove(id);
+            for (Player player : npc.watching()) {
+                npc.hide(player, PlayerNPCHideEvent.Reason.REMOVED);
+            }
+        }
+    }
+
+    /**
+     * Register a new NPC to the pool.
+     *
+     * @param npc the NPC that we want registered.
+     */
+    public void register(AbstractPlayerNPC npc) {
+        this.registered.put(npc.id(), npc);
+    }
+
+    /**
+     * Get an unmodifiable copy of all NPCs handled by this pool.
+     *
+     * @return a copy of the NPCs this pool manages.
+     */
+    public Collection<AbstractPlayerNPC> getAll() {
+        return Collections.unmodifiableCollection(this.registered.values());
+    }
+
+    /*
+     * Process NPC ticking.
+     */
+    private void tick(Collection<Player> players) {
+        for (Player player : players) {
+            for (AbstractPlayerNPC npc : this.registered.values()) {
+                npc.update(player);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    private void handleRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        this.registered.forEach((id, npc) -> {
+            if (npc.isWatching(player)) {
+                npc.hide(player, PlayerNPCHideEvent.Reason.RESPAWNED);
+            }
+        });
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    private void handleQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        this.registered.forEach((id, npc) -> {
+            if (npc.isWatching(player)) {
+                npc.hide(player, PlayerNPCHideEvent.Reason.QUIT);
+            }
+        });
     }
 
     /**
@@ -108,242 +191,35 @@ public class NPCPool implements Listener {
      * @return a new builder for creating a npc pool instance.
      * @since 2.5-SNAPSHOT
      */
-    @NotNull
     public static Builder builder(@NotNull Plugin plugin) {
         return new Builder(plugin);
     }
 
     /**
-     * Adds a packet listener for listening to all use entity packets sent by a client.
-     */
-    protected void addInteractListener() {
-        ProtocolLibrary.getProtocolManager()
-                .addPacketListener(new PacketAdapter(this.plugin, PacketType.Play.Client.USE_ENTITY) {
-                    @Override
-                    public void onPacketReceiving(PacketEvent event) {
-                        PacketContainer container = event.getPacket();
-                        int targetId = container.getIntegers().read(0);
-
-                        if (NPCPool.this.npcMap.containsKey(targetId)) {
-                            NPC npc = NPCPool.this.npcMap.get(targetId);
-
-                            EnumWrappers.Hand usedHand;
-                            EnumWrappers.EntityUseAction action;
-
-                            if (NPCModifier.MINECRAFT_VERSION >= 17) {
-                                WrappedEnumEntityUseAction useAction = container.getEnumEntityUseActions().read(0);
-                                // the hand is only available when not attacking
-                                action = useAction.getAction();
-                                usedHand = action == EnumWrappers.EntityUseAction.ATTACK
-                                        ? EnumWrappers.Hand.MAIN_HAND
-                                        : useAction.getHand();
-                            } else {
-                                // the hand is only available when not attacking
-                                action = container.getEntityUseActions().read(0);
-                                usedHand = action == EnumWrappers.EntityUseAction.ATTACK
-                                        ? EnumWrappers.Hand.MAIN_HAND
-                                        : container.getHands().optionRead(0).orElse(EnumWrappers.Hand.MAIN_HAND);
-                            }
-
-                            Bukkit.getScheduler().runTask(
-                                    NPCPool.this.plugin,
-                                    () -> Bukkit.getPluginManager().callEvent(
-                                            new PlayerNPCInteractEvent(
-                                                    event.getPlayer(),
-                                                    npc,
-                                                    action,
-                                                    usedHand))
-                            );
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Starts the npc tick.
-     */
-    protected void npcTick() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
-            for (Player player : ImmutableList.copyOf(Bukkit.getOnlinePlayers())) {
-                for (NPC npc : this.npcMap.values()) {
-                    Location npcLoc = npc.getLocation();
-                    Location playerLoc = player.getLocation();
-                    if (!npcLoc.getWorld().equals(playerLoc.getWorld())) {
-                        if (npc.isShownFor(player)) {
-                            npc.hide(player, this.plugin, PlayerNPCHideEvent.Reason.SPAWN_DISTANCE);
-                        }
-                        continue;
-                    } else if (!npcLoc.getWorld()
-                            .isChunkLoaded(npcLoc.getBlockX() >> 4, npcLoc.getBlockZ() >> 4)) {
-                        if (npc.isShownFor(player)) {
-                            npc.hide(player, this.plugin, PlayerNPCHideEvent.Reason.UNLOADED_CHUNK);
-                        }
-                        continue;
-                    }
-
-                    double distance = npcLoc.distanceSquared(playerLoc);
-                    boolean inRange = distance <= this.spawnDistance;
-
-                    if ((npc.isExcluded(player) || !inRange) && npc.isShownFor(player)) {
-                        npc.hide(player, this.plugin, PlayerNPCHideEvent.Reason.SPAWN_DISTANCE);
-                    } else if ((!npc.isExcluded(player) && inRange) && !npc.isShownFor(player)) {
-                        npc.show(player, this.plugin, this.tabListRemoveTicks);
-                    }
-
-                    if (npc.isShownFor(player) && npc.isLookAtPlayer() && distance <= this.actionDistance) {
-                        npc.rotation().queueLookAt(playerLoc).send(player);
-                    }
-                }
-            }
-        }, 20, 2);
-    }
-
-    /**
-     * @return A free entity id which can be used for NPCs
-     */
-    protected int getFreeEntityId() {
-        int id;
-
-        do {
-            id = RANDOM.nextInt(Integer.MAX_VALUE);
-        } while (this.npcMap.containsKey(id));
-
-        return id;
-    }
-
-    /**
-     * Adds the given {@code npc} to the list of handled NPCs of this pool.
-     *
-     * @param npc The npc to add.
-     * @see NPC#builder()
-     */
-    protected void takeCareOf(@NotNull NPC npc) {
-        this.npcMap.put(npc.getEntityId(), npc);
-    }
-
-    /**
-     * Gets a specific npc by the given {@code entityId}.
-     *
-     * @param entityId the entity id of the npc to get.
-     * @return The npc or {@code null} if there is no npc with the given entity id.
-     * @deprecated Use {@link #getNpc(int)} instead.
-     */
-    @Nullable
-    @Deprecated
-    public NPC getNPC(int entityId) {
-        return this.npcMap.get(entityId);
-    }
-
-    /**
-     * Gets a specific npc by the given {@code entityId}.
-     *
-     * @param entityId the entity id of the npc to get.
-     * @return The npc by the given {@code entityId}.
-     * @since 2.5-SNAPSHOT
-     */
-    @NotNull
-    public Optional<NPC> getNpc(int entityId) {
-        return Optional.ofNullable(this.npcMap.get(entityId));
-    }
-
-    /**
-     * Gets a specific npc by the given {@code uniqueId}.
-     *
-     * @param uniqueId the entity unique id of the npc to get.
-     * @return The npc by the given {@code uniqueId}.
-     * @since 2.5-SNAPSHOT
-     */
-    @NotNull
-    public Optional<NPC> getNpc(@NotNull UUID uniqueId) {
-        return this.npcMap.values().stream()
-                .filter(npc -> npc.getProfile().getUniqueId().equals(uniqueId)).findFirst();
-    }
-
-    /**
-     * Removes the given npc by it's entity id from the handled NPCs of this pool.
-     *
-     * @param entityId the entity id of the npc to get.
-     */
-    public void removeNPC(int entityId) {
-        this.getNpc(entityId).ifPresent(npc -> {
-            this.npcMap.remove(entityId);
-            npc.getSeeingPlayers()
-                    .forEach(player -> npc.hide(player, this.plugin, PlayerNPCHideEvent.Reason.REMOVED));
-        });
-    }
-
-    /**
-     * Get an unmodifiable copy of all NPCs handled by this pool.
-     *
-     * @return a copy of the NPCs this pool manages.
-     */
-    @NotNull
-    public Collection<NPC> getNPCs() {
-        return Collections.unmodifiableCollection(this.npcMap.values());
-    }
-
-    @EventHandler
-    public void handleRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
-
-        this.npcMap.values().stream()
-                .filter(npc -> npc.isShownFor(player))
-                .forEach(npc -> npc.hide(player, this.plugin, PlayerNPCHideEvent.Reason.RESPAWNED));
-    }
-
-    @EventHandler
-    public void handleQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-
-        this.npcMap.values().stream()
-                .filter(npc -> npc.isShownFor(player))
-                .forEach(npc -> {
-                    npc.removeSeeingPlayer(player);
-                });
-    }
-
-    /**
-     * A builder for a npc pool.
-     *
-     * @since 2.5-SNAPSHOT
+     * Represents the main management point for NPCs
      */
     public static class Builder {
 
-        /**
-         * The instance of the plugin which creates this pool
-         */
         private final Plugin plugin;
-
-        /**
-         * The distance in which NPCs are spawned for players
-         */
         private int spawnDistance = 50;
-        /**
-         * The distance in which NPC actions are displayed for players
-         */
         private int actionDistance = 20;
-        /**
-         * The time in ticks after which the NPC will be removed from the players tab
-         */
-        private long tabListRemoveTicks = 30;
+        private int tabListRemoveTicks = 30;
 
         /**
-         * Creates a new builder for a npc pool.
+         * Represents the main management point for NPCs
          *
-         * @param plugin The instance of the plugin which creates the builder.
+         * @param plugin plugin we are owned by.
          */
         private Builder(@NotNull Plugin plugin) {
-            this.plugin = Preconditions.checkNotNull(plugin, "plugin");
+            this.plugin = plugin;
         }
 
         /**
-         * Sets the spawn distance in which NPCs are spawned for players. Must be higher than {@code
-         * 0}.
+         * Distance to spawn NPCs in.
          *
-         * @param spawnDistance the spawn distance in which NPCs are spawned for players.
+         * @param spawnDistance spawn distance.
          * @return The same instance of this class, for chaining.
          */
-        @NotNull
         public Builder spawnDistance(int spawnDistance) {
             Preconditions.checkArgument(spawnDistance > 0, "Spawn distance must be more than 0");
             this.spawnDistance = spawnDistance;
@@ -351,13 +227,11 @@ public class NPCPool implements Listener {
         }
 
         /**
-         * Sets the distance in which NPC actions are displayed for players. Must be higher than {@code
-         * 0}.
+         * Distance to inform about NPC actions.
          *
-         * @param actionDistance the distance in which NPC actions are displayed for players.
+         * @param actionDistance action distance
          * @return The same instance of this class, for chaining.
          */
-        @NotNull
         public Builder actionDistance(int actionDistance) {
             Preconditions.checkArgument(actionDistance > 0, "Action distance must be more than 0");
             this.actionDistance = actionDistance;
@@ -365,27 +239,23 @@ public class NPCPool implements Listener {
         }
 
         /**
-         * Sets the distance in which NPC actions are displayed for players. A negative value indicates
-         * that the npc is never removed from the player list by default.
+         * Ticks before hiding from the tab list.
          *
-         * @param tabListRemoveTicks the distance in which NPC actions are displayed for players.
+         * @param tabListRemoveTicks time before hiding
          * @return The same instance of this class, for chaining.
          */
-        @NotNull
-        public Builder tabListRemoveTicks(long tabListRemoveTicks) {
+        public Builder tabListRemoveTicks(int tabListRemoveTicks) {
             this.tabListRemoveTicks = tabListRemoveTicks;
             return this;
         }
 
         /**
-         * Creates a new npc tool by the values passed to the builder.
+         * Construct the pool.
          *
-         * @return The created npc pool.
+         * @return NPC pool.
          */
-        @NotNull
         public NPCPool build() {
-            return new NPCPool(this.plugin, this.spawnDistance, this.actionDistance,
-                    this.tabListRemoveTicks);
+            return new NPCPool(this.plugin, this.spawnDistance, this.actionDistance, this.tabListRemoveTicks);
         }
     }
 }

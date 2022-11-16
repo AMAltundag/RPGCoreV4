@@ -11,7 +11,6 @@ import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.skillbar.ISkillBind;
 import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindCast;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -118,7 +117,7 @@ public class TriggerMechanic extends AbstractCoreMechanic {
         }
 
         // apply a cooldown if necessary
-        int cooldown = (int) (cooldown_time * Math.max(0d, 1d-cooldown_reduction) / Math.max(0.01d, 1d+cooldown_recovery));
+        int cooldown = (int) (cooldown_time * Math.max(0d, 1d - cooldown_reduction) / Math.max(0.01d, 1d + cooldown_recovery));
         if (cooldown > 0) {
             context.getCoreEntity().setCooldown(cooldown_id, cooldown);
         }

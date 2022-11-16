@@ -64,20 +64,20 @@ public class BeamProxy extends AbstractSkillProxy {
      * A beam is capable of rotation, trying to hit an entity
      * at the given distance.
      *
-     * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param item item spawned at the anchor
-     * @param rotation_offset offset while non-freestyle for rotation
+     * @param context             the context provided by the skill
+     * @param origin              location to anchor proxy at
+     * @param item                item spawned at the anchor
+     * @param rotation_offset     offset while non-freestyle for rotation
      * @param rotation_per_second degrees rotated per second
-     * @param freestyle no rotation, but arbitrary direction
-     * @param current_range original range of the beam
-     * @param range_per_second beam range gained per second
-     * @param maximum_range maximum distance beam expands to
-     * @param impact entity which is affected by the beam
-     * @param beam_effects scattered along beam line
-     * @param head_effects effect only at the tip of the beam
-     * @param cooldown interval to update beam at
-     * @param filter filter on who can be hit by beam
+     * @param freestyle           no rotation, but arbitrary direction
+     * @param current_range       original range of the beam
+     * @param range_per_second    beam range gained per second
+     * @param maximum_range       maximum distance beam expands to
+     * @param impact              entity which is affected by the beam
+     * @param beam_effects        scattered along beam line
+     * @param head_effects        effect only at the tip of the beam
+     * @param cooldown            interval to update beam at
+     * @param filter              filter on who can be hit by beam
      */
     public BeamProxy(IContext context, IOrigin origin, ItemStack item, float rotation_offset, float rotation_per_second, boolean freestyle, double current_range, double range_per_second,
                      double maximum_range, MultiMechanic impact, List<String> beam_effects, List<String> head_effects, int cooldown, int duration,

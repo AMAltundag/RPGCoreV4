@@ -47,16 +47,16 @@ public class AreaProxy extends AbstractSkillProxy {
      * Create an area which has a certain effect on entities that
      * reside within it.
      *
-     * @param context the context the area is created within.
-     * @param origin where the area is spawned at
-     * @param item item that marks the area
+     * @param context      the context the area is created within.
+     * @param origin       where the area is spawned at
+     * @param item         item that marks the area
      * @param inner_radius inner limit of radius
-     * @param outer_radius  outer limit of radius
-     * @param effects effect to highlight area
-     * @param cooldown time before same entity can be affected again
-     * @param impact invoked when an entity can be affected
-     * @param ticker invoked while proxy is active
-     * @param filter filters entities we can affect
+     * @param outer_radius outer limit of radius
+     * @param effects      effect to highlight area
+     * @param cooldown     time before same entity can be affected again
+     * @param impact       invoked when an entity can be affected
+     * @param ticker       invoked while proxy is active
+     * @param filter       filters entities we can affect
      */
     public AreaProxy(IContext context, IOrigin origin, ItemStack item, double inner_radius, double outer_radius, List<String> effects, int cooldown, int duration, MultiMechanic impact, MultiMechanic ticker, List<AbstractCoreSelector> filter) {
         super(context);

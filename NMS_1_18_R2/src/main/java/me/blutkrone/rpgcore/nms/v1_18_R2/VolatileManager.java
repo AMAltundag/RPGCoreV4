@@ -8,11 +8,13 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.v1_18_R2.entity.VolatileEntityCollider;
 import me.blutkrone.rpgcore.nms.v1_18_R2.entity.VolatileVisualEntity;
 import me.blutkrone.rpgcore.nms.v1_18_R2.menu.VolatileChestMenu;
 import me.blutkrone.rpgcore.nms.v1_18_R2.menu.VolatileTextInput;
 import me.blutkrone.rpgcore.nms.v1_18_R2.mob.VolatileEntityBase;
+import me.blutkrone.rpgcore.nms.v1_18_R2.packet.VolatilePackets;
 import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.chat.hover.content.*;
 import net.md_5.bungee.chat.*;
@@ -90,6 +92,11 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
     }
 
     @Override
+    public IVolatilePackets getPackets() {
+        return new VolatilePackets();
+    }
+
+    @Override
     public int getNextEntityId() {
         // faster access then using reflection for the NMS tracker
         return this.entity_id++;
@@ -97,6 +104,7 @@ public final class VolatileManager extends AbstractVolatileManager implements Li
 
     @Override
     public IEntityVisual createVisualEntity(Location where, boolean small) {
+        Bukkit.getLogger().severe("REPLACE VISUAL ENTITIES WITH HOLOGRAMS");
         World world = where.getWorld();
         if (world instanceof CraftWorld) {
             VolatileVisualEntity visual = new VolatileVisualEntity(((CraftWorld) world).getHandle(), small);

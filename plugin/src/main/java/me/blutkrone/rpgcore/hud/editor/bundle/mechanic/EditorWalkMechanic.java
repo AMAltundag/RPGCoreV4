@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditorWalkMechanic  extends AbstractEditorMechanic {
+public class EditorWalkMechanic extends AbstractEditorMechanic {
 
     @EditorList(name = "Selectors", constraint = SelectorConstraint.class)
     @EditorTooltip(tooltip = {"After passing thorough all selectors, we got our targets"})

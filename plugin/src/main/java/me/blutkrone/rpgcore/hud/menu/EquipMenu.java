@@ -148,7 +148,7 @@ public class EquipMenu implements Listener {
      * Extract an item from the equipment we are holding.
      *
      * @param player whose items are we checking
-     * @param slot the bukkit slot we want to match
+     * @param slot   the bukkit slot we want to match
      * @return the item that was extracted
      */
     public ItemStack getBukkitEquipment(CorePlayer player, BukkitSlot slot) {

@@ -10,13 +10,13 @@ import java.util.function.Supplier;
  * point-of-interest.
  */
 public class MapMarker {
-    // where the marker is located at
-    private Supplier<Location> where;
-    private Location where_cached;
     // which marker identifier is used
     public final String marker;
     // distance the marker is shown
     public final double distance;
+    // where the marker is located at
+    private Supplier<Location> where;
+    private Location where_cached;
 
     public MapMarker(ConfigWrapper section) {
         this.where = section.getLazyLocation("location");

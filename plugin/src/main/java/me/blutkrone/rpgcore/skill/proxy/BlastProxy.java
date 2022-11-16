@@ -39,14 +39,14 @@ public class BlastProxy extends AbstractSkillProxy {
     /**
      * Expanding blast within a cone-like shape.
      *
-     * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param impact logic invoked upon impact
-     * @param effects cosmetic effects to highlight effect
-     * @param duration how many ticks the effect lasts
-     * @param start distance to start at
+     * @param context              the context provided by the skill
+     * @param origin               location to anchor proxy at
+     * @param impact               logic invoked upon impact
+     * @param effects              cosmetic effects to highlight effect
+     * @param duration             how many ticks the effect lasts
+     * @param start                distance to start at
      * @param expansion_per_second expansion rate per second
-     * @param angle angle of the blast
+     * @param angle                angle of the blast
      */
     public BlastProxy(IContext context, IOrigin origin, MultiMechanic impact, List<String> effects, int duration, double start, double expansion_per_second, int angle, double shrink_per_second) {
         super(context);
@@ -103,12 +103,12 @@ public class BlastProxy extends AbstractSkillProxy {
             for (int i = 0; i <= samples; i++) {
                 Location position = anchor.clone();
                 position.setPitch(0f);
-                position.setYaw(360f * ((0f+i) / (0f + samples)));
+                position.setYaw(360f * ((0f + i) / (0f + samples)));
                 position.add(position.getDirection().multiply(distance));
                 positions.add(new IOrigin.SnapshotOrigin(position));
             }
             // filter to a cone-like shape
-            positions = ConeSelector.filter(this.anchor, 0d, distance+1d, angle, positions);
+            positions = ConeSelector.filter(this.anchor, 0d, distance + 1d, angle, positions);
             // render the effects at the relevant positions
             for (IOrigin position : positions) {
                 String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));

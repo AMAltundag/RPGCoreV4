@@ -339,7 +339,6 @@ public class VolatileEntityBase implements IEntityBase {
 
         @Override
         public void a() {
-
         }
 
         @Override

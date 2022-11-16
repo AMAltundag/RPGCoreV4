@@ -187,7 +187,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
                     // add attributes to the skill
                     Map<String, Double> attributes = ((CorePassiveSkillAttribute) effect).getAttributes();
                     attributes.forEach((attribute, factor) -> {
-                        skill_attributes.merge(attribute, factor, (a,b) -> a+b);
+                        skill_attributes.merge(attribute, factor, (a, b) -> a + b);
                     });
                 } else {
                     ItemStack item = getPassiveSocketed(tree.getId(), where);
@@ -202,7 +202,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
                                 for (CoreModifier modifier : data.getModifiers()) {
                                     skill_tags.addAll(modifier.getTagEffects());
                                     modifier.getAttributeEffects().forEach((attribute, factor) -> {
-                                        skill_attributes.merge(attribute, factor, (a,b) -> a+b);
+                                        skill_attributes.merge(attribute, factor, (a, b) -> a + b);
                                     });
                                 }
                             } else if (effect instanceof CorePassiveSocketSkillReference) {
@@ -330,9 +330,9 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * some special context driven things. Only RPGCore items should
      * be able to be socketed.
      *
-     * @param tree which tree holds the items
+     * @param tree     which tree holds the items
      * @param position encoded position in the tree
-     * @param item the item socketed, or null to remove
+     * @param item     the item socketed, or null to remove
      */
     public void setPassiveSocketed(String tree, long position, ItemStack item) {
         Map<Long, ItemStack> socketed = this.passive_socketed.computeIfAbsent(tree, (k -> new HashMap<>()));
@@ -348,7 +348,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * some special context driven things. Only RPGCore items should
      * be able to be socketed.
      *
-     * @param tree which tree holds the items
+     * @param tree     which tree holds the items
      * @param position encoded position in the tree
      * @return the item that is socketed, or null.
      */
@@ -659,17 +659,6 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
-     * Define the login position, used to make sure that delayed
-     * spawn position rules can be applied properly. Do note that
-     * this value is only processed once.
-     *
-     * @param login_position where to spawn-in once available.
-     */
-    public void setLoginPosition(Location login_position) {
-        this.login_position = login_position;
-    }
-
-    /**
      * Verify if the skillbar is still considered active.
      *
      * @return true if the skillbar is active.
@@ -684,6 +673,15 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
+     * Flag the skillbar as being active.
+     *
+     * @param skillbar_active true if the skillbar is active.
+     */
+    public void setSkillbarActive(boolean skillbar_active) {
+        this.skillbar_active = skillbar_active;
+    }
+
+    /**
      * The location intended for logging in, this method will not matter once
      * the player instance was teleported to the login position.
      *
@@ -694,12 +692,14 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
-     * Flag the skillbar as being active.
+     * Define the login position, used to make sure that delayed
+     * spawn position rules can be applied properly. Do note that
+     * this value is only processed once.
      *
-     * @param skillbar_active true if the skillbar is active.
+     * @param login_position where to spawn-in once available.
      */
-    public void setSkillbarActive(boolean skillbar_active) {
-        this.skillbar_active = skillbar_active;
+    public void setLoginPosition(Location login_position) {
+        this.login_position = login_position;
     }
 
     /**

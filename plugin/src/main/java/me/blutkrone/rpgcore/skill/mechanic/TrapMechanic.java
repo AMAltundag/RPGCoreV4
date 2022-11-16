@@ -54,7 +54,7 @@ public class TrapMechanic extends AbstractCoreMechanic {
     public void doMechanic(IContext context, List<IOrigin> targets) {
         int duration = this.duration.evalAsInt(context);
         double radius = this.radius.evalAsDouble(context);
-        double multi = 1d+Math.max(0d, this.multi.evalAsDouble(context));
+        double multi = 1d + Math.max(0d, this.multi.evalAsDouble(context));
         int limit = this.limit.evalAsInt(context);
         int active = count(context.getCoreEntity());
 

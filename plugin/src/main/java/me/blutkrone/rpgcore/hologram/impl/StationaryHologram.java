@@ -1,12 +1,12 @@
 package me.blutkrone.rpgcore.hologram.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -29,7 +29,7 @@ public class StationaryHologram {
     // text used by the hologram
     private String lc_text;
     // runtime entity reference
-    private transient Hologram hologram;
+    private transient IHologram hologram;
 
     public StationaryHologram() {
     }
@@ -77,7 +77,6 @@ public class StationaryHologram {
                 IndexedTexture texture = rpm.texture("hologram_" + content);
                 msb.shiftCentered(0, texture.width);
                 msb.append(texture);
-                Bukkit.getLogger().severe("SYMBOL " + texture);
             }
         }
         // reverse and write the hologram contents
@@ -87,7 +86,7 @@ public class StationaryHologram {
             String content = contents.get(i);
 
             if (!rpm.textures().containsKey("hologram_" + content)) {
-                msb.shiftCentered(0, Utility.measureWidthExact(content));
+                msb.shiftCentered(0, Utility.measure(content));
                 msb.append(content, "nameplate_" + j++);
             }
         }
@@ -101,7 +100,7 @@ public class StationaryHologram {
 
         // present the hologram
         if (this.hologram == null) {
-            this.hologram = new Hologram();
+            this.hologram = RPGCore.inst().getVolatileManager().getPackets().hologram();
         }
         this.hologram.spawn(player, this.x, this.y, this.z);
         this.hologram.name(player, result);

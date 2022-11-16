@@ -55,14 +55,14 @@ public class SkillItemDescriptor implements IItemDescriber {
         // [4] slice of title segment, item name
         msb.shiftToExact(-20);
         msb.append(styling.texture("title", 1), ChatColor.WHITE);
-        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(name));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(name));
         msb.append(styling.color("upper-name", name), "lore_upper_name");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());
         // [5] slice of title segment, sub name
         msb.shiftToExact(-20);
         msb.append(styling.texture("title", 2), ChatColor.WHITE);
-        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(sub_name));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(sub_name));
         msb.append(styling.color("lower-name", sub_name), "lore_lower_name");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());
@@ -100,7 +100,7 @@ public class SkillItemDescriptor implements IItemDescriber {
                     msb.append(styling.color("highlight-left", split[0]), "default_fixed");
                     // write the secondary info of the modifier
                     if (split.length == 2) {
-                        msb.shiftToExact(-20 + this.width_base - this.padding + 5 - Utility.measureWidthExact(split[1]));
+                        msb.shiftToExact(-20 + this.width_base - this.padding + 5 - Utility.measure(split[1]));
                         msb.append(styling.color("highlight-right", split[1]), "default_fixed");
                     }
                     // append the modifier to our listing
@@ -146,7 +146,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         String line = "";
         for (String tag : tags) {
             tag = RPGCore.inst().getLanguageManager().getTranslation("skill_tag_" + tag.toLowerCase());
-            int len = Utility.measureWidth(tag + " ");
+            int len = Utility.measure(tag + " ");
             if ((length + len) > 240) {
                 length = 0;
                 collapsed.add(line); //
@@ -206,7 +206,7 @@ public class SkillItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
-            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(translation));
             msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -228,7 +228,7 @@ public class SkillItemDescriptor implements IItemDescriber {
                     msb.append(styling.color("attribute-left", split[0]), "default_fixed");
                     // write the secondary info of the modifier
                     if (split.length == 2) {
-                        msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measureWidthExact(split[1]));
+                        msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measure(split[1]));
                         msb.append(styling.color("attribute-right", split[1]), "default_fixed");
                     }
                     // append the modifier to our listing
@@ -272,7 +272,7 @@ public class SkillItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation(category);
-            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(translation));
             msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -310,7 +310,7 @@ public class SkillItemDescriptor implements IItemDescriber {
                     msb.shiftToExact(-20 + this.padding + 24);
                     msb.append(styling.color("ability-left", left), "default_fixed");
                     if (right != null) {
-                        msb.shiftToExact(this.width_base - this.padding - 20 - Utility.measureWidthExact(right));
+                        msb.shiftToExact(this.width_base - this.padding - 20 - Utility.measure(right));
                         msb.append(styling.color("ability-right", right), "default_fixed");
                     }
                     msb.shiftToExact(0);
@@ -344,7 +344,7 @@ public class SkillItemDescriptor implements IItemDescriber {
             // re-arrange lore to respect text length
             boolean valid = true;
             for (String line : lore) {
-                if (Utility.measureWidthExact(line) > 230) {
+                if (Utility.measure(line) > 230) {
                     valid = false;
                 }
             }
@@ -360,7 +360,7 @@ public class SkillItemDescriptor implements IItemDescriber {
                 String sentence = words.remove(0);
                 for (String word : words) {
                     String preview = sentence + " " + word;
-                    if (Utility.measureWidthExact(preview) <= 230) {
+                    if (Utility.measure(preview) <= 230) {
                         sentence = preview;
                     } else {
                         lore.add(sentence);
@@ -382,7 +382,7 @@ public class SkillItemDescriptor implements IItemDescriber {
             msb.shiftToExact(-20);
             msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
             String translation = language_manager.getTranslation("lore_category_description");
-            msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(translation));
             msb.append(styling.color("category", translation), "default_fixed");
             msb.shiftToExact(0);
             compiled.add(msb.compileAndClean());
@@ -395,7 +395,7 @@ public class SkillItemDescriptor implements IItemDescriber {
             for (String line : lore) {
                 msb.shiftToExact(-20);
                 msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
-                msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(line));
+                msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(line));
                 msb.append(styling.color("description", line), "default_fixed");
                 msb.shiftToExact(0);
                 compiled.add(msb.compileAndClean());
@@ -426,7 +426,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         msb.shiftToExact(-20);
         msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
         String translation = language_manager.getTranslation("lc_category_skill_linked");
-        msb.shiftCentered((this.width_base / 2) - 20, Utility.measureWidthExact(translation));
+        msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(translation));
         msb.append(styling.color("category", translation), "default_fixed");
         msb.shiftToExact(0);
         compiled.add(msb.compileAndClean());

@@ -10,7 +10,6 @@ import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -43,13 +42,13 @@ public class BoltProxy extends AbstractSkillProxy {
      * Piercing projectile moving in a straight line.
      *
      * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param item item that marks the projectile
-     * @param impact logic invoked upon impact
+     * @param origin  location to anchor proxy at
+     * @param item    item that marks the projectile
+     * @param impact  logic invoked upon impact
      * @param effects cosmetic effects to highlight effect
-     * @param pierce entities we can pierce
-     * @param speed speed measured in blocks per second
-     * @param radius size of the projectile
+     * @param pierce  entities we can pierce
+     * @param speed   speed measured in blocks per second
+     * @param radius  size of the projectile
      */
     public BoltProxy(IContext context, IOrigin origin, ItemStack item, MultiMechanic impact, List<String> effects, int pierce, double speed, double radius) {
         super(context);

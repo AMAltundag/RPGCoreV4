@@ -8,8 +8,6 @@ import java.util.List;
 
 public abstract class AbstractEditorSelector implements IEditorBundle {
 
-    public abstract AbstractCoreSelector build();
-
     public static List<AbstractCoreSelector> unwrap(List<IEditorBundle> bundles) {
         List<AbstractCoreSelector> output = new ArrayList<>();
         for (IEditorBundle bundle : bundles) {
@@ -18,4 +16,6 @@ public abstract class AbstractEditorSelector implements IEditorBundle {
         }
         return output;
     }
+
+    public abstract AbstractCoreSelector build();
 }

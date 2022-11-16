@@ -9,6 +9,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/NMS_1_19_R1/pom.xml" />
       </list>
     </option>
   </component>

@@ -178,7 +178,6 @@ public class NodeWorld {
     public void destruct(UUID uuid) {
         // drop the node from the ID
         NodeActive removed = this.node_by_id.remove(uuid);
-        Bukkit.getLogger().severe("UNREGISTERED " + uuid);
         if (removed == null) {
             return;
         }
@@ -187,12 +186,10 @@ public class NodeWorld {
         List<NodeActive> nodes = this.node_by_chunk.get(id);
         if (nodes != null) {
             nodes.remove(removed);
-            Bukkit.getLogger().severe("ABANDONED FROM CHUNK");
         }
         // clean the data of the node
         NodeData data = removed.getData();
         if (data != null) {
-            Bukkit.getLogger().severe("DATA WAS CLEARED");
             data.abandon();
         }
         // delete the file of the node
@@ -200,7 +197,6 @@ public class NodeWorld {
         try {
             file.getParentFile().mkdirs();
             file.delete();
-            Bukkit.getLogger().severe("FILE WAS DESTRUCTED");
         } catch (Exception e) {
             e.printStackTrace();
         }

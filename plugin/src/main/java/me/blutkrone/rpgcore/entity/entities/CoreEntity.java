@@ -118,7 +118,7 @@ public class CoreEntity implements IContext, IOrigin {
      * Check for an instant cast for the given skill, and if requested
      * consume it.
      *
-     * @param skill the skill we're checking
+     * @param skill   the skill we're checking
      * @param consume whether to consume the instant cast
      * @return true if we have an instant cast
      */
@@ -176,7 +176,7 @@ public class CoreEntity implements IContext, IOrigin {
                         int cooldown = trigger.cooldown_time.evalAsInt(casted.getContext());
                         double reduction = trigger.cooldown_reduction.evalAsDouble(casted.getContext());
                         double recovery = trigger.cooldown_recovery.evalAsDouble(casted.getContext());
-                        int result = (int) (cooldown * Math.max(0d, 1d-reduction) / Math.max(0.01d, 1d+recovery));
+                        int result = (int) (cooldown * Math.max(0d, 1d - reduction) / Math.max(0.01d, 1d + recovery));
                         if (result > 0) {
                             casted.getContext().getCoreEntity().setCooldown(cdId, result);
                         }
@@ -255,7 +255,7 @@ public class CoreEntity implements IContext, IOrigin {
      * A hint to show on the UX for focus information, this will override
      * the activity information.
      *
-     * @param hint the hint we are given
+     * @param hint     the hint we are given
      * @param duration how many ticks the hint lasts
      */
     public void giveFocusHint(String hint, int duration) {
@@ -325,22 +325,22 @@ public class CoreEntity implements IContext, IOrigin {
      * Establishes a parent-child relationship, this is
      * handled bi-directionally.
      *
-     * @param child entity that will become our child.
+     * @param parent entity that will become our parent.
      */
-    public void addChild(CoreEntity child) {
-        child.parent = this.getUniqueId();
-        this.children.add(child.getUniqueId());
+    public void setParent(CoreEntity parent) {
+        this.parent = parent.getUniqueId();
+        parent.children.add(this.getUniqueId());
     }
 
     /**
      * Establishes a parent-child relationship, this is
      * handled bi-directionally.
      *
-     * @param parent entity that will become our parent.
+     * @param child entity that will become our child.
      */
-    public void setParent(CoreEntity parent) {
-        this.parent = parent.getUniqueId();
-        parent.children.add(this.getUniqueId());
+    public void addChild(CoreEntity child) {
+        child.parent = this.getUniqueId();
+        this.children.add(child.getUniqueId());
     }
 
     /**
@@ -425,9 +425,9 @@ public class CoreEntity implements IContext, IOrigin {
      * <p>
      * There are the following causes to create a skill context:
      * <ul>
-     *     <li>Used the skillbar to cast a skill</li>
-     *     <li>Passive behaviour was triggered</li>
-     *     <li>Player UX wants to check usability</li>
+     * <li>Used the skillbar to cast a skill</li>
+     * <li>Passive behaviour was triggered</li>
+     * <li>Player UX wants to check usability</li>
      * </ul>
      *
      * @param skill the skill we want a context for.
@@ -623,7 +623,7 @@ public class CoreEntity implements IContext, IOrigin {
      * Acquire a certain tag, which expires naturally after a certain
      * duration has passed.
      *
-     * @param tag the tag we've acquired.
+     * @param tag      the tag we've acquired.
      * @param duration how long the tag lasts.
      * @return a modifier which we can expire manually.
      */

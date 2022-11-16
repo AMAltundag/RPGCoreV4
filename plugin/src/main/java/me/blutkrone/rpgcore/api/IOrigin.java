@@ -45,7 +45,7 @@ public interface IOrigin {
      *
      * @param origin the other origin to compare against.
      * @return distance between origins, max be {@link Double#MAX_VALUE}
-     *         should the origins be incompatible.
+     * should the origins be incompatible.
      */
     default double distance(IOrigin origin) {
         try {
@@ -109,7 +109,7 @@ public interface IOrigin {
      * Run a ray-cast that fetches all entities.
      *
      * @param distance maximum distance of ray-cast
-     * @param size extra size of ray-cast
+     * @param size     extra size of ray-cast
      * @return all entities within cast
      */
     default List<CoreEntity> rayCastEntities(double distance, double size) {

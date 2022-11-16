@@ -86,15 +86,15 @@ public class QuestMenu {
                     // offer a button to reposition quest
                     ItemStack icon_move_up = this.move_quest_up.clone();
                     IChestMenu.setBrand(icon_move_up, RPGCore.inst(), "move_up", String.valueOf(offset + i));
-                    this.getMenu().setItemAt(i*9 + 7, icon_move_up);
+                    this.getMenu().setItemAt(i * 9 + 7, icon_move_up);
                     // offer a button to reposition quest
                     ItemStack icon_move_down = this.move_quest_down.clone();
                     IChestMenu.setBrand(icon_move_down, RPGCore.inst(), "move_down", String.valueOf(offset + i));
-                    this.getMenu().setItemAt(i*9 + 6, icon_move_down);
+                    this.getMenu().setItemAt(i * 9 + 6, icon_move_down);
                     // offer a button to abandon quest
                     ItemStack icon_abandon_quest = this.icon_abandon_quest.clone();
                     IChestMenu.setBrand(icon_abandon_quest, RPGCore.inst(), "abandon_quest", qId);
-                    this.getMenu().setItemAt(i*9 + 5, icon_abandon_quest);
+                    this.getMenu().setItemAt(i * 9 + 5, icon_abandon_quest);
                 }
             }
 
@@ -347,7 +347,7 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.showCortex(getMenu().getViewer(), false);
+                    npc.interact(getMenu().getViewer(), false);
                 }
             });
         }
@@ -444,7 +444,7 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.showCortex(getMenu().getViewer(), false);
+                    npc.interact(getMenu().getViewer(), false);
                 }
             });
         }
@@ -506,7 +506,7 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.showCortex(getMenu().getViewer(), false);
+                    npc.interact(getMenu().getViewer(), false);
                 }
             });
         }

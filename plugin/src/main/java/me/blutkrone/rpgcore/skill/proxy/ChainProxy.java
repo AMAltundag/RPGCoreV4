@@ -9,7 +9,6 @@ import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,13 +35,13 @@ public class ChainProxy extends AbstractSkillProxy {
      * a line-of-sight, delay happens between chains.
      *
      * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param impact logic invoked upon impact
+     * @param origin  location to anchor proxy at
+     * @param impact  logic invoked upon impact
      * @param effects cosmetic effects to highlight effect
-     * @param chains how often we can chain
-     * @param delay delay between chains
-     * @param radius distance we can chain between
-     * @param filter filter atop the radius
+     * @param chains  how often we can chain
+     * @param delay   delay between chains
+     * @param radius  distance we can chain between
+     * @param filter  filter atop the radius
      */
     public ChainProxy(IContext context, IOrigin origin, MultiMechanic impact, List<String> effects, int chains, int delay, double radius, List<AbstractCoreSelector> filter) {
         super(context);

@@ -49,20 +49,20 @@ public final class DamageInteraction {
      * Identifies who is to be blamed for the damage, this is
      * meant for something like a damage log.
      *
-     * @param damage_blame who should bear blame.
+     * @return who is to blame for damage.
      */
-    public void setDamageBlame(String damage_blame) {
-        this.damage_blame = damage_blame;
+    public String getDamageBlame() {
+        return damage_blame;
     }
 
     /**
      * Identifies who is to be blamed for the damage, this is
      * meant for something like a damage log.
      *
-     * @return who is to blame for damage.
+     * @param damage_blame who should bear blame.
      */
-    public String getDamageBlame() {
-        return damage_blame;
+    public void setDamageBlame(String damage_blame) {
+        this.damage_blame = damage_blame;
     }
 
     /**

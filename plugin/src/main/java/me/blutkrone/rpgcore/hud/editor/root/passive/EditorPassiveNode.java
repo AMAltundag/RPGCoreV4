@@ -22,8 +22,8 @@ import java.util.List;
 
 public class EditorPassiveNode implements IEditorRoot<CorePassiveNode> {
 
-   // @EditorList(name = "Parts", constraint = EffectPartConstraint.class)
-   // public List<IEditorBundle> effects = new ArrayList<>();
+    // @EditorList(name = "Parts", constraint = EffectPartConstraint.class)
+    // public List<IEditorBundle> effects = new ArrayList<>();
 
     @EditorWrite(name = "Allocated", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Item used if node is assigned.", "§cThis is a language code, NOT plaintext."})

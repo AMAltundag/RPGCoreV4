@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class TotemMechanic extends AbstractCoreMechanic {
 
-    private static final float[] CORRECTION_ANGLES = new float[]{ 5f, 10f, 20f, 30f, 50f, 80f };
+    private static final float[] CORRECTION_ANGLES = new float[]{5f, 10f, 20f, 30f, 50f, 80f};
 
     private final CoreModifierBoolean exact;
     private List<AbstractCoreSelector> filter;
@@ -103,7 +103,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
             return null;
         }
         // identify what surface to map towards
-        if (trace.getHitBlockFace() == BlockFace.UP){
+        if (trace.getHitBlockFace() == BlockFace.UP) {
             // top is exposed, map to that
             Location position = trace.getHitBlock().getLocation().add(0.5, 1.0d, 0.5);
             return new IOrigin.SnapshotOrigin(position);
@@ -142,7 +142,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
         int duration = this.duration.evalAsInt(context);
         int interval = this.interval.evalAsInt(context);
         int health = this.health.evalAsInt(context);
-        double multi = 1d+Math.max(0d, this.multi.evalAsDouble(context));
+        double multi = 1d + Math.max(0d, this.multi.evalAsDouble(context));
         int limit = this.limit.evalAsInt(context);
         boolean exact = this.exact.evaluate(context);
         int active = count(context.getCoreEntity());
@@ -179,7 +179,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
                     context.getCoreEntity().getProxies().add(proxy);
                     active += 1;
                     // bounce to a proper location
-                    proxy.getTotem().getEntity().setVelocity(new Vector(Math.random()-0.5, 0.2d, Math.random()-0.5));
+                    proxy.getTotem().getEntity().setVelocity(new Vector(Math.random() - 0.5, 0.2d, Math.random() - 0.5));
                 }
             }
         }

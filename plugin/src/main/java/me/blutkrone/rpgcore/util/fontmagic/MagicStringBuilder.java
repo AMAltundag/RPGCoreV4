@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.util.Utility;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class MagicStringBuilder {
     // already compiled parts
     private List<BaseComponent> compiled = new ArrayList<>();
     // which character table to utilize
-    private String charset = "default";
+    private String charset = "generated_text_default_fixed";
     // the buffer we have currently
     private StringBuilder internal = new StringBuilder();
     // computed symbol length, assume accuracy
@@ -84,11 +85,12 @@ public class MagicStringBuilder {
      */
     public MagicStringBuilder append(String text) {
         if (text.isEmpty()) return this;
-        int length = Utility.measureWidthExact(text);
+        int length = Utility.measure(text);
         flush();
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
+
         return this;
     }
 
@@ -102,14 +104,14 @@ public class MagicStringBuilder {
 
         if (obfuscate) {
             split();
-            int length = Utility.measureWidthExact(text);
+            int length = Utility.measure(text);
             this.internal.append(text);
             this.pending_offset -= 1;
             this.length += length;
             split();
             this.compiled.get(this.compiled.size() - 1).setObfuscated(true);
         } else {
-            int length = Utility.measureWidthExact(text);
+            int length = Utility.measure(text);
             flush();
             this.internal.append(text);
             this.pending_offset -= 1;
@@ -127,7 +129,7 @@ public class MagicStringBuilder {
      */
     public MagicStringBuilder append(String text, ChatColor color) {
         if (text.isEmpty()) return this;
-        int length = Utility.measureWidthExact(text);
+        int length = Utility.measure(text);
         split();
         this.internal.append(text);
         this.pending_offset -= 1;
@@ -148,7 +150,7 @@ public class MagicStringBuilder {
      * @param offset which page to offset into
      */
     public MagicStringBuilder append(String text, String offset) {
-        int length = Utility.measureWidthExact(text);
+        int length = Utility.measure(text);
         // flush the offset that lays on our buffer
         flush();
         // make sure we can retreat to our page
@@ -195,7 +197,7 @@ public class MagicStringBuilder {
      */
     public MagicStringBuilder append(String text, String offset, ChatColor color) {
         // measure the length of the text to append
-        int length = Utility.measureWidthExact(text);
+        int length = Utility.measure(text);
         // flush the offset that lays on our buffer
         split();
         // make sure we can retreat to our page
@@ -245,6 +247,7 @@ public class MagicStringBuilder {
      * @param color dyes the appended component
      */
     public MagicStringBuilder append(IndexedTexture text, ChatColor color) {
+
         // flush the offset that lays on our buffer
         split();
         // make sure we can retreat to our page
@@ -261,6 +264,9 @@ public class MagicStringBuilder {
         // retreat to our preceding font
         if (!current_font.equals(this.charset))
             font(current_font);
+
+        Bukkit.getLogger().severe("APPEND " + text.width + " " + this.length);
+
         return this;
     }
 
@@ -294,6 +300,7 @@ public class MagicStringBuilder {
      * @param position pointer will face exact pixel.
      */
     public MagicStringBuilder shiftToExact(int position) {
+        Bukkit.getLogger().severe("SHIFT TO EXACT " + length + " " + position);
         retreat(length);
         advance(position);
         return this;
@@ -339,7 +346,7 @@ public class MagicStringBuilder {
         BaseComponent[] compiled = compile();
         // clear out any data we have
         this.compiled = new ArrayList<>();
-        this.charset = "default";
+        this.charset = "generated_text_default_fixed";
         this.internal = new StringBuilder();
         this.length = 0;
         this.pending_offset = 0;

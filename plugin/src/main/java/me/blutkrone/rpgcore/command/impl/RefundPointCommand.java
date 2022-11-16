@@ -39,7 +39,7 @@ public class RefundPointCommand extends AbstractCommand {
                 return;
             }
 
-            core_player.getPassiveRefunds().merge(args[2], Integer.parseInt(args[3]), (a,b) -> Math.max(0, a+b));
+            core_player.getPassiveRefunds().merge(args[2], Integer.parseInt(args[3]), (a, b) -> Math.max(0, a + b));
 
             // inform about success
             String msg = RPGCore.inst().getLanguageManager().getTranslation("command_success");

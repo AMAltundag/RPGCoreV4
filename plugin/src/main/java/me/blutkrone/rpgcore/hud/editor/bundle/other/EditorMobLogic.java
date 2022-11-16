@@ -41,6 +41,23 @@ public class EditorMobLogic implements IEditorBundle {
     @EditorTooltip(tooltip = {"Transmute original target", "Multi mechanic allows to isolate selectors", "§cOriginal target is the entity itself."})
     public List<IEditorBundle> selector = new ArrayList<>();
 
+    /**
+     * Unwrap a list of bundles into mob logic.
+     *
+     * @param bundles the editor bundles to unwrap
+     * @return logic we've constructed
+     */
+    public static List<CoreMobLogic> unwrap(List<IEditorBundle> bundles) {
+        List<CoreMobLogic> unwrapped = new ArrayList<>();
+        for (IEditorBundle bundle : bundles) {
+            if (bundle instanceof EditorMobLogic) {
+                unwrapped.add(new CoreMobLogic((EditorMobLogic) bundle));
+            }
+        }
+        unwrapped.sort(Comparator.comparingDouble(CoreMobLogic::getPriority).reversed());
+        return unwrapped;
+    }
+
     @Override
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.COMPARATOR)
@@ -69,22 +86,5 @@ public class EditorMobLogic implements IEditorBundle {
         instruction.add("");
         instruction.add("Groups allow you to prevent running conflicting logic at once.");
         return instruction;
-    }
-
-    /**
-     * Unwrap a list of bundles into mob logic.
-     *
-     * @param bundles the editor bundles to unwrap
-     * @return logic we've constructed
-     */
-    public static List<CoreMobLogic> unwrap(List<IEditorBundle> bundles) {
-        List<CoreMobLogic> unwrapped = new ArrayList<>();
-        for (IEditorBundle bundle : bundles) {
-            if (bundle instanceof EditorMobLogic) {
-                unwrapped.add(new CoreMobLogic((EditorMobLogic) bundle));
-            }
-        }
-        unwrapped.sort(Comparator.comparingDouble(CoreMobLogic::getPriority).reversed());
-        return unwrapped;
     }
 }

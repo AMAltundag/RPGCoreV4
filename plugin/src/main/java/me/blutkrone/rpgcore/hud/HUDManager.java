@@ -108,10 +108,12 @@ public class HUDManager implements Listener {
                     RPGCore.inst().getVolatileManager().updateBossBar(active_bossbar, String.format("§fYou will die in %s seconds!", grave_timer / 20));
                     continue;
                 }
+
                 // prepare the info components we work with
                 Queue<Object> prepared = new LinkedList<>();
                 for (IUXComponent<?> component : this.components)
                     prepared.add(component.prepare(core, bukkit));
+
                 // off-load heavy lifting tasks to another thread
                 Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                     ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();

@@ -4,10 +4,10 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.data.IDataIdentity;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -28,6 +28,8 @@ public class RosterMenu extends AbstractCoreMenu {
     public void rebuild() {
         // clear out all items on the menu
         getMenu().clearItems();
+
+        Bukkit.getLogger().severe("---");
 
         // updated msb title for the menu
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -84,12 +86,14 @@ public class RosterMenu extends AbstractCoreMenu {
             msb.shiftToExact(54 * i).append(resourcepack().texture("static_" + portrait + "_portrait"), ChatColor.WHITE);
         }
 
-        InstructionBuilder instructions = new InstructionBuilder();
-        instructions.add(RPGCore.inst().getLanguageManager().getTranslationList("instruction_player_roster"));
-        instructions.apply(msb);
+        // InstructionBuilder instructions = new InstructionBuilder();
+        // instructions.add(RPGCore.inst().getLanguageManager().getTranslationList("instruction_player_roster"));
+        // instructions.apply(msb);
 
         // supply the title to the player
         getMenu().setTitle(msb.compile());
+
+        Bukkit.getLogger().severe("---");
     }
 
     @Override

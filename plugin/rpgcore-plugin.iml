@@ -95,5 +95,6 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.depsypher:pngtastic:1.7" level="project" />
     <orderEntry type="module" module-name="rpgcore-api" />
     <orderEntry type="module" module-name="rpgcore-nms-1_18_R2" />
+    <orderEntry type="module" module-name="NMS_1_19_R1" />
   </component>
 </module>

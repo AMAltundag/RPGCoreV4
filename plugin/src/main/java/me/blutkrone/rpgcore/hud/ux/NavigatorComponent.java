@@ -113,7 +113,7 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
 
         // text info about our current position
         String location = String.format("x:%s y:%s z:%s", prepared.position.getBlockX(), prepared.position.getBlockY(), prepared.position.getBlockZ());
-        workspace.bossbar().shiftCentered(render_point + position_center, Utility.measureWidthExact(location));
+        workspace.bossbar().shiftCentered(render_point + position_center, Utility.measure(location));
         workspace.bossbar().append(location, "hud_navigator_text");
     }
 

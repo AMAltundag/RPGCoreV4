@@ -53,7 +53,7 @@ public class PlayerMenu {
                 while (current.getDepth() != depth) {
                     current = current.getParent();
                 }
-            } else if (current.getDepth() < depth){
+            } else if (current.getDepth() < depth) {
                 // move to children
                 List<TreeGraph.TreeNode<String>> children = current.getChildren();
                 current = children.get(children.size() - 1);

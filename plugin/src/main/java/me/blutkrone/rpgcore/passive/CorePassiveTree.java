@@ -15,7 +15,6 @@ import java.util.*;
  * related elements, we did partially off-load the editor into
  * the actual passive menu as to not write positions per hand.
  * <p>
- *
  */
 public class CorePassiveTree {
 
@@ -240,17 +239,17 @@ public class CorePassiveTree {
                 int y = where.intValue();
                 // track adjacency based on directions
                 Set<Long> adjacency = new HashSet<>();
-                if (layout.containsKey((((long) (x+1)) << 32) | ((y) & 0xffffffffL))) {
-                    adjacency.add((((long) (x+1)) << 32) | ((y) & 0xffffffffL));
+                if (layout.containsKey((((long) (x + 1)) << 32) | ((y) & 0xffffffffL))) {
+                    adjacency.add((((long) (x + 1)) << 32) | ((y) & 0xffffffffL));
                 }
-                if (layout.containsKey((((long) (x-1)) << 32) | ((y) & 0xffffffffL))) {
-                    adjacency.add((((long) (x-1)) << 32) | ((y) & 0xffffffffL));
+                if (layout.containsKey((((long) (x - 1)) << 32) | ((y) & 0xffffffffL))) {
+                    adjacency.add((((long) (x - 1)) << 32) | ((y) & 0xffffffffL));
                 }
-                if (layout.containsKey((((long) (x)) << 32) | ((y+1) & 0xffffffffL))) {
-                    adjacency.add((((long) (x)) << 32) | ((y+1) & 0xffffffffL));
+                if (layout.containsKey((((long) (x)) << 32) | ((y + 1) & 0xffffffffL))) {
+                    adjacency.add((((long) (x)) << 32) | ((y + 1) & 0xffffffffL));
                 }
-                if (layout.containsKey((((long) (x)) << 32) | ((y-1) & 0xffffffffL))) {
-                    adjacency.add((((long) (x)) << 32) | ((y-1) & 0xffffffffL));
+                if (layout.containsKey((((long) (x)) << 32) | ((y - 1) & 0xffffffffL))) {
+                    adjacency.add((((long) (x)) << 32) | ((y - 1) & 0xffffffffL));
                 }
                 // cache the adjacency positions
                 this.immediate_node_adjacency.put(where, adjacency);
@@ -364,7 +363,7 @@ public class CorePassiveTree {
          * Node paths between two positions, this will only work for
          * "real" nodes (i.E.: non-path nodes)
          *
-         * @param first encoded first node position
+         * @param first  encoded first node position
          * @param second encoded second node position
          * @return encoded positions of paths between the nodes
          */

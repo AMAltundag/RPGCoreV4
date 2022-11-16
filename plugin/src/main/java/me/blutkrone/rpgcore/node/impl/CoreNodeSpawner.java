@@ -40,11 +40,11 @@ public class CoreNodeSpawner extends AbstractNode {
     }
 
     private Location computeRandomSpawnpoint(World world, Location around, double spread, int attempts) {
-        around = around.clone().add(0d, spread/3d, 0d);
+        around = around.clone().add(0d, spread / 3d, 0d);
 
         for (int i = 0; i < attempts; i++) {
             // throw a ray-cast down at an angle to find a spawn position
-            Vector v = new Vector(Math.random()*2-1, Math.random()*-1d, Math.random()*2-1).normalize();
+            Vector v = new Vector(Math.random() * 2 - 1, Math.random() * -1d, Math.random() * 2 - 1).normalize();
             RayTraceResult hit = world.rayTraceBlocks(around, v, spread, FluidCollisionMode.NEVER, true);
             if (hit == null) {
                 continue;
@@ -115,7 +115,7 @@ public class CoreNodeSpawner extends AbstractNode {
                     data.fails.remove(uuid);
                     continue;
                 }
-                data.fails.merge(uuid, 1, (a,b) -> a+b);
+                data.fails.merge(uuid, 1, (a, b) -> a + b);
                 // reset the creature since the leash kicked in
                 mob.getHealth().recoverBy(mob.getHealth().getSnapshotMaximum());
                 mob.getBase().resetRage();
@@ -152,7 +152,7 @@ public class CoreNodeSpawner extends AbstractNode {
             String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
             CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
             // track the mobs for respawning
-            where = where.clone().setDirection(new Vector(Math.random()*2-1, 0d, Math.random()*2-1));
+            where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
             CoreMob spawned = creature.spawn(where, level);
             if (spawned != null) {
                 if (leash > 0d) {
@@ -172,7 +172,7 @@ public class CoreNodeSpawner extends AbstractNode {
                     String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
                     CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
                     // track the mobs for respawning
-                    where = where.clone().setDirection(new Vector(Math.random()*2-1, 0d, Math.random()*2-1));
+                    where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
                     CoreMob spawned = creature.spawn(where, level);
                     if (spawned != null) {
                         if (leash > 0d) {

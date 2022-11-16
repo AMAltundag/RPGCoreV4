@@ -81,7 +81,7 @@ public class StatusMechanic extends AbstractCoreMechanic {
          * Gain a stack, so long we are below the given maximum.
          *
          * @param stack_maximum maximum stacks
-         * @param duration how long the effect lasts
+         * @param duration      how long the effect lasts
          */
         public void update(int stack_maximum, int duration) {
             // gain 1 stack if below the maximum

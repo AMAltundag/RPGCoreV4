@@ -35,7 +35,7 @@ public class DamageMetric {
                 }
             }
 
-            this.cached = new double[] { minimum, maximum };
+            this.cached = new double[]{minimum, maximum};
         }
         // offer up the cached value
         return this.cached;
@@ -49,7 +49,7 @@ public class DamageMetric {
      */
     public void track(UUID target, double damage) {
         // only track the past 8 seconds of damage
-        this.metrics.subMap(0L, System.currentTimeMillis()-8000L).clear();
+        this.metrics.subMap(0L, System.currentTimeMillis() - 8000L).clear();
         // stamp a data point into our metric
         this.metrics.computeIfAbsent(System.currentTimeMillis(), (k -> new ArrayList<>())).add(damage);
         // clear cache since we got new damage

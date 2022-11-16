@@ -191,12 +191,12 @@ public class NavigationMenu {
                 msb.shiftToExact(0);
                 for (int j = 0; j < 20; j++) {
                     // ensure the texture actually exists
-                    String texture = String.format("map_%s_%s_%s_%s", region.map, tileX + j - 10, tileY + i - 5, i+3);
+                    String texture = String.format("map_%s_%s_%s_%s", region.map, tileX + j - 10, tileY + i - 5, i + 3);
                     if (rpm.textures().containsKey(texture)) {
                         // render an 8x8 slice of the map
                         msb.append(rpm.texture(texture), ChatColor.WHITE);
                         // ensure there is a position to match
-                        Pos position_in_chest = IMAGE_TO_SLOT.get(new Pos(j, i+3));
+                        Pos position_in_chest = IMAGE_TO_SLOT.get(new Pos(j, i + 3));
                         if (position_in_chest == null) {
                             continue;
                         }
@@ -216,7 +216,7 @@ public class NavigationMenu {
                     String marker = this.markers.get(i).marker;
 
                     ItemStack marker_icon = RPGCore.inst().getLanguageManager().getAsItem(marker).build();
-                    IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset+i));
+                    IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
                     getMenu().setItemAt(i, marker_icon);
                 }
             } else {
@@ -224,10 +224,10 @@ public class NavigationMenu {
                 getMenu().setItemAt(8, this.page_next);
                 for (int i = 0; i < 7; i++) {
                     try {
-                        String marker = this.markers.get(this.marker_offset+i).marker;
+                        String marker = this.markers.get(this.marker_offset + i).marker;
                         ItemStack marker_icon = RPGCore.inst().getLanguageManager().getAsItem(marker).build();
-                        IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset+i));
-                        getMenu().setItemAt(1+i, marker_icon);
+                        IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
+                        getMenu().setItemAt(1 + i, marker_icon);
                     } catch (Exception ex) {
                         // ignored
                     }
@@ -251,8 +251,8 @@ public class NavigationMenu {
                     int markerX = (int) (((int) Math.ceil(imgW / 8)) * (relX / lenX));
                     int markerY = (int) (((int) Math.ceil(imgH / 8)) * (relZ / lenZ));
                     // check if marker is within viewport and highlight it
-                    if (markerX >= (tileX-10) && markerX <= (tileX+19-5)) {
-                        if (markerY >= (tileY-5) && markerY <= (tileY+10-5)) {
+                    if (markerX >= (tileX - 10) && markerX <= (tileX + 19 - 5)) {
+                        if (markerY >= (tileY - 5) && markerY <= (tileY + 10 - 5)) {
                             int dX = markerX - tileX + 10;
                             int dY = markerY - tileY + 5 + 3;
 
@@ -261,7 +261,7 @@ public class NavigationMenu {
                                     Pos where = IMAGE_TO_SLOT.get(new Pos(dX + i, dY + j));
                                     if (where != null) {
                                         // check if we can add a marker 0to this slot
-                                        if (!getMenu().getItemAt((where.y*9)+where.x).getType().isAir()) {
+                                        if (!getMenu().getItemAt((where.y * 9) + where.x).getType().isAir()) {
                                             continue;
                                         }
                                         // place an itemized marker on the location
@@ -269,7 +269,7 @@ public class NavigationMenu {
                                         builder.inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
                                         ItemStack item = builder.build();
                                         IChestMenu.setBrand(item, RPGCore.inst(), "marker", String.valueOf(k));
-                                        getMenu().setItemAt((where.y*9)+where.x, item);
+                                        getMenu().setItemAt((where.y * 9) + where.x, item);
                                     }
                                 }
                             }
@@ -341,7 +341,7 @@ public class NavigationMenu {
 
         @Override
         public int hashCode() {
-            return x*32 + y;
+            return x * 32 + y;
         }
 
         @Override

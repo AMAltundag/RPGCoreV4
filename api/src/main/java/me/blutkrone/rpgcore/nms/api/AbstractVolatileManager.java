@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -59,7 +60,6 @@ public abstract class AbstractVolatileManager {
             Constructor<?> constructor = clazz.getConstructor(JavaPlugin.class);
             return (AbstractVolatileManager) constructor.newInstance(plugin);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
             return null;
         }
     }
@@ -72,6 +72,13 @@ public abstract class AbstractVolatileManager {
     public JavaPlugin getPlugin() {
         return plugin;
     }
+
+    /**
+     * Packet handling we are utilizing.
+     *
+     * @return packet handler we are using.
+     */
+    public abstract IVolatilePackets getPackets();
 
     /**
      * Reserve an entity ID and offer it to us.
@@ -169,7 +176,7 @@ public abstract class AbstractVolatileManager {
      * Spawn an entity of the given type at the set location, the entity
      * should spawn as a clean copy without any alteration.
      *
-     * @param type which type of entity we spawn.
+     * @param type     which type of entity we spawn.
      * @param location where to spawn the entity at.
      * @return the entity that we've spawned.
      */

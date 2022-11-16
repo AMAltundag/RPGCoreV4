@@ -55,7 +55,7 @@ public class DamageMechanic extends AbstractCoreMechanic {
         Map<String, Double> attributes = new HashMap<>();
         Set<String> tags = new HashSet<>();
         modifiers_always.forEach((id, factor) -> {
-            attributes.merge(id, factor.evalAsDouble(context), (a,b)->a+b);
+            attributes.merge(id, factor.evalAsDouble(context), (a, b) -> a + b);
         });
         tags_always.forEach((tag) -> {
             tags.add(tag.evaluate(context));

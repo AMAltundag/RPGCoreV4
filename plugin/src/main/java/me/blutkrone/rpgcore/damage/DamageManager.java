@@ -204,7 +204,7 @@ public final class DamageManager implements IDamageManager, Listener {
                 double remaining = interaction.getDamage(element);
                 if (remaining <= 0d) continue;
                 double excess = interaction.getDefender().getMana().damageBy(remaining * mana_as_life);
-                interaction.setDamage(element, (remaining * (1d-mana_as_life)) + excess);
+                interaction.setDamage(element, (remaining * (1d - mana_as_life)) + excess);
             }
         }
 

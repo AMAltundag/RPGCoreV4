@@ -83,9 +83,9 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
             }
 
             // write the text of the activity
-            workspace.actionbar().shiftCentered(rpm.texture("static_plate_back").width / 2 + 1, Utility.measureWidthExact(prepared.activity_text));
+            workspace.actionbar().shiftCentered(rpm.texture("static_plate_back").width / 2 + 1, Utility.measure(prepared.activity_text));
             workspace.actionbar().shadow(prepared.activity_text, "hud_progress_text");
-            workspace.actionbar().shiftCentered(rpm.texture("static_plate_back").width / 2, Utility.measureWidthExact(prepared.activity_text));
+            workspace.actionbar().shiftCentered(rpm.texture("static_plate_back").width / 2, Utility.measure(prepared.activity_text));
             workspace.actionbar().append(prepared.activity_text, "hud_progress_text");
         }
 
@@ -121,14 +121,14 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
 
                 if (!prepared.skill_unaffordable[i - 1] && prepared.skill_cooldown[i - 1] <= 0) {
                     String key_hint = String.valueOf(i + 1);
-                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 2 - Utility.measureWidthExact(key_hint));
+                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 2 - Utility.measure(key_hint));
                     workspace.actionbar().shadow(key_hint, "hud_skill_text_keys");
-                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 1 - Utility.measureWidthExact(key_hint));
+                    workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) + 21 - 3 + 1 - Utility.measure(key_hint));
                     workspace.actionbar().append(key_hint, "hud_skill_text_keys", ChatColor.WHITE);
                 }
 
                 if (prepared.skill_instant[i - 1] && instant_animation_size != 0) {
-                    int frame = (prepared.timestamp/2) % instant_animation_size;
+                    int frame = (prepared.timestamp / 2) % instant_animation_size;
                     workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);
                     workspace.actionbar().append(rpm.texture("skillbar_instant_animation_" + frame));
                 }
@@ -141,7 +141,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                 }
 
                 if (prepared.skill_instant[i - 1] && instant_animation_size != 0) {
-                    int frame = (prepared.timestamp/2) % instant_animation_size;
+                    int frame = (prepared.timestamp / 2) % instant_animation_size;
                     workspace.actionbar().shiftToExact(skillbar_start_at + (i * 29) - 2);
                     workspace.actionbar().append(rpm.texture("skillbar_instant_animation_" + frame));
                 }
@@ -159,9 +159,9 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                 workspace.actionbar().append(rpm.texture("static_skill_cooldown"));
 
                 String timer_info = RPGCore.inst().getLanguageManager().formatShortTicks(prepared.skill_cooldown[i - 1]);
-                workspace.actionbar().shiftCentered(skillbar_start_at + (i * 29) + 12 - 2, Utility.measureWidthExact(timer_info) + 2);
+                workspace.actionbar().shiftCentered(skillbar_start_at + (i * 29) + 12 - 2, Utility.measure(timer_info) + 2);
                 workspace.actionbar().shadow(timer_info, "hud_skill_text_cooldown");
-                workspace.actionbar().shiftCentered(skillbar_start_at + (i * 29) + 12 - 2, Utility.measureWidthExact(timer_info) + 1);
+                workspace.actionbar().shiftCentered(skillbar_start_at + (i * 29) + 12 - 2, Utility.measure(timer_info) + 1);
                 workspace.actionbar().append(timer_info, "hud_skill_text_cooldown", ChatColor.of("#FF8888"));
             }
         }
@@ -191,9 +191,9 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                 .replace("{MAXIMUM}", String.valueOf(snapshot.maximum))
                 .replace("{PERCENT}", String.valueOf((int) (snapshot.fraction * 100d)) + "%");
 
-        workspace.actionbar().shiftCentered(render_point + (graphic_cue_texture.width / 2) + 1, Utility.measureWidthExact(text_cue_parsed) + 1);
+        workspace.actionbar().shiftCentered(render_point + (graphic_cue_texture.width / 2) + 1, Utility.measure(text_cue_parsed) + 1);
         workspace.actionbar().shadow(text_cue_parsed, text_cue_font);
-        workspace.actionbar().shiftCentered(render_point + (graphic_cue_texture.width / 2), Utility.measureWidthExact(text_cue_parsed) + 1);
+        workspace.actionbar().shiftCentered(render_point + (graphic_cue_texture.width / 2), Utility.measure(text_cue_parsed) + 1);
         workspace.actionbar().append(text_cue_parsed, text_cue_font);
     }
 

@@ -13,7 +13,7 @@ public class CorePassiveSkillAttribute extends AbstractCorePassive {
 
     public CorePassiveSkillAttribute(EditorPassiveSkillAttribute editor) {
         for (EditorAttributeAndFactor factor : editor.factors) {
-            this.factor.merge(factor.attribute.toLowerCase(), factor.factor, (a,b) -> a+b);
+            this.factor.merge(factor.attribute.toLowerCase(), factor.factor, (a, b) -> a + b);
         }
     }
 

@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Creates an immobile entity which can be inflicted with
  * damage. All skill logic is invoked by the creator. The
  * proxy is removed when the entity dies.
- *
+ * <p>
  * A totem may be moved, which in turn can move the proxy.
  */
 public class TotemProxy extends AbstractSkillProxy {
@@ -46,15 +46,15 @@ public class TotemProxy extends AbstractSkillProxy {
      * Creates an immobile entity which can be inflicted with
      * damage. All skill logic is invoked by the creator. The
      * proxy is removed when the entity dies.
-     *
+     * <p>
      * A totem may be moved, which in turn can move the proxy.
      *
-     * @param context the context the area is created within.
-     * @param origin where the area is spawned at
-     * @param interval interval the logic is invoked at
-     * @param duration totem is removed after time passed
-     * @param factory physical entity that is spawned
-     * @param logic_on_tick logic invoked at the ticking rate
+     * @param context         the context the area is created within.
+     * @param origin          where the area is spawned at
+     * @param interval        interval the logic is invoked at
+     * @param duration        totem is removed after time passed
+     * @param factory         physical entity that is spawned
+     * @param logic_on_tick   logic invoked at the ticking rate
      * @param logic_on_finish logic invoked at the last tick
      */
     public TotemProxy(IContext context, IOrigin origin, int interval, int duration, EntityProvider factory, MultiMechanic logic_on_tick, MultiMechanic logic_on_finish, int health, List<AbstractCoreSelector> filter) {
@@ -134,7 +134,7 @@ public class TotemProxy extends AbstractSkillProxy {
         }
 
         // random spin of totem
-        totem.getEntity().setRotation((float) (Math.random()*360f), 0f);
+        totem.getEntity().setRotation((float) (Math.random() * 360f), 0f);
 
         // update location of the entity
         this.logic_on_tick.doMechanic(getContext(), Collections.singletonList(this.last_anchor));

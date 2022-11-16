@@ -64,7 +64,7 @@ public interface IEntityEffect {
      * An attempt at manipulating the stacks and duration of the
      * effect,
      *
-     * @param stack manipulation value
+     * @param stack    manipulation value
      * @param duration manipulation value
      * @param override override or add
      */

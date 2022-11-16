@@ -106,40 +106,40 @@ public class ResourcepackGeneratorMeasured {
         addFont("hud_notification_5", hud_notification + 40, 0.50d);
         addFont("hud_notification_6", hud_notification + 50, 0.25d);
 
-        addFont("dialogue_choice_question", -12-7, 1d);
-        addFont("dialogue_choice_1", -47-7, 1d);
-        addFont("dialogue_choice_2", -65-7, 1d);
-        addFont("dialogue_choice_3", -83-7, 1d);
-        addFont("dialogue_choice_4", -101-7, 1d);
+        addFont("dialogue_choice_question", -12 - 7, 1d);
+        addFont("dialogue_choice_1", -47 - 7, 1d);
+        addFont("dialogue_choice_2", -65 - 7, 1d);
+        addFont("dialogue_choice_3", -83 - 7, 1d);
+        addFont("dialogue_choice_4", -101 - 7, 1d);
 
-        addFont("editor_viewport_1", -47-7, 1d);
-        addFont("editor_viewport_2", -65-7, 1d);
-        addFont("editor_viewport_3", -83-7, 1d);
-        addFont("editor_viewport_4", -101-7, 1d);
+        addFont("editor_viewport_1", -47 - 7, 1d);
+        addFont("editor_viewport_2", -65 - 7, 1d);
+        addFont("editor_viewport_3", -83 - 7, 1d);
+        addFont("editor_viewport_4", -101 - 7, 1d);
 
-        addFont("scroller_text_1", -11-7, 1d);
-        addFont("scroller_text_2", -29-7, 1d);
-        addFont("scroller_text_3", -47-7, 1d);
-        addFont("scroller_text_4", -65-7, 1d);
-        addFont("scroller_text_5", -83-7, 1d);
-        addFont("scroller_text_6", -101-7, 1d);
+        addFont("scroller_text_1", -11 - 7, 1d);
+        addFont("scroller_text_2", -29 - 7, 1d);
+        addFont("scroller_text_3", -47 - 7, 1d);
+        addFont("scroller_text_4", -65 - 7, 1d);
+        addFont("scroller_text_5", -83 - 7, 1d);
+        addFont("scroller_text_6", -101 - 7, 1d);
 
-        addFont("roster_create_info_1", -20-7, 1d);
-        addFont("roster_create_info_2", -29-7, 1d);
-        addFont("roster_create_info_3", -38-7, 1d);
-        addFont("roster_create_info_4", -47-7, 1d);
+        addFont("roster_create_info_1", -20 - 7, 1d);
+        addFont("roster_create_info_2", -29 - 7, 1d);
+        addFont("roster_create_info_3", -38 - 7, 1d);
+        addFont("roster_create_info_4", -47 - 7, 1d);
 
-        addFont("anvil_input_hint_1", -25-7, 1d);
-        addFont("anvil_input_hint_2", -35-7, 1d);
-        addFont("anvil_input_hint_3", -45-7, 1d);
-        addFont("anvil_input_hint_4", -55-7, 1d);
+        addFont("anvil_input_hint_1", -25 - 7, 1d);
+        addFont("anvil_input_hint_2", -35 - 7, 1d);
+        addFont("anvil_input_hint_3", -45 - 7, 1d);
+        addFont("anvil_input_hint_4", -55 - 7, 1d);
 
-        addFont("banked_text_0", -9-7, 1d);
-        addFont("banked_text_1", -27-7, 1d);
-        addFont("banked_text_2", -45-7, 1d);
-        addFont("banked_text_3", -63-7, 1d);
-        addFont("banked_text_4", -81-7, 1d);
-        addFont("banked_text_5", -99-7, 1d);
+        addFont("banked_text_0", -9 - 7, 1d);
+        addFont("banked_text_1", -27 - 7, 1d);
+        addFont("banked_text_2", -45 - 7, 1d);
+        addFont("banked_text_3", -63 - 7, 1d);
+        addFont("banked_text_4", -81 - 7, 1d);
+        addFont("banked_text_5", -99 - 7, 1d);
 
         addFont("passive_tree_info", 5, 1d);
         addFont("default_fixed", 0, 1d);

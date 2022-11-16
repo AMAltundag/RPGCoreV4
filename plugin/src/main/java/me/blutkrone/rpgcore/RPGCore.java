@@ -208,19 +208,6 @@ public final class RPGCore extends JavaPlugin {
                 world.setKeepSpawnInMemory(false);
             }
         }, 20, 20);
-
-        // ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Server.WINDOW_ITEMS) {
-        //     @Override
-        //     public void onPacketSending(PacketEvent event) {
-        //         new Exception("window items").printStackTrace();
-        //     }
-        // });
-        // ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Server.SET_SLOT) {
-        //     @Override
-        //     public void onPacketSending(PacketEvent event) {
-        //         new Exception("set slot").printStackTrace();
-        //     }
-        // });
     }
 
     @Override

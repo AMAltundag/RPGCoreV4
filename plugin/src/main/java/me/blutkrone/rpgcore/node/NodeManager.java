@@ -15,7 +15,7 @@ import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.node.struct.NodeWorld;
-import me.blutkrone.rpgcore.npc.CoreNPC;
+import me.blutkrone.rpgcore.npc.ActiveCoreNPC;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -187,7 +187,7 @@ public class NodeManager implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     void onInteractNodeNPC(PlayerNPCInteractEvent e) {
         // only one click should be detected
-        if (e.getHand() != PlayerNPCInteractEvent.Hand.MAIN_HAND) {
+        if (e.getHand() != EquipmentSlot.HAND) {
             return;
         }
 
@@ -199,22 +199,21 @@ public class NodeManager implements Listener {
                 // check if there is a node associated
                 NodeWorld node_world = this.nodes_by_world.get(e.getPlayer().getWorld().getName());
                 if (node_world != null) {
-                    UUID origin = RPGCore.inst().getNPCManager().getOrigin(e.getNPC());
-                    if (origin != null) {
-                        node_world.destruct(origin);
-                        e.getPlayer().sendMessage("§cA node has been destroyed!");
+                    if (e.getNPC() instanceof ActiveCoreNPC) {
+                        UUID origin = ((ActiveCoreNPC) e.getNPC()).node();
+                        if (origin != null) {
+                            node_world.destruct(origin);
+                            e.getPlayer().sendMessage("§cA node has been destroyed!");
+                        }
                     }
                 }
-
+                // admin tool, prevent further interaction
                 return;
             }
         }
 
         // delegate the interaction of the node if we got one
-        CoreNPC design = RPGCore.inst().getNPCManager().getDesign(e.getNPC());
-        if (design != null) {
-            design.showCortex(e.getPlayer(), true);
-        }
+        e.getNPC().interact(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

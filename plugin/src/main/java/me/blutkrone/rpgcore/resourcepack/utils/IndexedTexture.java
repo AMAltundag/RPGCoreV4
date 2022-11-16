@@ -62,8 +62,6 @@ public class IndexedTexture {
         public BufferedImage texture;
         // vertical offset of texture
         public int offset;
-        // width of the given symbol
-        public int width;
         // an internal ID to prevent dupes
         public UUID uuid;
 
@@ -71,7 +69,6 @@ public class IndexedTexture {
             super(String.valueOf(symbol), table, width);
             this.texture = texture;
             this.offset = offset;
-            this.width = width;
             this.uuid = UUID.randomUUID();
         }
     }

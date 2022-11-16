@@ -32,10 +32,10 @@ public class AnchorProxy extends AbstractSkillProxy {
      * Has a fixed location where a mechanic is invoked, until
      * the duration expires.
      *
-     * @param context the context provided by the skill
-     * @param origin location to anchor proxy at
-     * @param item item that marks the projectile
-     * @param ticker ticked while the proxy is active
+     * @param context  the context provided by the skill
+     * @param origin   location to anchor proxy at
+     * @param item     item that marks the projectile
+     * @param ticker   ticked while the proxy is active
      * @param duration how many ticks the proxy lasts
      */
     public AnchorProxy(IContext context, IOrigin origin, ItemStack item, MultiMechanic ticker, int duration) {

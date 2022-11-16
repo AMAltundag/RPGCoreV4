@@ -25,6 +25,23 @@ public class EditorAttributeAndModifier implements IEditorBundle {
     @EditorTooltip(tooltip = "Sums with other modifiers to this attribute.")
     public EditorModifierNumber factor = new EditorModifierNumber();
 
+    /**
+     * Useful method to unwrap a list of this class into a map.
+     *
+     * @param bundles bundles to unwrap
+     * @return attribute mapped to factor
+     */
+    public static Map<String, CoreModifierNumber> unwrap(List<IEditorBundle> bundles) {
+        Map<String, CoreModifierNumber> unwrapped = new HashMap<>();
+        for (IEditorBundle bundle : bundles) {
+            if (bundle instanceof EditorAttributeAndModifier) {
+                String attribute = ((EditorAttributeAndModifier) bundle).attribute;
+                unwrapped.put(attribute, ((EditorAttributeAndModifier) bundle).factor.build());
+            }
+        }
+        return unwrapped;
+    }
+
     @Override
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.BOOKSHELF)
@@ -44,22 +61,5 @@ public class EditorAttributeAndModifier implements IEditorBundle {
         instruction.add("Attribute And Modifier");
         instruction.add("Sum up with any other modifier to the attribute.");
         return instruction;
-    }
-
-    /**
-     * Useful method to unwrap a list of this class into a map.
-     *
-     * @param bundles bundles to unwrap
-     * @return attribute mapped to factor
-     */
-    public static Map<String, CoreModifierNumber> unwrap(List<IEditorBundle> bundles) {
-        Map<String, CoreModifierNumber> unwrapped = new HashMap<>();
-        for (IEditorBundle bundle : bundles) {
-            if (bundle instanceof EditorAttributeAndModifier) {
-                String attribute = ((EditorAttributeAndModifier) bundle).attribute;
-                unwrapped.put(attribute, ((EditorAttributeAndModifier) bundle).factor.build());
-            }
-        }
-        return unwrapped;
     }
 }

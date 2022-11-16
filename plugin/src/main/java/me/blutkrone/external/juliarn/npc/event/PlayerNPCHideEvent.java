@@ -1,9 +1,8 @@
 package me.blutkrone.external.juliarn.npc.event;
 
-import me.blutkrone.external.juliarn.npc.NPC;
+import me.blutkrone.external.juliarn.npc.AbstractPlayerNPC;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * An event fired when a npc is hidden for a certain player.
@@ -12,9 +11,7 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
-    /**
-     * The reason why the npc was hidden.
-     */
+    // why the NPC was hidden
     private final Reason reason;
 
     /**
@@ -24,7 +21,7 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
      * @param npc    The npc the player is no longer seeing
      * @param reason The reason why the npc was hidden
      */
-    public PlayerNPCHideEvent(Player who, NPC npc, Reason reason) {
+    public PlayerNPCHideEvent(Player who, AbstractPlayerNPC npc, Reason reason) {
         super(who, npc);
         this.reason = reason;
     }
@@ -34,7 +31,6 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
      *
      * @return the handlers for this event.
      */
-    @NotNull
     public static HandlerList getHandlerList() {
         return HANDLER_LIST;
     }
@@ -42,7 +38,6 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
     /**
      * @return The reason why the npc was hidden
      */
-    @NotNull
     public Reason getReason() {
         return this.reason;
     }
@@ -50,7 +45,6 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
     /**
      * {@inheritDoc}
      */
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
@@ -79,6 +73,10 @@ public class PlayerNPCHideEvent extends PlayerNPCEvent {
         /**
          * The player seeing the npc respawned.
          */
-        RESPAWNED
+        RESPAWNED,
+        /**
+         * The player left the server.
+         */
+        QUIT
     }
 }

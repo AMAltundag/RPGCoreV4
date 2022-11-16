@@ -19,20 +19,20 @@ public abstract class AbstractEntityRoutine {
      * A singleton means that once the routine is completed, it
      * will be removed from the entity.
      *
-     * @param singleton whether to mark as a singleton.
+     * @return whether we are a singleton.
      */
-    public void setSingleton(boolean singleton) {
-        this.singleton = singleton;
+    public boolean isSingleton() {
+        return singleton;
     }
 
     /**
      * A singleton means that once the routine is completed, it
      * will be removed from the entity.
      *
-     * @return whether we are a singleton.
+     * @param singleton whether to mark as a singleton.
      */
-    public boolean isSingleton() {
-        return singleton;
+    public void setSingleton(boolean singleton) {
+        this.singleton = singleton;
     }
 
     /**

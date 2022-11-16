@@ -99,17 +99,17 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
         // write duration if it did not exceed time limit
         if (time != Integer.MAX_VALUE) {
             String time_string = RPGCore.inst().getLanguageManager().formatShortTicks(time);
-            workspace.actionbar().shiftCentered(renderpoint + 12 + 1, Utility.measureWidthExact(time_string));
+            workspace.actionbar().shiftCentered(renderpoint + 12 + 1, Utility.measure(time_string));
             workspace.actionbar().shadow(time_string, "hud_status_time_lower");
-            workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(time_string));
+            workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measure(time_string));
             workspace.actionbar().append(time_string, "hud_status_time_lower");
         }
         // write stack count into the frame
         if (stack > 1) {
             String stack_string = RPGCore.inst().getLanguageManager().formatShortNumber(stack);
-            workspace.actionbar().shiftCentered(renderpoint + 12 + 1, Utility.measureWidthExact(stack_string));
+            workspace.actionbar().shiftCentered(renderpoint + 12 + 1, Utility.measure(stack_string));
             workspace.actionbar().shadow(stack_string, "hud_status_stack_lower");
-            workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measureWidthExact(stack_string));
+            workspace.actionbar().shiftCentered(renderpoint + 12, Utility.measure(stack_string));
             workspace.actionbar().append(stack_string, "hud_status_stack_lower");
         }
     }

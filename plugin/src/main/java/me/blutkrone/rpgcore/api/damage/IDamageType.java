@@ -30,6 +30,7 @@ public interface IDamageType {
 
     /**
      * Transform type to a name
+     *
      * @return
      */
     String name();

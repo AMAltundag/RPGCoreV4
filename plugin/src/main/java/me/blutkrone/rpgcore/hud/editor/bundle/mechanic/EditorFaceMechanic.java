@@ -1,17 +1,14 @@
 package me.blutkrone.rpgcore.hud.editor.bundle.mechanic;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.SelectorConstraint;
 import me.blutkrone.rpgcore.skill.mechanic.AbstractCoreMechanic;
 import me.blutkrone.rpgcore.skill.mechanic.FaceMechanic;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import oshi.jna.platform.windows.WinNT;
 
 import java.util.ArrayList;
 import java.util.List;

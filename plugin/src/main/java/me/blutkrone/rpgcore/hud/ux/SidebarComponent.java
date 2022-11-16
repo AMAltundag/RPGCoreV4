@@ -91,7 +91,7 @@ public class SidebarComponent implements IUXComponent<List<String>> {
         // measure the widest line we have
         int widest = 0;
         for (String s : prepared) {
-            widest = Math.max(widest, Utility.measureWidthExact(s));
+            widest = Math.max(widest, Utility.measure(s));
         }
         // write contents anchored to the left
         for (int i = 0, size = prepared.size(); i < size; i++) {

@@ -9,14 +9,12 @@ import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Deliver certain items to an NPC.
@@ -27,6 +25,8 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<Object> {
     private Map<String, Integer> items = new HashMap<>();
     // who takes the drop-off
     private String drop_off_npc;
+    // approximation on delivery matching
+    private final Set<UUID> approximate_delivery = new HashSet<>();
 
     public CoreQuestTaskDeliver(CoreQuest quest, EditorQuestTaskDeliver editor) {
         super(quest, editor);
@@ -109,31 +109,55 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<Object> {
 
     /**
      * Check if the player is capable of meeting the demand
-     * for this delivery quest.
+     * for this delivery quest, this is an APPROXIMATION do
+     * not expect accuracy off this method.
      *
      * @param player who wants to deliver the items.
      * @return true if they got all the items.
      */
-    public boolean canMeetDemand(Player player) {
-        // identify how many items we do carry
-        Map<String, Integer> carried = new HashMap<>();
-        for (ItemStack stack : player.getInventory().getContents()) {
-            ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
-            if (data != null) {
-                carried.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
+    public boolean canMeetDemandApproximation(UUID player) {
+        Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+            // gc for players who quit the server
+            synchronized (approximate_delivery) {
+                if (approximate_delivery.size() > 200) {
+                    approximate_delivery.clear();
+                }
             }
-        }
 
-        // ensure we carry enough to meet our demand
-        for (Map.Entry<String, Integer> demand : this.items.entrySet()) {
-            int offer = carried.getOrDefault(demand.getKey(), 0);
-            if (demand.getValue() > offer) {
-                return false;
+            Player bukkit_player = Bukkit.getPlayer(player);
+            if (bukkit_player != null) {
+                // identify how many items we do carry
+                Map<String, Integer> carried = new HashMap<>();
+                for (ItemStack stack : bukkit_player.getInventory().getContents()) {
+                    ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
+                    if (data != null) {
+                        carried.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
+                    }
+                }
+
+                // ensure we carry enough to meet our demand
+                boolean matched = true;
+                for (Map.Entry<String, Integer> demand : this.items.entrySet()) {
+                    int offer = carried.getOrDefault(demand.getKey(), 0);
+                    if (demand.getValue() > offer) {
+                        matched = false;
+                    }
+                }
+
+                // track within the approximation
+                synchronized (approximate_delivery) {
+                    if (matched) {
+                        approximate_delivery.add(player);
+                    } else {
+                        approximate_delivery.remove(player);
+                    }
+                }
             }
-        }
+        });
 
-        // we carry enough
-        return true;
+        synchronized (approximate_delivery) {
+            return approximate_delivery.contains(player);
+        }
     }
 
     /**

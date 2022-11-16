@@ -32,12 +32,12 @@ import java.util.Set;
  */
 public class PassiveMenu extends AbstractCoreMenu {
 
-    // what tree we are processing
-    private String tree;
     // whether we are in node selection mode
     boolean node_select;
     // tool to assist with selection mode
     NodeSelector node_select_help;
+    // what tree we are processing
+    private String tree;
 
     public PassiveMenu(String tree) {
         super(6);
@@ -79,7 +79,7 @@ public class PassiveMenu extends AbstractCoreMenu {
         String[] split = template_string.split("#");
         msb.shiftToExact(0).append(split[0], "passive_tree_info");
         if (split.length == 2) {
-            msb.shiftToExact(160 - Utility.measureWidthExact(split[1]));
+            msb.shiftToExact(160 - Utility.measure(split[1]));
             msb.append(split[1], "passive_tree_info");
         }
         msb.shiftToExact(-208);
@@ -122,13 +122,13 @@ public class PassiveMenu extends AbstractCoreMenu {
                     if (node instanceof CorePassiveNode.Path) {
                         // render the path based on links
                         if (total_links == 0) {
-                            msb.shiftToExact(-1 + 18*i);
+                            msb.shiftToExact(-1 + 18 * i);
                             msb.append(rpm.texture("passive_path_unreachable_" + j + "_" + coded), ChatColor.WHITE);
                         } else if (total_links == 1) {
-                            msb.shiftToExact(-1 + 18*i);
+                            msb.shiftToExact(-1 + 18 * i);
                             msb.append(rpm.texture("passive_path_reachable_" + j + "_" + coded), ChatColor.WHITE);
                         } else if (total_links >= 2) {
-                            msb.shiftToExact(-1 + 18*i);
+                            msb.shiftToExact(-1 + 18 * i);
                             msb.append(rpm.texture("passive_path_active_" + j + "_" + coded), ChatColor.WHITE);
                         }
                     } else {
@@ -150,10 +150,10 @@ public class PassiveMenu extends AbstractCoreMenu {
                             }
                         }
                         // render the item
-                        getMenu().setItemAt((j*9)+i, item);
+                        getMenu().setItemAt((j * 9) + i, item);
                     }
                 } else if (encoded == 0) {
-                    getMenu().setItemAt((j*9)+i, ItemBuilder.of(Material.BARRIER)
+                    getMenu().setItemAt((j * 9) + i, ItemBuilder.of(Material.BARRIER)
                             .name("§cEntry Point Missing")
                             .appendLore("§fCreate a node here, it will always be allocated.")
                             .appendLore("§fExpand your passive tree from around here.")
@@ -264,7 +264,7 @@ public class PassiveMenu extends AbstractCoreMenu {
                     without.remove(position);
                     if (tree.getGraph().checkConnectivity(without)) {
                         allocated.remove(position);
-                        player.getPassiveRefunds().merge(tree.getPoint(), -1, (a,b) -> a+b);
+                        player.getPassiveRefunds().merge(tree.getPoint(), -1, (a, b) -> a + b);
                     }
                 }
             }
@@ -383,9 +383,9 @@ public class PassiveMenu extends AbstractCoreMenu {
 
             for (int i = 0; i < 6; i++) {
                 for (int j = 0; j < 8; j++) {
-                    int k = i*9 + j;
-                    int m = i*8 + j;
-                    ItemStack icon = preview.size() > ((offset*8) + m) ? preview.get((offset*8) + m) : null;
+                    int k = i * 9 + j;
+                    int m = i * 8 + j;
+                    ItemStack icon = preview.size() > ((offset * 8) + m) ? preview.get((offset * 8) + m) : null;
                     if (icon != null) {
                         getMenu().setItemAt(k, icon);
                     }
@@ -396,12 +396,12 @@ public class PassiveMenu extends AbstractCoreMenu {
             msb.shiftToExact(150);
             if (preview.size() <= 54) {
                 msb.append(resourcepack().texture("pointer_huge_0"), ChatColor.WHITE);
-            } else if (preview.size() <= 54*2) {
+            } else if (preview.size() <= 54 * 2) {
                 double length = Math.ceil(preview.size() / 8d) - 6;
                 double ratio = offset / length;
 
                 msb.append(resourcepack().texture("pointer_medium_" + (int) (100 * ratio)), ChatColor.WHITE);
-            } else if (preview.size() <= 54*3) {
+            } else if (preview.size() <= 54 * 3) {
                 double length = Math.ceil((preview.size() / 8d)) - 6;
                 double ratio = offset / length;
 

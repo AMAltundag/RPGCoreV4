@@ -29,6 +29,22 @@ public class LanguageManager {
         reload(); // initial loading of all translations
     }
 
+    /*
+     * Internal formatting of decimals into a range-like.
+     *
+     * @param value the value we are formatting
+     * @return the formatted range
+     */
+    private static String formatAsRange(double value) {
+        if (value <= 0.001d) {
+            return "0";
+        }
+        if ((value % 1.0) <= 0.01 || (value % 1.0) >= 0.99) {
+            return String.valueOf(Math.round(value));
+        }
+        return ((int) value) + "-" + (1 + (int) value);
+    }
+
     /**
      * Flushes all translations and loads them from the disk.
      */
@@ -126,22 +142,6 @@ public class LanguageManager {
             return String.format("%02d:%02d", minutes, seconds % 60);
         // time is hidden if longer then a hour
         return "";
-    }
-
-    /*
-     * Internal formatting of decimals into a range-like.
-     *
-     * @param value the value we are formatting
-     * @return the formatted range
-     */
-    private static String formatAsRange(double value) {
-        if (value <= 0.001d) {
-            return "0";
-        }
-        if ((value % 1.0) <= 0.01 || (value % 1.0) >= 0.99) {
-            return String.valueOf(Math.round(value));
-        }
-        return ((int) value) + "-" + (1 + (int) value);
     }
 
     /**

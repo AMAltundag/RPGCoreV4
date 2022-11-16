@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.npc.CoreNPC;
-import me.blutkrone.rpgcore.npc.StoragePage;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreStorageTrait;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import me.blutkrone.rpgcore.util.io.BukkitSerialization;
@@ -25,7 +24,7 @@ import java.util.List;
 public class StorageMenu extends AbstractCoreMenu {
 
     private ItemStack invisible_item;
-    private List<StoragePage> pages;
+    private List<CoreStorageTrait.StoragePage> pages;
     private CoreNPC npc;
 
     public StorageMenu(CoreStorageTrait origin, CoreNPC npc) {

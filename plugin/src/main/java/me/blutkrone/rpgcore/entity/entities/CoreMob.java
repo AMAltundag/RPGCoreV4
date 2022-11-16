@@ -42,7 +42,7 @@ public class CoreMob extends CoreEntity {
      * Establish a leash for the stroll mechanic, this is to prevent
      * unnecessary leash triggers that may not look nice.
      *
-     * @param range range of the leash
+     * @param range  range of the leash
      * @param anchor anchor of the leash
      */
     public void setStrollLeash(double range, Location anchor) {
