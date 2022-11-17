@@ -155,9 +155,9 @@ public class TextGenerator {
         generated.add(ResourcePackFont.getAsAmberSpace(-514,  "\uF80e"));
         generated.add(ResourcePackFont.getAsAmberSpace(-1026, "\uF80f"));
 
-        generated.add(ResourcePackFont.getAsAmberSpace(1,     "\uF821"));
-        generated.add(ResourcePackFont.getAsAmberSpace(2,     "\uF822"));
-        generated.add(ResourcePackFont.getAsAmberSpace(3,     "\uF823"));
+        generated.add(ResourcePackFont.getAsAmberSpace(0,     "\uF821"));
+        generated.add(ResourcePackFont.getAsAmberSpace(1,     "\uF822"));
+        generated.add(ResourcePackFont.getAsAmberSpace(2,     "\uF823"));
         generated.add(ResourcePackFont.getAsAmberSpace(3,     "\uF824"));
         generated.add(ResourcePackFont.getAsAmberSpace(4,     "\uF825"));
         generated.add(ResourcePackFont.getAsAmberSpace(5,     "\uF826"));

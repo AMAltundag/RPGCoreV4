@@ -107,8 +107,8 @@ public class BBExporter {
             this.texture = texture;
         }
 
-        public void saveModelToFile(File file) throws IOException, ParseException {
-            ResourceUtil.saveToDisk(gson.toJsonTree(model).getAsJsonObject(), file, false);
+        public void saveModelToFile(File file, boolean compressed) throws IOException, ParseException {
+            ResourceUtil.saveToDisk(gson.toJsonTree(model).getAsJsonObject(), file, compressed);
         }
 
         public void saveTextureToDirectory(File directory, File bbmodel) throws IOException {

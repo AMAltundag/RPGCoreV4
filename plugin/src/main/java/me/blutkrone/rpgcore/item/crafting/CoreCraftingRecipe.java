@@ -46,18 +46,18 @@ public class CoreCraftingRecipe {
      * @param bukkit_player whose inventory do we check
      * @return true if we are craftable
      */
-    public boolean isMatched(Player bukkit_player) {
+    public boolean hasEnoughToCraftOnce(Player bukkit_player) {
         // count items in player inventory
-        Map<String, Integer> counted = new HashMap<>();
+        Map<String, Integer> total_items_of_player = new HashMap<>();
         for (ItemStack stack : bukkit_player.getInventory().getContents()) {
             ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
             if (data != null) {
-                counted.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
+                total_items_of_player.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
             }
         }
         // check if we have enough items
         for (Map.Entry<String, Integer> entry : this.ingredients.entrySet()) {
-            if (counted.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
+            if (total_items_of_player.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
                 return false;
             }
         }
@@ -76,37 +76,45 @@ public class CoreCraftingRecipe {
      */
     public int craftAndConsume(int amount, Player bukkit_player) {
         // identify exact quantity of materials available
-        Map<String, Integer> available = new HashMap<>();
+        Map<String, Integer> total_items_of_player = new HashMap<>();
         for (ItemStack stack : bukkit_player.getInventory().getContents()) {
             ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
             if (data != null) {
-                available.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
+                total_items_of_player.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
             }
         }
-        // search for lowest common availability
-        int capacity = amount;
+        // cap the amount by how much the player is carrying
         for (Map.Entry<String, Integer> entry : this.ingredients.entrySet()) {
             int need = entry.getValue();
-            int have = available.getOrDefault(entry.getKey(), 0);
-            capacity = Math.min(capacity, have / need);
+            int have = total_items_of_player.getOrDefault(entry.getKey(), 0);
+            amount = Math.min(amount, have / need);
         }
-        if (capacity <= 0) {
+        // if amount is zero, we cannot afford the craft
+        if (amount <= 0) {
             return 0;
         }
-        // consume materials for the stack
-        for (ItemStack stack : bukkit_player.getInventory().getContents()) {
-            ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
-            if (data != null) {
-                int consume = this.ingredients.getOrDefault(data.getItem().getId(), 0) * capacity;
-                if (consume > 0) {
-                    int absorbed = Math.min(consume, stack.getAmount());
-                    stack.setAmount(stack.getAmount() - absorbed);
-                    this.ingredients.put(data.getItem().getId(), consume - absorbed);
+        // destroy items from the player inventory
+        for (Map.Entry<String, Integer> cost : this.ingredients.entrySet()) {
+            int want = cost.getValue();
+            if (want <= 0) {
+                continue;
+            }
+            for (ItemStack stack : bukkit_player.getInventory().getContents()) {
+                if (want <= 0) {
+                    break;
                 }
+                ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
+                if (data == null || !cost.getKey().equalsIgnoreCase(data.getItem().getId())) {
+                    continue;
+                }
+                int have = stack.getAmount();
+                int absorbed = Math.min(have, want);
+                stack.setAmount(have - absorbed);
+                want -= absorbed;
             }
         }
         // offer the volume we can merge
-        return capacity;
+        return amount;
     }
 
     /**

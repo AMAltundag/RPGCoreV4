@@ -414,7 +414,7 @@ public class ResourcePackManager implements Listener {
                 sounds.put("generated." + name, sound);
             }
             // register the sounds we have added
-            ResourceUtil.saveToDisk(sounds, WORKSPACE_SOUND_FILE, true);
+            ResourceUtil.saveToDisk(sounds, WORKSPACE_SOUND_FILE, do_compression);
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Processed audio files in %sms", clock.loop()));
         });
@@ -747,7 +747,7 @@ public class ResourcePackManager implements Listener {
                 // export the textures we got buffered to the resourcepack
                 bb_export.saveTextureToDirectory(OUTPUT_TEXTURE, file_bb_model);
                 // json export the working model we picked
-                bb_export.saveModelToFile(FileUtil.file(OUTPUT_MODEL, model_name + ".json"));
+                bb_export.saveModelToFile(FileUtil.file(OUTPUT_MODEL, model_name + ".json"), do_compression);
                 // make the model we created accessible
                 Material material = Material.valueOf(model_name.substring(0, split_point).toUpperCase());
                 int model_data = Integer.parseInt(model_name.substring(split_point + 1));
@@ -775,7 +775,7 @@ public class ResourcePackManager implements Listener {
                 // identify the workspace we operate with
                 File file = FileUtil.file(WORKSPACE_FONT, table + ".json");
                 // construct the data we expect
-                ResourceUtil.saveToDisk(font_output, file, true);
+                ResourceUtil.saveToDisk(font_output, file, do_compression);
             }
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Constructing the font registry in %sms", clock.loop()));
@@ -786,12 +786,12 @@ public class ResourcePackManager implements Listener {
             // construct the models that were generated on-the-fly
             for (Map.Entry<String, ResourcePackItem.ItemModel> entry : generated_models.entrySet()) {
                 File save_target = FileUtil.file(OUTPUT_MODEL, entry.getKey() + ".json");
-                ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, false);
+                ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, do_compression);
             }
             // construct the item configuration for all models
             for (Map.Entry<Material, ResourcePackItem> entry : items.entrySet()) {
                 File save_target = FileUtil.file(WORKSPACE_ITEM, entry.getKey().name().toLowerCase() + ".json");
-                ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, false);
+                ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, do_compression);
             }
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Constructing the item registry in %sms", clock.loop()));

@@ -2,9 +2,12 @@ package me.blutkrone.rpgcore.command.impl;
 
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
+import me.blutkrone.rpgcore.util.fontmagic.FontMagicConstant;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -56,21 +59,17 @@ public class DebugCommand extends AbstractCommand {
         public void rebuild() {
             MagicStringBuilder msb = new MagicStringBuilder();
 
-            if (Math.random() <= 0.5d) {
-                for (int i = 0; i < 50; i++) {
-                    if (i % 2 == 0) {
-                        msb.advance(i).append(".", ChatColor.RED);
-                    } else {
-                        msb.advance(i).append(".", ChatColor.BLUE);
-                    }
-                }
-            } else {
-                for (int i = 0; i < 50; i++) {
-                    if (i % 2 == 0) {
-                        msb.retreat(i).append(".", ChatColor.RED);
-                    } else {
-                        msb.retreat(i).append(".", ChatColor.BLUE);
-                    }
+            for (int i = 0; i < 50; i++) {
+                String advance = FontMagicConstant.advance(i);
+                Bukkit.getLogger().severe("DEPTH " + i + " WITH " + StringEscapeUtils.escapeJava(advance));
+
+            }
+
+            for (int i = 0; i < 50; i++) {
+                if (i % 2 == 0) {
+                    msb.advance(i).append(".", ChatColor.RED);
+                } else {
+                    msb.advance(i).append(".", ChatColor.BLUE);
                 }
             }
 

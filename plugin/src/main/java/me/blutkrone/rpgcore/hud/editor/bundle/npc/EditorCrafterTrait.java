@@ -5,7 +5,6 @@ import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
-import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.CrafterRecipeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreCrafterTrait;
@@ -20,8 +19,8 @@ import java.util.List;
 public class EditorCrafterTrait extends AbstractEditorNPCTrait {
 
     @EditorCategory(info = "Crafter", icon = Material.CRAFTING_TABLE)
-    @EditorList(name = "Recipes", constraint = CrafterRecipeConstraint.class)
-    @EditorTooltip(tooltip = {"Recipes with any of these tags are listed."})
+    @EditorList(name = "Recipes", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = {"Crafting recipes available, by their tags."})
     public List<String> recipes = new ArrayList<>();
 
     @EditorCategory(info = "Cortex", icon = Material.FURNACE)

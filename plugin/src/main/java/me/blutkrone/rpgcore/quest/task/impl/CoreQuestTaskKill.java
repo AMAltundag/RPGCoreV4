@@ -1,12 +1,12 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobCount;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskKill;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,10 +15,12 @@ import java.util.Map;
  */
 public class CoreQuestTaskKill extends AbstractQuestTask<String> {
 
-    public Map<String, Integer> hitlist = new HashMap<>();
+    private Map<String, Integer> hitlist;
 
     public CoreQuestTaskKill(CoreQuest quest, EditorQuestTaskKill editor) {
         super(quest, editor);
+
+        this.hitlist = EditorMobCount.unwrap(editor.mobs);
     }
 
     @Override

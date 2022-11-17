@@ -26,6 +26,8 @@ public final class FontMagicConstant {
             output.append(current.getValue());
             depth -= current.getKey();
         }
+
+
         return output.toString();
     }
 

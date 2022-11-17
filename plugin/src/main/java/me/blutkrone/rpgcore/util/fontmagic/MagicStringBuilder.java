@@ -5,7 +5,6 @@ import me.blutkrone.rpgcore.util.Utility;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -265,8 +264,6 @@ public class MagicStringBuilder {
         if (!current_font.equals(this.charset))
             font(current_font);
 
-        Bukkit.getLogger().severe("APPEND " + text.width + " " + this.length);
-
         return this;
     }
 
@@ -300,7 +297,6 @@ public class MagicStringBuilder {
      * @param position pointer will face exact pixel.
      */
     public MagicStringBuilder shiftToExact(int position) {
-        Bukkit.getLogger().severe("SHIFT TO EXACT " + length + " " + position);
         retreat(length);
         advance(position);
         return this;
@@ -363,10 +359,12 @@ public class MagicStringBuilder {
     private void flush() {
         // correct the padding we have
         if (pending_offset < 0) {
-            this.internal.append(FontMagicConstant.retreat((-1) * pending_offset));
+            String retreat = FontMagicConstant.retreat((-1) * pending_offset);
+            this.internal.append(retreat);
             pending_offset = 0;
         } else if (pending_offset > 0) {
-            this.internal.append(FontMagicConstant.advance(pending_offset));
+            String advance = FontMagicConstant.advance(pending_offset);
+            this.internal.append(advance);
             pending_offset = 0;
         }
     }

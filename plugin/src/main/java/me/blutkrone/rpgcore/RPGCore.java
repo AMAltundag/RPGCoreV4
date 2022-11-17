@@ -146,10 +146,12 @@ public final class RPGCore extends JavaPlugin {
                 .disableHtmlEscaping()
                 .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
                 .create();
-        this.gson_ugly = new GsonBuilder()
-                .disableHtmlEscaping()
-                .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
-                .create();
+        this.gson_ugly = new Gson();
+        // this.gson_ugly = new GsonBuilder()
+        //         // .disableHtmlEscaping()
+        //         .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
+        //
+        //         .create();
         // track the skin pool we work with
         this.skin = new SkinPool();
 

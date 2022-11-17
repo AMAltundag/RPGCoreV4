@@ -16,20 +16,53 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class CrafterMenu extends AbstractCoreMenu {
 
+    private CoreCrafterTrait trait;
     private IndexAttachment<CoreCraftingRecipe, Map<String, List<CoreCraftingRecipe>>> reverse;
     private List<ItemStack> crafts;
     private int offset = 0;
 
-    public CrafterMenu(CoreCrafterTrait trait, List<ItemStack> crafts) {
+    public CrafterMenu(CoreCrafterTrait trait) {
         super(6);
-        this.crafts = crafts;
         this.reverse = trait.reverse;
+        this.trait = trait;
+    }
+
+    public List<ItemStack> getCrafts() {
+        if (this.crafts == null) {
+            Player player = getMenu().getViewer();
+
+            List<ItemStack> previews_header = new ArrayList<>();
+            List<ItemStack> previews_footer = new ArrayList<>();
+
+            // get all items technically craft-able
+            List<CoreCraftingRecipe> allowed = trait.recipes.get();
+
+            // check if player got the ingredients
+            for (CoreCraftingRecipe recipe : allowed) {
+                ItemStack stack = recipe.getOutput().unidentified();
+                IChestMenu.setBrand(stack, RPGCore.inst(), "recipe-id", recipe.getId());
+                if (recipe.hasEnoughToCraftOnce(player)) {
+                    IChestMenu.setBrand(stack, RPGCore.inst(), "recipe-affordable", "1");
+                    previews_header.add(stack);
+                } else {
+                    IChestMenu.setBrand(stack, RPGCore.inst(), "recipe-affordable", "0");
+                    previews_footer.add(stack);
+                }
+            }
+
+            // pool into one collection (this keeps available recipes front-loaded.)
+            previews_header.addAll(previews_footer);
+            this.crafts = previews_header;
+        }
+
+        return this.crafts;
     }
 
     @Override
@@ -45,9 +78,9 @@ public class CrafterMenu extends AbstractCoreMenu {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 8; j++) {
                 int k = (i + offset) * 8 + j;
-                if (k < crafts.size()) {
+                if (k < getCrafts().size()) {
                     // retrieve the item we are working with
-                    ItemStack icon = crafts.get(k);
+                    ItemStack icon = getCrafts().get(k);
                     // highlight item that is affordable
                     boolean affordable = IChestMenu.getBrand(icon, RPGCore.inst(), "recipe-affordable", "0")
                             .equalsIgnoreCase("1");
@@ -63,18 +96,18 @@ public class CrafterMenu extends AbstractCoreMenu {
 
         // render scroll-bar for the viewport
         msb.shiftToExact(150);
-        if (crafts.size() <= 48) {
+        if (getCrafts().size() <= 48) {
             msb.append(resourcepack().texture("pointer_huge_0"), ChatColor.WHITE);
-        } else if (crafts.size() <= 96) {
-            double length = Math.ceil(crafts.size() / 8d) - 6d;
+        } else if (getCrafts().size() <= 96) {
+            double length = Math.ceil(getCrafts().size() / 8d) - 6d;
             double ratio = offset / length;
             msb.append(resourcepack().texture("pointer_medium_" + (int) (100 * ratio)), ChatColor.WHITE);
-        } else if (crafts.size() <= 192) {
-            double length = Math.ceil(crafts.size() / 8d) - 6d;
+        } else if (getCrafts().size() <= 192) {
+            double length = Math.ceil(getCrafts().size() / 8d) - 6d;
             double ratio = offset / length;
             msb.append(resourcepack().texture("pointer_small_" + (int) (100 * ratio)), ChatColor.WHITE);
         } else {
-            double length = Math.ceil(crafts.size() / 8d) - 6d;
+            double length = Math.ceil(getCrafts().size() / 8d) - 6d;
             double ratio = offset / length;
             msb.append(resourcepack().texture("pointer_tiny_" + (int) (100 * ratio)), ChatColor.WHITE);
         }
@@ -105,11 +138,11 @@ public class CrafterMenu extends AbstractCoreMenu {
                 // ignore other clicks
             } else if (event.getSlot() == 44) {
                 // scroll to bottom
-                this.offset = (this.crafts.size() / 8) - 6;
+                this.offset = (this.getCrafts().size() / 8) - 6;
                 this.getMenu().queryRebuild();
             } else if (event.getSlot() == 53) {
                 // scroll down by one
-                int floor = Math.max(0, (this.crafts.size() / 8) - 6);
+                int floor = Math.max(0, (this.getCrafts().size() / 8) - 6);
                 this.offset = Math.min(floor, this.offset + 1);
                 this.getMenu().queryRebuild();
             } else {
@@ -161,7 +194,7 @@ public class CrafterMenu extends AbstractCoreMenu {
 
             // crafter icons
             ItemStack invisible = RPGCore.inst().getLanguageManager().getAsItem("invisible").build();
-            if (recipe.isMatched(this.getMenu().getViewer())) {
+            if (recipe.hasEnoughToCraftOnce(this.getMenu().getViewer())) {
                 IChestMenu.setBrand(invisible, RPGCore.inst(), "allow-crafting", "1");
 
                 msb.shiftToExact(-208);
@@ -247,6 +280,7 @@ public class CrafterMenu extends AbstractCoreMenu {
 
         @Override
         public void close(InventoryCloseEvent event) {
+            crafts = null;
             suggestOpen(this.parent);
         }
     }

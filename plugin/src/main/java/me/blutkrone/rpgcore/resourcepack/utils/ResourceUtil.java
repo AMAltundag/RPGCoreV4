@@ -229,11 +229,19 @@ public class ResourceUtil {
      * @param object the object we wish to export
      * @param file   the file that shall contain it
      */
-    public static void saveToDisk(JSONObject object, File file, boolean escaped) throws IOException, ParseException {
+    public static void saveToDisk(JSONObject object, File file, boolean compressed) throws IOException, ParseException {
         file.getParentFile().mkdirs();
 
-        try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            RPGCore.inst().getGsonUgly().toJson(object, osw);
+        String string;
+        if (compressed) {
+            string = RPGCore.inst().getGsonUgly().toJson(object);
+        } else {
+            string = RPGCore.inst().getGsonPretty().toJson(object);
+        }
+
+        string = escapeMinecraft(string);
+        try (PrintWriter out = new PrintWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+            out.write(string);
         }
     }
 
@@ -243,12 +251,41 @@ public class ResourceUtil {
      * @param object the object we wish to export
      * @param file   the file that shall contain it
      */
-    public static void saveToDisk(JsonObject object, File file, boolean escaped) throws IOException, ParseException {
+    public static void saveToDisk(JsonObject object, File file, boolean compressed) throws IOException, ParseException {
         file.getParentFile().mkdirs();
 
-        try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            RPGCore.inst().getGsonUgly().toJson(object, osw);
+        String string;
+        if (compressed) {
+            string = RPGCore.inst().getGsonUgly().toJson(object);
+        } else {
+            string = RPGCore.inst().getGsonPretty().toJson(object);
         }
+
+        string = escapeMinecraft(string);
+        try (PrintWriter out = new PrintWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+            out.write(string);
+        }
+    }
+
+    private static String escapeMinecraft(String str) {
+        StringWriter out = new StringWriter(str.length() * 2);
+
+        int sz;
+        sz = str.length();
+        for (int i = 0; i < sz; i++) {
+            char ch = str.charAt(i);
+            if (ch > 0xfff) {
+                out.write("\\u" + hex(ch));
+            } else if (ch > 0xff) {
+                out.write("\\u0" + hex(ch));
+            } else if (ch > 0x7f) {
+                out.write("\\u00" + hex(ch));
+            } else {
+                out.write(ch);
+            }
+        }
+
+        return out.toString();
     }
 
     /**

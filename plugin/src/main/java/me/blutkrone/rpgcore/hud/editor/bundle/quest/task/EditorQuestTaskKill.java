@@ -1,8 +1,11 @@
 package me.blutkrone.rpgcore.hud.editor.bundle.quest.task;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
+import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestTask;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.MobCountConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
@@ -20,6 +23,9 @@ public class EditorQuestTaskKill extends AbstractEditorQuestTask {
     @EditorWrite(name = "Info", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Task progress information", "Placeholder {...} with mob ids", "§cThis is a language code, NOT plaintext."})
     public String lc_info = "NOTHINGNESS";
+    @EditorList(name = "Mobs", constraint = MobCountConstraint.class)
+    @EditorTooltip(tooltip = {"Number of mobs to be slain."})
+    public List<IEditorBundle> mobs = new ArrayList<>();
 
     public UUID uuid = UUID.randomUUID();
 
