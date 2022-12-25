@@ -1,11 +1,15 @@
 package me.blutkrone.rpgcore.quest;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
+import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskCollect;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 /**
@@ -22,6 +26,24 @@ public class QuestManager implements Listener {
 
         Bukkit.getLogger().severe("not implemented (quests as api)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+
+        Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
+            // check if collect tasks were completed
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+                if (core_player != null) {
+                    for (String questId : core_player.getActiveQuestIds()) {
+                        CoreQuest quest = getIndexQuest().get(questId);
+                        AbstractQuestTask task = quest.getCurrentTask(core_player);
+                        if (task instanceof CoreQuestTaskCollect) {
+                            if (((CoreQuestTaskCollect) task).canMeetDemand(core_player)) {
+                                task.updateQuest(core_player, new Object());
+                            }
+                        }
+                    }
+                }
+            }
+        }, 0, 60);
     }
 
     /**

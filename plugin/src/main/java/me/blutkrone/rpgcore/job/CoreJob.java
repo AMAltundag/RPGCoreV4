@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.hud.editor.root.job.EditorJob;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,8 @@ public class CoreJob {
     private ItemStack weapon;
     // relevant passive trees we are unlocking
     private List<String> passive_tree;
+    // jobs we can advance into
+    private List<String> advancements;
 
     public CoreJob(String id, EditorJob editor) {
         this.id = id;
@@ -36,6 +39,20 @@ public class CoreJob {
                 .map(String::toLowerCase)
                 .filter(string -> !string.startsWith("skill_"))
                 .collect(Collectors.toList());
+        this.advancements = new ArrayList<>(editor.advanced_jobs);
+    }
+
+    /**
+     * Jobs which we can advance into.
+     *
+     * @return jobs to advance into.
+     */
+    public List<CoreJob> getAdvancements() {
+        List<CoreJob> jobs = new ArrayList<>();
+        for (String advancement : this.advancements) {
+            jobs.add(RPGCore.inst().getJobManager().getIndex().get(advancement));
+        }
+        return jobs;
     }
 
     /**

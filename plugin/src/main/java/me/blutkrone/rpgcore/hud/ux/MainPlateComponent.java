@@ -17,9 +17,12 @@ import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.text.DecimalFormat;
 import java.util.Optional;
 
 public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snapshot> {
+
+    private static final DecimalFormat TWO_DIGIT_FORMAT = new DecimalFormat("#.00");
 
     private final int activity_frame_start_at;
     private final int activity_start_at;
@@ -28,6 +31,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
     private int health_start_at;
     private int mana_start_at;
     private int skillbar_start_at;
+    private int exp_and_level_start_at;
 
     private int instant_animation_size;
 
@@ -39,6 +43,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         health_start_at = section.getInt("interface-offset.health-start-at");
         mana_start_at = section.getInt("interface-offset.mana-start-at");
         skillbar_start_at = section.getInt("interface-offset.skills-start-at");
+        exp_and_level_start_at = section.getInt("interface-offset.exp-and-level-start-at");
 
         for (int i = 0; i < 24; i++) {
             if (RPGCore.inst().getResourcePackManager().textures().containsKey("skillbar_instant_animation_" + i)) {
@@ -105,6 +110,13 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         // draw the front plate
         workspace.actionbar().shiftToExact(0);
         workspace.actionbar().append(rpm.texture("static_plate_front"));
+
+        // drew the level/exp info
+        String level = TWO_DIGIT_FORMAT.format(prepared.level);
+        workspace.actionbar().shiftCentered(exp_and_level_start_at + 1, Utility.measure(level));
+        workspace.actionbar().shadow(level, "hud_level_and_exp");
+        workspace.actionbar().shiftCentered(exp_and_level_start_at, Utility.measure(level));
+        workspace.actionbar().append(level, "hud_level_and_exp");
 
         // render skills unless skillbar locked
         for (int i = 1; i <= 6; i++) {
@@ -216,9 +228,15 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         private boolean skill_selecting = false;
         // server interval of snapshot
         private int timestamp;
+        // level and exp%
+        private double level;
 
         Snapshot(CorePlayer entity) {
             this.timestamp = RPGCore.inst().getTimestamp();
+            // level and experience
+            this.level = entity.getCurrentLevel();
+            double breakout = RPGCore.inst().getLevelManager().getExpToLevelUp(entity);
+            this.level += breakout < 0d ? 0.0d : (entity.getCurrentExp() / breakout);
             // snapshot the resources
             this.health = entity.getHealth().snapshot();
             this.mana = entity.getMana().snapshot();

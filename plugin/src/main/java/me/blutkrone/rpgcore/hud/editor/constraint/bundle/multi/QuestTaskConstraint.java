@@ -2,10 +2,7 @@ package me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskDeliver;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskKill;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskTalk;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskVisit;
+import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +20,13 @@ public class QuestTaskConstraint implements IEditorConstraint {
         id_to_constructor.put("kill", EditorQuestTaskKill::new);
         id_to_constructor.put("talk", EditorQuestTaskTalk::new);
         id_to_constructor.put("visit", EditorQuestTaskVisit::new);
+        id_to_constructor.put("collect", EditorQuestTaskCollect::new);
 
         class_to_id.put(EditorQuestTaskDeliver.class, "deliver");
         class_to_id.put(EditorQuestTaskKill.class, "kill");
         class_to_id.put(EditorQuestTaskTalk.class, "talk");
         class_to_id.put(EditorQuestTaskVisit.class, "visit");
+        class_to_id.put(EditorQuestTaskCollect.class, "collect");
     }
 
     @Override

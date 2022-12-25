@@ -136,6 +136,7 @@ public class DataManager implements Listener {
         data_protocol.put("quest", new QuestProtocol());
         data_protocol.put("tag", new TagProtocol());
         data_protocol.put("passive", new PassiveProtocol());
+        data_protocol.put("level", new LevelProtocol());
         data_protocol.put("roster_bank", new RosterBankerProtocol());
         data_protocol.put("roster_storage", new RosterStorageProtocol());
         data_protocol.put("roster_refinement", new RosterRefinementProtocol());

@@ -80,6 +80,8 @@ public class CoreEntity implements IContext, IOrigin {
     private int focus_hint_until = -1;
     // track the pipelines for actions we've requested
     private List<CoreAction.ActionPipeline> actions = new ArrayList<>();
+    // level of this creature
+    private int current_level;
 
     public CoreEntity(LivingEntity entity, EntityProvider provider) {
         // apply basic bukkit initialization
@@ -112,6 +114,24 @@ public class CoreEntity implements IContext, IOrigin {
         // tick skill behaviours we've queried
         this.bukkit_tasks.add(new EntitySkillTask(this)
                 .runTaskTimer(RPGCore.inst(), 1, 1));
+    }
+
+    /**
+     * Current level of the entity.
+     *
+     * @return current level
+     */
+    public int getCurrentLevel() {
+        return Math.max(current_level, 1);
+    }
+
+    /**
+     * Current level of the entity.
+     *
+     * @param current_level new level
+     */
+    public void setCurrentLevel(int current_level) {
+        this.current_level = Math.max(1, current_level);
     }
 
     /**

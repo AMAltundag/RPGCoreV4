@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootExperience;
 import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootItem;
+import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootSkill;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,9 +19,11 @@ public class LootConstraint implements IEditorConstraint {
     static {
         id_to_constructor.put("exp", EditorLootExperience::new);
         id_to_constructor.put("item", EditorLootItem::new);
+        id_to_constructor.put("skill", EditorLootSkill::new);
 
         class_to_id.put(EditorLootExperience.class, "exp");
         class_to_id.put(EditorLootItem.class, "item");
+        class_to_id.put(EditorLootSkill.class, "skill");
     }
 
     @Override

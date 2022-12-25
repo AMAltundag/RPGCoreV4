@@ -1,19 +1,23 @@
 package me.blutkrone.rpgcore.quest;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestReward;
 import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestTask;
+import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.hud.editor.root.quest.EditorQuest;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
+import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A quest has multiple tasks which have to be
@@ -27,6 +31,8 @@ public class CoreQuest {
     private String lc_quest_info;
     // sequential tasks to complete for quest
     private List<AbstractQuestTask<?>> tasks = new ArrayList<>();
+    // requirements to accept the quest
+    private List<AbstractCoreSelector> accept_requirement;
     // ids of quests that must have been completed
     private Set<String> required_quests = new HashSet<>();
     // ids of quests that cannot have been completed
@@ -51,6 +57,7 @@ public class CoreQuest {
             AbstractEditorQuestTask task = (AbstractEditorQuestTask) bundle;
             this.tasks.add(task.build(this));
         }
+        this.accept_requirement = AbstractEditorSelector.unwrap(editor.accept_requirement);
         this.required_quests.addAll(editor.required_quest);
         this.forbidden_quests.addAll(editor.forbidden_quest);
         for (IEditorBundle bundle : editor.fixed_rewards) {
@@ -175,13 +182,58 @@ public class CoreQuest {
     }
 
     /**
+     * Quest flow optimization, by opening a relevant suggested menu. Please do
+     * note that this will close the current menu to force open another, with a
+     * brief delay.
+     * <p>
+     * Quick transition can be invoked in following cases:
+     * <ul>
+     *     <li>the player accepted a quest</li>
+     *     <li>the player completed a dialogue</li>
+     *     <li>the player completed a delivery</li>
+     * </ul>
+     *
+     * @param player whose quest state are we operating off
+     * @param npc the npc we are currently engaging with
+     * @return whether we performed a quick transition
+     */
+    public boolean attemptQuickTransition(CorePlayer player, CoreNPC npc) {
+        AbstractQuestTask task = getCurrentTask(player);
+        if (task == null) {
+            if (getRewardNPC() == null || npc.getId().equalsIgnoreCase(getRewardNPC())) {
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    Player entity = player.getEntity();
+                    entity.closeInventory();
+                    RPGCore.inst().getHUDManager().getQuestMenu().reward(this, entity, npc);
+                });
+                return true;
+            }
+        } else if (task instanceof CoreQuestTaskTalk) {
+            CoreQuestTaskTalk.QuestDialogue dialogue = ((CoreQuestTaskTalk) task).getWaiting(player, npc);
+            if (dialogue != null) {
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    Player entity = player.getEntity();
+                    entity.closeInventory();
+                    RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, entity, npc, dialogue.task);
+                });
+                return true;
+            }
+        }
+
+        // nothing to be offered
+        return false;
+    }
+
+    /**
      * Complete this quest, this will ignore the actual progress
      * within the quest.
      * <p>
      * Call this after finishing all tasks and having claimed
      * the rewards!
+     *
+     * @return performed a quick transition
      */
-    public void completeQuest(CorePlayer player) {
+    public boolean completeQuest(CorePlayer player, CoreNPC npc) {
         String message = RPGCore.inst().getLanguageManager().getTranslation("quest_completed");
         message = message.replace("{QUEST}", this.getName());
         player.getEntity().sendMessage(message);
@@ -203,12 +255,17 @@ public class CoreQuest {
             quest.abandonQuest(player);
         }
         // pick up quests we should have
+        boolean transitioned = false;
         for (String id : this.follow_quests) {
             CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
             if (quest.canAcceptQuest(player)) {
                 quest.acceptQuest(player);
+                if (!transitioned && quest.attemptQuickTransition(player, npc)) {
+                    transitioned = true;
+                }
             }
         }
+        return transitioned;
     }
 
     /**
@@ -260,8 +317,13 @@ public class CoreQuest {
                 return false;
             }
         }
+        // make sure custom condition has been met
+        List<IOrigin> condition = Collections.singletonList(player);
+        for (AbstractCoreSelector selector : this.accept_requirement) {
+            selector.doSelect(player, condition);
+        }
         // player can have this quest
-        return true;
+        return !condition.isEmpty();
     }
 
     /**

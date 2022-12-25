@@ -222,7 +222,7 @@ public class CoreNPC extends AbstractNode {
      * @param player whose quests to check against
      * @return the offer if available
      */
-    public CoreQuestTaskDeliver getQuestDeliverOffer(CorePlayer player) {
+    public CoreQuestTaskDeliver getQuestDeliverOffer(CorePlayer player, boolean accurate) {
         // search for any dialogue which is pending
         for (String id : player.getActiveQuestIds()) {
             CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
@@ -233,7 +233,7 @@ public class CoreNPC extends AbstractNode {
             }
             // ensure the NPC accepts drop-offs for that task
             CoreQuestTaskDeliver delivery = (CoreQuestTaskDeliver) task;
-            if (delivery.isDropOff(this) && delivery.canMeetDemandApproximation(player.getUniqueId())) {
+            if (delivery.isDropOff(this) && delivery.canMeetDemand(player, accurate)) {
                 return delivery;
             }
         }
@@ -272,11 +272,11 @@ public class CoreNPC extends AbstractNode {
             // if we got dialogue, we present that one
             CoreQuestTaskTalk.QuestDialogue dialogue = getQuestDialogueOffer(core_player);
             if (dialogue != null) {
-                RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, dialogue.task.getUniqueId() + "_" + dialogue.npc);
+                RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, this, dialogue.task);
                 return;
             }
             // if we got a delivery, we present that one
-            CoreQuestTaskDeliver delivery = getQuestDeliverOffer(core_player);
+            CoreQuestTaskDeliver delivery = getQuestDeliverOffer(core_player, true);
             if (delivery != null) {
                 RPGCore.inst().getHUDManager().getQuestMenu().delivery(delivery, player, this);
                 return;

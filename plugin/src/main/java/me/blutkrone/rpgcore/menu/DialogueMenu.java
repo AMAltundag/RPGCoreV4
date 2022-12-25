@@ -3,8 +3,10 @@ package me.blutkrone.rpgcore.menu;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogueChoice;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
@@ -20,16 +22,18 @@ import java.util.List;
 public class DialogueMenu extends AbstractCoreMenu {
 
     private CoreDialogue dialogue;
+    private CoreNPC npc;
     private List<String> contents;
     private IndexedTexture portrait;
     private ItemStack next_page;
-    private String quest_task_complete;
+    private CoreQuestTaskTalk task;
 
-    public DialogueMenu(CoreDialogue dialogue, String quest_task_complete) {
+    public DialogueMenu(CoreDialogue dialogue, CoreNPC npc, CoreQuestTaskTalk task) {
         super(6);
         this.dialogue = dialogue;
+        this.npc = npc;
+        this.task = task;
         this.contents = this.getDialogueProcessed(dialogue);
-        this.quest_task_complete = quest_task_complete;
         this.portrait = null;
         this.next_page = RPGCore.inst().getLanguageManager().getAsItem("viewport_right").build();
     }
@@ -136,14 +140,16 @@ public class DialogueMenu extends AbstractCoreMenu {
 
         if (this.next_page.isSimilar(event.getCurrentItem())) {
             if (contents.isEmpty() && dialogue.choices.isEmpty()) {
-                // click-thorough dialogue is always completed
-                getMenu().stalled(() -> {
-                    getMenu().getViewer().closeInventory();
-                    if (quest_task_complete != null) {
-                        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked());
-                        core_player.getProgressQuests().put(quest_task_complete, 1);
+                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked());
+                if (task != null) {
+                    task.updateQuest(core_player, this.npc);
+                    if (!task.getQuest().attemptQuickTransition(core_player, this.npc)) {
+                        getMenu().stalled(() -> getMenu().getViewer().closeInventory());
                     }
-                });
+                } else {
+                    // click-thorough dialogue is always completed
+                    getMenu().stalled(() -> getMenu().getViewer().closeInventory());
+                }
             } else {
                 // a rebuild will show the next page or choices
                 this.getMenu().queryRebuild();
@@ -160,16 +166,18 @@ public class DialogueMenu extends AbstractCoreMenu {
                         // close current dialogue
                         this.getMenu().getViewer().closeInventory();
                         // open next dialogue
-                        new DialogueMenu(choice.dialogue_next, quest_task_complete).finish(this.getMenu().getViewer());
+                        new DialogueMenu(choice.dialogue_next, this.npc, task).finish(this.getMenu().getViewer());
                     });
                 } else {
                     // handle task processing
-                    if (quest_task_complete != null && choice.correct) {
-                        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked());
-                        core_player.getProgressQuests().put(quest_task_complete, 1);
+                    CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked());
+                    if (task != null && choice.correct) {
+                        task.updateQuest(core_player, this.npc);
                     }
                     // close the menu
-                    this.getMenu().stalled(() -> this.getMenu().getViewer().closeInventory());
+                    this.getMenu().stalled(() -> {
+                        this.getMenu().getViewer().closeInventory();
+                    });
                 }
             }
         }

@@ -20,7 +20,7 @@ import java.util.Map;
  * completed once you went thorough with the entire dialogue
  * chain/branch.
  */
-public class CoreQuestTaskTalk extends AbstractQuestTask<CoreDialogue> {
+public class CoreQuestTaskTalk extends AbstractQuestTask<CoreNPC> {
 
     // all dialogues we are awaiting
     private Map<String, String> talks = new HashMap<>();
@@ -56,8 +56,9 @@ public class CoreQuestTaskTalk extends AbstractQuestTask<CoreDialogue> {
     }
 
     @Override
-    public void updateQuest(CorePlayer player, CoreDialogue param) {
-        throw new UnsupportedOperationException("Talk trait is processed externally.");
+    public void updateQuest(CorePlayer player, CoreNPC param) {
+        // mark dialogue as completed
+        player.getProgressQuests().put(super.getUniqueId() + "_" + param.getId(), 1);
     }
 
     @Override

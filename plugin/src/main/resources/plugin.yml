@@ -13,6 +13,7 @@ libraries:
 - "org.mongodb:mongo-java-driver:3.12.7"
 - "org.jsoup:jsoup:1.15.2"
 - "com.github.depsypher:pngtastic:1.7"
+- "com.ezylang:EvalEx:3.0.1"
 softdepend: [ProtocolLib, WorldGuard, ModelEngine]
 
 commands:

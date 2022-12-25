@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.QuestRewardConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.QuestTaskConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.SelectorConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.NPCConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.QuestConstraint;
@@ -39,7 +40,10 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
     public String symbol = "default";
 
     @EditorCategory(icon = Material.BUNDLE, info = "Requirement")
-    @EditorList(name = "Forbidden", constraint = QuestRewardConstraint.class)
+    @EditorList(name = "Condition", constraint = SelectorConstraint.class)
+    @EditorTooltip(tooltip = "Condition must be met to accept quest.")
+    public List<IEditorBundle> accept_requirement = new ArrayList<>();
+    @EditorList(name = "Required", constraint = QuestRewardConstraint.class)
     @EditorTooltip(tooltip = "Cannot accept quest if not completed.")
     public List<String> required_quest = new ArrayList<>();
     @EditorList(name = "Forbidden", constraint = QuestRewardConstraint.class)

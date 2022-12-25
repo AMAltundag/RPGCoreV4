@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.JobConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.TreeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
@@ -34,10 +35,14 @@ public class EditorJob implements IEditorRoot<CoreJob> {
     @EditorList(name = "Trees", constraint = TreeConstraint.class)
     @EditorTooltip(tooltip = {"All passive trees available with this job", "Will apply the passive tree from here", "§cNever grant access of tree from two sources!"})
     public List<String> passive_tree = new ArrayList<>();
+    @EditorList(name = "Advance", constraint = JobConstraint.class)
+    @EditorTooltip(tooltip = "Advancements offered when advancement condition is met")
+    public List<String> advanced_jobs = new ArrayList<>();
 
     public transient File file;
 
     public EditorJob() {
+
     }
 
     @Override

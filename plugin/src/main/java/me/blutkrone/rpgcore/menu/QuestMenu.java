@@ -330,8 +330,11 @@ public class QuestMenu {
                                     quest.acceptQuest(core_player);
                                     // hide the quest from the list
                                     quests.remove(id);
-                                    // refresh the UX
-                                    getMenu().queryRebuild();
+                                    // quick-transition if appropriate
+                                    if (!quest.attemptQuickTransition(core_player, npc)) {
+                                        // if no quick transition, we can refresh the UX
+                                        getMenu().queryRebuild();
+                                    }
                                 }
                             } else {
                                 String warning = RPGCore.inst().getLanguageManager().getTranslation("too_many_quests");
@@ -432,9 +435,10 @@ public class QuestMenu {
                             }
                         }
                         // mark as complete and close the menu
-                        quest.completeQuest(core_player);
-                        // close the menu since we claimed rewards
-                        getMenu().stalled(() -> getMenu().getViewer().closeInventory());
+                        if (!quest.completeQuest(core_player, npc)) {
+                            // close the menu since we claimed rewards
+                            getMenu().stalled(() -> getMenu().getViewer().closeInventory());
+                        }
                     }
                 }
             }
@@ -497,8 +501,11 @@ public class QuestMenu {
             event.setCancelled(true);
 
             if (event.getClickedInventory() == event.getView().getTopInventory() && event.getSlot() % 9 >= 7) {
-                task.updateQuest(RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked()), new Object());
-                getMenu().stalled(() -> event.getWhoClicked().closeInventory());
+                CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(event.getWhoClicked());
+                task.updateQuest(player, this.npc);
+                if (!task.getQuest().attemptQuickTransition(player, this.npc)) {
+                    getMenu().stalled(() -> event.getWhoClicked().closeInventory());
+                }
             }
         }
 

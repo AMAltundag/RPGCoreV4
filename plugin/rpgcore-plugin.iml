@@ -84,6 +84,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.j2objc:j2objc-annotations:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.mojo:animal-sniffer-annotations:1.17" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jsoup:jsoup:1.15.2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.ezylang:EvalEx:3.0.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.comphenix.protocol:ProtocolLib:4.8.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: net.bytebuddy:byte-buddy:1.12.8" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: net.lingala.zip4j:zip4j:2.6.4" level="project" />

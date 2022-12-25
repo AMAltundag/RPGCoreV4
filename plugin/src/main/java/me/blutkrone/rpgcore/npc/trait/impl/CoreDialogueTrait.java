@@ -26,7 +26,7 @@ public class CoreDialogueTrait extends AbstractCoreTrait {
     @Override
     public void engage(Player player, CoreNPC npc) {
         if (this.dialogue != null) {
-            RPGCore.inst().getHUDManager().getDialogueMenu().open(this.dialogue, player, null);
+            RPGCore.inst().getHUDManager().getDialogueMenu().open(this.dialogue, player, npc, null);
         }
     }
 }

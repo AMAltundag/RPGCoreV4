@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.menu;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
@@ -45,6 +46,13 @@ public class PassiveMenu extends AbstractCoreMenu {
         this.node_select_help = new NodeSelector();
     }
 
+    private int getPassivePoints(CorePlayer player) {
+        CorePassiveTree tree = RPGCore.inst().getPassiveManager().getTreeIndex().get(this.tree);
+        int custom_points = player.getPassivePoints().getOrDefault(tree.getPoint(), 0);
+        int level_points = RPGCore.inst().getLevelManager().getPassivesFromLevels(player, tree.getPoint());
+        return custom_points + level_points;
+    }
+
     @Override
     public void rebuild() {
         if (this.node_select) {
@@ -62,7 +70,7 @@ public class PassiveMenu extends AbstractCoreMenu {
         tree.ensureIntegrity(player);
 
         Set<Long> allocated = player.getAllocated(tree.getId());
-        int have = player.getPassivePoints().getOrDefault(tree.getPoint(), 0);
+        int have = getPassivePoints(player);
         int refund = player.getPassiveRefunds().getOrDefault(tree.getPoint(), 0);
         int used = allocated.size();
 
@@ -164,6 +172,10 @@ public class PassiveMenu extends AbstractCoreMenu {
             }
         }
 
+        InstructionBuilder instructions = new InstructionBuilder();
+        instructions.add(RPGCore.inst().getLanguageManager().getTranslationList("instruction_player_passive"));
+        instructions.apply(msb);
+
         getMenu().setTitle(msb.compile());
     }
 
@@ -183,7 +195,7 @@ public class PassiveMenu extends AbstractCoreMenu {
         CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(getMenu().getViewer());
         CorePassiveTree tree = RPGCore.inst().getPassiveManager().getTreeIndex().get(this.tree);
         Set<Long> allocated = player.getAllocated(tree.getId());
-        int have = player.getPassivePoints().getOrDefault(tree.getPoint(), 0);
+        int have = getPassivePoints(player);
         int refund = player.getPassiveRefunds().getOrDefault(tree.getPoint(), 0);
         int used = allocated.size();
         long viewport_raw = player.getPassiveViewport().getOrDefault(tree.getId(), 0L);

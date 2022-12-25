@@ -15,8 +15,8 @@ import java.util.List;
 
 public class EditorQuestRewardTrait extends AbstractEditorQuestReward {
 
-    @EditorWrite(name = "Trait", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = "Which trait tag to acquire.")
+    @EditorWrite(name = "Tag", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = "Which tag to acquire.")
     public String trait = "none";
 
     public EditorQuestRewardTrait() {
@@ -30,7 +30,7 @@ public class EditorQuestRewardTrait extends AbstractEditorQuestReward {
     @Override
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.BOOKSHELF)
-                .name("§aTrait Reward")
+                .name("§aTag Reward")
                 .appendLore("§fTrait: " + this.trait)
                 .build();
     }
@@ -43,9 +43,8 @@ public class EditorQuestRewardTrait extends AbstractEditorQuestReward {
     @Override
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
-        instruction.add("Trait Reward");
-        instruction.add("Grants a trait tag which can unlock additional traits");
-        instruction.add("on a NPC who wants that trait tag.");
+        instruction.add("Tag Reward");
+        instruction.add("Can be used to unlock NPC traits or level gating.");
         return instruction;
     }
 }

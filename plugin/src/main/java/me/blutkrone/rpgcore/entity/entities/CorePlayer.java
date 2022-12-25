@@ -15,6 +15,7 @@ import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.job.CoreJob;
+import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.minimap.MapMarker;
 import me.blutkrone.rpgcore.passive.CorePassiveNode;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
@@ -116,6 +117,9 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // metrics about damage inflicted
     private Map<String, DamageMetric> metrics = new HashMap<>();
 
+    // levelling parameters
+    private double current_exp;
+
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
         this.getMyTags().add("PLAYER");
@@ -126,6 +130,76 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // the character which we represent
         this.character = character;
+    }
+
+    @Override
+    public void setCurrentLevel(int current_level) {
+        // update the level
+        super.setCurrentLevel(current_level);
+        // abandon previous attributes
+        List<IExpiringModifier> modifiers = getExpiringModifiers("STAT_FROM_LEVEL");
+        modifiers.forEach(IExpiringModifier::setExpired);
+        modifiers.clear();
+        // re-compute temporary attributes
+        Map<String, Double> attributes = RPGCore.inst().getLevelManager().getAttributesFromLevels(this);
+        attributes.forEach((id, factor) -> {
+            modifiers.add(getAttribute(id).create(factor));
+        });
+    }
+
+    /**
+     * Current experience level, intended to be handled via level
+     * manager. The exp resets whenever we do level up.
+     *
+     * @return current experience.
+     */
+    public double getCurrentExp() {
+        return current_exp;
+    }
+
+    /**
+     * Current experience level, intended to be handled via level
+     * manager. The exp resets whenever we do level up.
+     *
+     * @param current_exp updated experience.
+     */
+    public void setCurrentExp(double current_exp) {
+        LevelManager manager = RPGCore.inst().getLevelManager();
+
+        // cannot gain exp if the current level isn't segmented for
+        if (!manager.isSegmentedFor(getCurrentLevel())) {
+            this.current_exp = 0d;
+            return;
+        }
+        // cannot gain exp if missing a tag required to level up
+        for (String tag : manager.getRequiredTags(getCurrentLevel())) {
+            if (!getPersistentTags().contains(tag)) {
+                this.current_exp = 0d;
+                return;
+            }
+        }
+        // cannot gain exp if next level does not exist
+        double exp_to_level_up = manager.getExpToLevelUp(this);
+        if (exp_to_level_up < 0d) {
+            this.current_exp = 0d;
+            return;
+        }
+        // update experience we have accumulated
+        this.current_exp = Math.max(0d, current_exp);
+        // check if we have enough exp to level up
+        if (this.current_exp < exp_to_level_up) {
+            return;
+        }
+        // check if we have appropriate tags
+        for (String tag : manager.getRequiredTags(getCurrentLevel() + 1)) {
+            if (!getPersistentTags().contains(tag)) {
+                this.current_exp = exp_to_level_up - 1;
+                return;
+            }
+        }
+        // update our current level
+        this.current_exp = 0d;
+        setCurrentLevel(this.getCurrentLevel() + 1);
     }
 
     /**
@@ -366,15 +440,17 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     public Map<String, Integer> getSnapshotForQuestItems() {
         // update the cache if necessary
         if (System.currentTimeMillis() + 2000L > this.quest_items_timestamp || this.quest_items_snapshot == null) {
-            Map<String, Integer> quantified = new HashMap<>();
-            for (ItemStack item : this.getEntity().getInventory().getContents()) {
-                ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(item, ItemDataGeneric.class);
-                if (data != null) {
-                    quantified.merge(data.getItem().getId(), item.getAmount(), (a, b) -> a + b);
+            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                Map<String, Integer> quantified = new HashMap<>();
+                for (ItemStack item : this.getEntity().getInventory().getContents()) {
+                    ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(item, ItemDataGeneric.class);
+                    if (data != null) {
+                        quantified.merge(data.getItem().getId(), item.getAmount(), (a, b) -> a + b);
+                    }
                 }
-            }
-            this.quest_items_snapshot = quantified;
-            this.quest_items_timestamp = System.currentTimeMillis();
+                this.quest_items_snapshot = quantified;
+                this.quest_items_timestamp = System.currentTimeMillis();
+            });
         }
 
         return this.quest_items_snapshot;

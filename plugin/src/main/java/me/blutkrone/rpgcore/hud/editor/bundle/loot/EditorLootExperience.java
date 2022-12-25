@@ -1,7 +1,9 @@
 package me.blutkrone.rpgcore.hud.editor.bundle.loot;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.AttributeConstraint;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.mob.loot.ExpCoreLoot;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -14,11 +16,11 @@ import java.util.List;
 public class EditorLootExperience extends AbstractEditorLoot {
 
     @EditorNumber(name = "Amount", minimum = 0d)
-    @EditorTooltip(tooltip = {
-            "Grants an amount of experience",
-            "Experience granted is level scaled"
-    })
+    @EditorTooltip(tooltip = {"Grants an amount of experience", "Experience granted is level scaled"})
     public double experience = 0d;
+    @EditorList(name = "Scaling", constraint = AttributeConstraint.class)
+    @EditorTooltip(tooltip = {"Attributes from killer which can scale exp", "Attribute 'exp_multi_kill' works for all kills"})
+    public List<String> scaling_attributes = new ArrayList<>();
 
     @Override
     public AbstractCoreLoot build() {
@@ -42,8 +44,7 @@ public class EditorLootExperience extends AbstractEditorLoot {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("Loot Exp");
-        instruction.add("Grants experience to the killer, experience scaling");
-        instruction.add("Applies based on level difference.");
+        instruction.add("Grants experience to the killer, exp is level scaled.");
         return instruction;
     }
 }

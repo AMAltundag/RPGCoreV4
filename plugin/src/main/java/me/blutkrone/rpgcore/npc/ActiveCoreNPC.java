@@ -161,7 +161,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
             texture = rpm.texture("static_reward_quest_icon");
         } else if (template.getQuestDialogueOffer(core_player) != null) {
             texture = rpm.texture("static_dialogue_quest_icon");
-        } else if (template.getQuestDeliverOffer(core_player) != null) {
+        } else if (template.getQuestDeliverOffer(core_player, false) != null) {
             texture = rpm.texture("static_delivery_quest_icon");
         } else {
             CoreQuestTrait trait = template.getTrait(CoreQuestTrait.class);

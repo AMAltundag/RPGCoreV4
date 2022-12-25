@@ -1,40 +1,29 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
-import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorItemWithQuantity;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskDeliver;
-import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
-import me.blutkrone.rpgcore.npc.CoreNPC;
+import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskCollect;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Deliver certain items to an NPC.
- */
-public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
+public class CoreQuestTaskCollect extends AbstractQuestTask<Object> {
 
     // what items need to be delivered
     private Map<String, Integer> items = new HashMap<>();
-    // who takes the drop-off
-    private String drop_off_npc;
-    // approximation on delivery matching
-    private final Set<UUID> approximate_delivery = new HashSet<>();
 
-    public CoreQuestTaskDeliver(CoreQuest quest, EditorQuestTaskDeliver editor) {
+    public CoreQuestTaskCollect(CoreQuest quest, EditorQuestTaskCollect editor) {
         super(quest, editor);
 
         for (IEditorBundle bundle : editor.demand) {
             EditorItemWithQuantity demand = (EditorItemWithQuantity) bundle;
             this.items.merge(demand.item, ((int) demand.quantity), (a, b) -> a + b);
         }
-        this.drop_off_npc = editor.npc;
     }
 
     @Override
@@ -70,31 +59,7 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
     }
 
     @Override
-    public void updateQuest(CorePlayer player, CoreNPC param) {
-        // identify how many items we request
-        Map<String, Integer> ask = new HashMap<>(this.items);
-
-        // consume the items still on the ask
-        PlayerInventory inventory = player.getEntity().getInventory();
-        for (ItemStack item : inventory.getContents()) {
-            // make sure we got a core item
-            ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(item, ItemDataGeneric.class);
-            if (data == null) {
-                continue;
-            }
-            // identify basic data for the task
-            String id = data.getItem().getId();
-            int asking = ask.getOrDefault(id, 0);
-            if (asking <= 0) {
-                continue;
-            }
-            int absorb = Math.min(asking, item.getAmount());
-            // consume from the stack of the player
-            item.setAmount(item.getAmount() - absorb);
-            // reduce the ask of items
-            ask.merge(id, -absorb, (a, b) -> a + b);
-        }
-
+    public void updateQuest(CorePlayer player, Object param) {
         // an external check assured that we got enough
         player.getProgressQuests().put(this.getUniqueId() + "_delivered", 1);
     }
@@ -112,22 +77,10 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
      * not expect accuracy off this method.
      *
      * @param player who wants to deliver the items.
-     * @param accurate whether we require accurate info or not.
      * @return true if they got all the items.
      */
-    public boolean canMeetDemand(CorePlayer player, boolean accurate) {
-        Map<String, Integer> carried = new HashMap<>();
-        if (accurate) {
-            Player bukkit_player = player.getEntity();
-            for (ItemStack stack : bukkit_player.getInventory().getContents()) {
-                ItemDataGeneric data = RPGCore.inst().getItemManager().getItemData(stack, ItemDataGeneric.class);
-                if (data != null) {
-                    carried.merge(data.getItem().getId(), stack.getAmount(), (a, b) -> a + b);
-                }
-            }
-        } else {
-            carried = player.getSnapshotForQuestItems();
-        }
+    public boolean canMeetDemand(CorePlayer player) {
+        Map<String, Integer> carried = player.getSnapshotForQuestItems();
 
         // ensure we carry enough to meet our demand
         boolean matched = true;
@@ -139,16 +92,6 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
         }
 
         return matched;
-    }
-
-    /**
-     * Verify if the given NPC is a valid drop-off point.
-     *
-     * @param npc who to check against.
-     * @return true if we accept a drop-off here.
-     */
-    public boolean isDropOff(CoreNPC npc) {
-        return npc.getId().equalsIgnoreCase(this.drop_off_npc);
     }
 
     /**

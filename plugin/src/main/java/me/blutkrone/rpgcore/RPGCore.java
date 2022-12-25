@@ -179,6 +179,7 @@ public final class RPGCore extends JavaPlugin {
         this.mob_manager = new MobManager();
         this.quest_manager = new QuestManager();
         this.passive_manager = new PassiveManager();
+        this.level_manager = new LevelManager();
 
         this.mail_manager = new MailManager();
         this.hud_manager = new HUDManager();
@@ -201,6 +202,7 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("refund", new RefundPointCommand());
         this.commands.put("passive", new PassivePointCommand());
         this.commands.put("tree", new ViewPassiveTreeCommand());
+        this.commands.put("exp", new ExpCommand());
 
         // task to update the timestamp
         Bukkit.getScheduler().runTaskTimer(this, () -> this.timestamp += 1, 1, 1);
@@ -402,5 +404,9 @@ public final class RPGCore extends JavaPlugin {
 
     public MailManager getMailManager() {
         return mail_manager;
+    }
+
+    public LevelManager getLevelManager() {
+        return level_manager;
     }
 }

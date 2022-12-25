@@ -43,8 +43,12 @@ public class SpawnInitiator implements IRosterInitiator {
 
             return false;
         }
+        // ensure that the spawn-camp locations are valid
+        this.spawnpoints.removeIf(point -> {
+            Location where = point.getWhere();
+            return where == null || where.getWorld() == null;
+        });
 
-        // with 1 spawnpoint, apply without question
         if (this.spawnpoints.isEmpty()) {
             // require at least 1 spawnpoint
             Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {

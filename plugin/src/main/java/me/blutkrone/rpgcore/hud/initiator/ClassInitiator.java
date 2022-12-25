@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.job.CoreJob;
-import me.blutkrone.rpgcore.menu.JobInititionMenu;
+import me.blutkrone.rpgcore.menu.JobInitiationMenu;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 
@@ -47,7 +47,7 @@ public class ClassInitiator implements IRosterInitiator {
         }
 
         // offer up menu to pick jobs from
-        new JobInititionMenu(options).finish(player.getEntity());
+        new JobInitiationMenu(options).finish(player.getEntity());
 
         return true;
     }
