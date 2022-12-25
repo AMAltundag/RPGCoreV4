@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A job used to scale player power.
+ * A job granting a passive tree to a player.
  */
 public class CoreJob {
     private final String id;
