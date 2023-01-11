@@ -33,8 +33,8 @@ public class CorePassiveTree {
     private boolean locked_x;
     private boolean locked_y;
     // portraits intended for job menu
-    private String job_portrait;
-    private String job_category;
+    private String portrait;
+    private String category;
 
     public CorePassiveTree(String id, EditorPassiveTree editor) {
         this.id = id;
@@ -50,8 +50,8 @@ public class CorePassiveTree {
             }
         });
         this.graph = new NodeGraph(this.layout);
-        this.job_portrait = editor.job_portrait;
-        this.job_category = editor.job_category;
+        this.portrait = editor.job_portrait;
+        this.category = editor.job_category;
     }
 
     /**
@@ -59,8 +59,8 @@ public class CorePassiveTree {
      *
      * @return job menu portrait
      */
-    public String getJobPortrait() {
-        return job_portrait;
+    public String getPortrait() {
+        return portrait;
     }
 
     /**
@@ -68,8 +68,8 @@ public class CorePassiveTree {
      *
      * @return job menu category
      */
-    public String getJobCategory() {
-        return job_category;
+    public String getCategory() {
+        return category;
     }
 
     /**

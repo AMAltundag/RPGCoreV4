@@ -9,8 +9,10 @@ import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.LootConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.enums.MaterialConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.AttributeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.EffectConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ProfessionConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -42,6 +44,23 @@ public class EditorNodeCollectible implements IEditorRoot<CoreNodeCollectible> {
     @EditorNumber(name = "Cooldown", minimum = 0)
     @EditorTooltip(tooltip = {"Time to recover for another usage."})
     public double cooldown = 2;
+
+    @EditorCategory(icon = Material.IRON_HOE, info = "Profession")
+    @EditorWrite(name = "Profession", constraint = ProfessionConstraint.class)
+    @EditorTooltip(tooltip = {"What profession is relevant to the node"})
+    public String profession = "nothingness";
+    @EditorNumber(name = "Exp")
+    @EditorTooltip(tooltip = {"Exp granted to relevant profession"})
+    public double profession_exp_gained = 0;
+    @EditorNumber(name = "Max LV")
+    @EditorTooltip(tooltip = {"Only gain experience if less-equal to level."})
+    public double profession_exp_maximum_level = 100;
+    @EditorNumber(name = "Required")
+    @EditorTooltip(tooltip = {"Level required to collect the node"})
+    public double profession_level_required = 1;
+    @EditorList(name = "Required", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = {"Must have all tags to collect"})
+    public List<String> tag_requirement = new ArrayList<>();
 
     @EditorCategory(icon = Material.GREEN_WOOL, info = "Collection")
     @EditorNumber(name = "Size", minimum = 1, maximum = 127)

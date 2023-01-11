@@ -50,7 +50,7 @@ public class CoreJob {
     public List<CoreJob> getAdvancements() {
         List<CoreJob> jobs = new ArrayList<>();
         for (String advancement : this.advancements) {
-            jobs.add(RPGCore.inst().getJobManager().getIndex().get(advancement));
+            jobs.add(RPGCore.inst().getJobManager().getIndexJob().get(advancement));
         }
         return jobs;
     }

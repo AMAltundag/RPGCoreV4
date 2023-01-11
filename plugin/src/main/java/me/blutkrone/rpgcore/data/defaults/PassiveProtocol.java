@@ -71,7 +71,7 @@ public class PassiveProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         Map<String, Integer> passiveRefunds = player.getPassiveRefunds();
         Map<String, Integer> passivePoints = player.getPassivePoints();
         Map<String, Long> passiveViewport = player.getPassiveViewport();

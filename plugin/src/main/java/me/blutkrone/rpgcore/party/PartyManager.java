@@ -8,10 +8,9 @@ import org.bukkit.Bukkit;
 import java.util.UUID;
 
 /**
- * Players that are in a party can enter dungeons
- * together and are considered allies. Parties do
- * gain exp, and can unlock special buffs as they
- * advance in playable content.
+ * Players in a party are considered allies, dungeons do
+ * require parties to enter. The leader is allowed to add
+ * new players to the party.
  */
 public class PartyManager implements IPartyManager {
 

@@ -14,7 +14,7 @@ public class MinimapManager {
 
     // a region uses a certain minimap loadout
     private Map<ChunkIdentifier, List<MapRegion>> map_regions_cached = new HashMap<>();
-    private List<MapRegion> map_regions_listed = new ArrayList<>();
+    private Map<String, MapRegion> map_regions_listed = new HashMap<>();
     // a marker indicates a certain location on a map
     private Map<ChunkIdentifier, List<MapMarker>> map_markers_cached = new HashMap<>();
     private List<MapMarker> map_markers_listed = new ArrayList<>();
@@ -25,7 +25,7 @@ public class MinimapManager {
 
             // load the map regions we got
             config.forEachUnder("minimap-regions", (path, root) -> {
-                map_regions_listed.add(new MapRegion(path, root.getSection(path)));
+                map_regions_listed.put(path, new MapRegion(path, root.getSection(path)));
             });
             // load the map markers we got
             config.forEachUnder("compass-markers", (path, root) -> {
@@ -34,6 +34,16 @@ public class MinimapManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Grab the region associated with the given ID
+     *
+     * @param region region identifier
+     * @return region we found
+     */
+    public MapRegion getRegion(String region) {
+        return this.map_regions_listed.get(region);
     }
 
     /**
@@ -96,7 +106,7 @@ public class MinimapManager {
         // retrieve the approximated regions
         List<MapRegion> candidates = map_regions_cached.computeIfAbsent(new ChunkIdentifier(player.getLocation()), (k -> {
             List<MapRegion> filtered = new ArrayList<>();
-            for (MapRegion region : map_regions_listed) {
+            for (MapRegion region : map_regions_listed.values()) {
                 // ensure we are contained in the region
                 if (!region.world.equals(player.getWorld().getName()))
                     continue;
@@ -128,7 +138,7 @@ public class MinimapManager {
         // retrieve the approximated regions
         List<MapRegion> candidates = map_regions_cached.computeIfAbsent(new ChunkIdentifier(location), (k -> {
             List<MapRegion> filtered = new ArrayList<>();
-            for (MapRegion region : map_regions_listed) {
+            for (MapRegion region : map_regions_listed.values()) {
                 // ensure we are contained in the region
                 if (!region.world.equals(location.getWorld().getName()))
                     continue;

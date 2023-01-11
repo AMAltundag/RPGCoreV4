@@ -17,7 +17,7 @@ public class DisplayProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             player.setAlias(bundle.getString(0));
             player.setPortrait(bundle.getString(1));

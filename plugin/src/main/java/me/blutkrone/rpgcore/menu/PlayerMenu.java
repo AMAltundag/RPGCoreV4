@@ -101,7 +101,12 @@ public class PlayerMenu extends AbstractCoreMenu {
                     new JobTreeMenu().finish(player);
                 }
             } else {
-                Bukkit.getLogger().severe("JOB IS " + core_player.getRawJob());
+                Bukkit.getLogger().severe("Unable to resolve Job: " + core_player.getRawJob());
+            }
+        } else if ("profession".equalsIgnoreCase(action)) {
+            // passive trees provided by your job
+            if (RPGCore.inst().getJobManager().getIndexProfession().getAll().size() != 0) {
+                new ProfessionTreeMenu().finish(player);
             }
         } else if ("skill".equalsIgnoreCase(action)) {
             // configure skillbar

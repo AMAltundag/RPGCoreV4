@@ -103,6 +103,10 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // snapshot of passive behaviours from skills
     private Map<CoreBehaviour, BehaviourEffect> passive_behaviour = new HashMap<>();
 
+    // level of professions we currently have
+    private Map<String, Integer> profession_level = new HashMap<>();
+    private Map<String, Double> profession_exp = new HashMap<>();
+
     // information and caching regarding passive tree
     private Map<String, Long> passive_integrity = new HashMap<>();
     private Map<String, Long> passive_viewport = new HashMap<>();
@@ -145,6 +149,24 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         attributes.forEach((id, factor) -> {
             modifiers.add(getAttribute(id).create(factor));
         });
+    }
+
+    /**
+     * Exp for the current level of profession.
+     *
+     * @return profession mapped to exp gathered
+     */
+    public Map<String, Double> getProfessionExp() {
+        return profession_exp;
+    }
+
+    /**
+     * Level of the current professions.
+     *
+     * @return profession mapped to level
+     */
+    public Map<String, Integer> getProfessionLevel() {
+        return profession_level;
     }
 
     /**
@@ -453,7 +475,8 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
             });
         }
 
-        return this.quest_items_snapshot;
+        Map<String, Integer> snapshot = this.quest_items_snapshot;
+        return snapshot == null ? new HashMap<>() : snapshot;
     }
 
     /**
@@ -618,7 +641,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     public CoreJob getJob() {
         if (this.job == null || this.job.isEmpty() || "nothing".equalsIgnoreCase(this.job))
             return null;
-        return RPGCore.inst().getJobManager().getIndex().get(this.job);
+        return RPGCore.inst().getJobManager().getIndexJob().get(this.job);
     }
 
     /**
@@ -785,7 +808,16 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * @param message the contents of the message
      */
     public void notify(ChatColor color, String message) {
-        Bukkit.getLogger().severe("not implemented (notification message)");
+        RPGCore.inst().getHUDManager().notify(getEntity(), message, color.asBungee());
+    }
+
+    /**
+     * Generate a float-text notification on the interface.
+     *
+     * @param message the contents of the message
+     */
+    public void notify(String message) {
+        RPGCore.inst().getHUDManager().notify(getEntity(), message);
     }
 
     /**

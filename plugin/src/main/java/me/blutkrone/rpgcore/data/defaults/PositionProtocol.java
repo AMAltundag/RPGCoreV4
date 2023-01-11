@@ -21,7 +21,7 @@ public class PositionProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             player.setLoginPosition(bundle.getLocation(0));
             player.setRespawnPosition(bundle.getLocation(1));

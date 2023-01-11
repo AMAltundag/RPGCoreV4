@@ -11,6 +11,7 @@ import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.EditorItemWithQuan
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.EffectConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ItemConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ProfessionConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -39,6 +40,23 @@ public class EditorCraftingRecipe implements IEditorRoot<CoreCraftingRecipe> {
     @EditorList(name = "Tags", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = {"Used to filter recipes", "Tag 'DIRECT_#' is always added."})
     public List<String> tags = new ArrayList<>();
+
+    @EditorCategory(icon = Material.IRON_HOE, info = "Profession")
+    @EditorWrite(name = "Profession", constraint = ProfessionConstraint.class)
+    @EditorTooltip(tooltip = {"What profession is relevant to the recipe"})
+    public String profession = "nothingness";
+    @EditorNumber(name = "Exp")
+    @EditorTooltip(tooltip = {"Exp granted to relevant profession"})
+    public double profession_exp_gained = 0;
+    @EditorNumber(name = "Max LV")
+    @EditorTooltip(tooltip = {"Only gain experience if less-equal to level."})
+    public double profession_exp_maximum_level = 100;
+    @EditorNumber(name = "Required")
+    @EditorTooltip(tooltip = {"Level required to use the recipe"})
+    public double profession_level_required = 1;
+    @EditorList(name = "Required", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = {"Must have all tags to use recipe"})
+    public List<String> tag_requirement = new ArrayList<>();
 
     @EditorCategory(info = "Effect", icon = Material.PAPER)
     @EditorWrite(name = "Crafted", constraint = EffectConstraint.class)

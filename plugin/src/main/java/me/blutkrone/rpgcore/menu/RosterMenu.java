@@ -60,8 +60,8 @@ public class RosterMenu extends AbstractCoreMenu {
                 Map<String, DataBundle> raw_data = RPGCore.inst().getDataManager().getRawData(IDataIdentity.of(getMenu().getViewer().getUniqueId(), current_page * 3 + i));
 
                 if (!raw_data.isEmpty()) {
-                    String alias = raw_data.get("display").getString(0);
-                    portrait = raw_data.get("display").getString(1);
+                    String alias = raw_data.get("display").getString(1);
+                    portrait = raw_data.get("display").getString(2);
 
                     itemized = RPGCore.inst().getLanguageManager().getAsItem("invisible")
                             .name("§fSlot #" + current_page * 3 + i)

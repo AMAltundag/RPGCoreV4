@@ -209,7 +209,7 @@ public class RefinerMenu extends AbstractCoreMenu {
         if (timer++ % 20 == 0) {
             // update the active recipe
             if (recipe == null) {
-                recipe = getRecipe();
+                recipe = getRecipe(core_player);
             }
 
             // one output slot must be empty
@@ -240,7 +240,7 @@ public class RefinerMenu extends AbstractCoreMenu {
                 if (timer >= wanted_time) {
                     recipe.playEffectFinished(getMenu().getViewer());
 
-                    if (recipe.craftAndConsume(1, materials) == 0) {
+                    if (recipe.craftAndConsume(core_player, 1, materials) == 0) {
                         // cannot afford cost of recipe anymore, drop it
                         this.recipe = null;
                     } else {
@@ -327,7 +327,7 @@ public class RefinerMenu extends AbstractCoreMenu {
                 // delete materials if no amount left
                 input_items.removeIf(item -> item.getType().isAir() || item.getAmount() <= 0);
                 // check if we got any refine-able recipe
-                CoreRefinerRecipe recipe = getRecipe(input_items);
+                CoreRefinerRecipe recipe = getRecipe(core_player, input_items);
                 if (recipe == null) {
                     break;
                 }
@@ -337,12 +337,14 @@ public class RefinerMenu extends AbstractCoreMenu {
                     break;
                 }
                 // query up a reward item and consume time
-                int results = recipe.craftAndConsume(attempts, input_items);
-                CoreItem output = recipe.getRandomOutput();
-                if (output != null) {
-                    need_to_merge.merge(output, results, (a, b) -> a + b);
-                    // take off AFK time for next iteration
-                    ticks_to_catch_up -= results * (recipe.getDuration() / (1d + trait.speed));
+                int results = recipe.craftAndConsume(core_player, attempts, input_items);
+                if (results > 0) {
+                    CoreItem output = recipe.getRandomOutput();
+                    if (output != null) {
+                        need_to_merge.merge(output, results, (a, b) -> a + b);
+                        // take off AFK time for next iteration
+                        ticks_to_catch_up -= results * (recipe.getDuration() / (1d + trait.speed));
+                    }
                 }
             }
         }
@@ -411,17 +413,20 @@ public class RefinerMenu extends AbstractCoreMenu {
         core_player.getStoredItems().put("refinement_output_" + trait.design + "_" + trait.inventory, BukkitSerialization.toBase64(outputs.toArray(new ItemStack[0])));
     }
 
-
     /*
      * Retrieve the highest priority recipe the player can create.
      *
      * @param materials What ingredients are being refined.
      * @return the recipe that is the result.
      */
-    private CoreRefinerRecipe getRecipe(List<ItemStack> materials) {
+    private CoreRefinerRecipe getRecipe(CorePlayer player, List<ItemStack> materials) {
         // check which recipe we archived
         CoreRefinerRecipe valuable = null;
         for (CoreRefinerRecipe recipe : recipes) {
+            // check if recipe is unlocked
+            if (!recipe.hasUnlocked(player)) {
+                continue;
+            }
             // skip non matching recipes
             if (!recipe.isMatched(materials)) {
                 continue;
@@ -443,7 +448,7 @@ public class RefinerMenu extends AbstractCoreMenu {
      * @param menu which menu are we refining from
      * @return
      */
-    private CoreRefinerRecipe getRecipe() {
+    private CoreRefinerRecipe getRecipe(CorePlayer player) {
         // check if we got a refinement recipe
         List<ItemStack> materials = new ArrayList<>();
         for (int slot : design.getInputs()) {
@@ -452,6 +457,6 @@ public class RefinerMenu extends AbstractCoreMenu {
         }
 
         // offer up the most valued craftable recipe.
-        return getRecipe(materials);
+        return getRecipe(player, materials);
     }
 }

@@ -7,6 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A region which is associated with a specific minimap.
  */
@@ -19,10 +22,16 @@ public class MapRegion {
     public final String world;
     // which map is rendered inside
     public final String map;
+    // travel related positions in the region
+    public Map<String, Vector> travel;
 
     public MapRegion(String map, ConfigWrapper config) {
         this.map = map;
         this.world = config.getString("world");
+        this.travel = new HashMap<>();
+        config.forEachUnder("travel", (path, root) -> {
+            this.travel.put(path, root.getVector(path));
+        });
         Vector v1 = config.getVector("start");
         Vector v2 = config.getVector("finish");
         x1 = Math.min(v1.getBlockX(), v2.getBlockX());
@@ -31,6 +40,13 @@ public class MapRegion {
         x2 = Math.max(v1.getBlockX(), v2.getBlockX());
         y2 = Math.max(v1.getBlockY(), v2.getBlockY());
         z2 = Math.max(v1.getBlockZ(), v2.getBlockZ());
+
+        this.travel.entrySet().removeIf(entry -> {
+            int x = entry.getValue().getBlockX();
+            int y = entry.getValue().getBlockY();
+            int z = entry.getValue().getBlockZ();
+            return x < x1 || x > x2 || y < y1 || y > y2 || z < z1 || z > z2;
+        });
     }
 
     /**

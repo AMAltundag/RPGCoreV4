@@ -1,6 +1,8 @@
 package me.blutkrone.rpgcore.level;
 
+import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.parser.ParseException;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
@@ -29,6 +31,9 @@ public class LevelManager {
     // experience reduction by level difference
     private Map<Integer, Double> exp_multiplier = new HashMap<>();
     private Expression lazy_exp_multiplier;
+    // experience required to level professions
+    private Map<Integer, Double> profession_exp = new HashMap<>();
+    private Expression lazy_profession_exp;
 
     public LevelManager() {
         // load the segments from the disk
@@ -38,6 +43,7 @@ public class LevelManager {
                 this.segments.add(new LevelSegment(root.getSection(path)));
             });
             this.lazy_exp_multiplier = new Expression(config.getString("level-difference-multiplier"));
+            this.lazy_profession_exp = new Expression(config.getString("profession-exp-formula"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,6 +154,26 @@ public class LevelManager {
 
             return attributes;
         }));
+    }
+
+    /**
+     * Experience points needed to break out of the current level
+     * of a profession. Level cap is defined by profession. This
+     * will be MAX_VALUE if a bad formula is used.
+     *
+     * @param profession_level level of the profession we want to level up
+     * @return experience to level it up
+     */
+    public double getExpToLevelUpProfession(int profession_level) {
+        return profession_exp.computeIfAbsent(profession_level, level -> {
+            try {
+                return this.lazy_profession_exp.with("level", level).evaluate().getNumberValue().doubleValue();
+            } catch (EvaluationException | ParseException e) {
+                Bukkit.getLogger().severe("Failed evaluating " + this.lazy_profession_exp.getExpressionString());
+                e.printStackTrace();
+                return Double.MAX_VALUE;
+            }
+        });
     }
 
     /**

@@ -21,7 +21,7 @@ public class ReloadCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("§fReloads all editors and language files.");
+        return TextComponent.fromLegacyText("§fReloads some parts of the core, not everything!");
     }
 
     @Override
@@ -31,6 +31,9 @@ public class ReloadCommand extends AbstractCommand {
         RPGCore.inst().getLanguageManager().reload();
         // reload the indexes
         getIndexes().forEach((id, index) -> index.reload());
+        // reload the node manager
+        RPGCore.inst().getNodeManager().reload();
+
         sender.sendMessage("§fReloaded RPGCore in: §c%.2f§f seconds!".formatted((System.currentTimeMillis() - stamp) / 1000d));
     }
 
@@ -47,7 +50,7 @@ public class ReloadCommand extends AbstractCommand {
             this.indexes.put("refine", RPGCore.inst().getItemManager().getRefineIndex());
             this.indexes.put("modifier", RPGCore.inst().getItemManager().getModifierIndex());
             this.indexes.put("effect", RPGCore.inst().getEffectManager().getIndex());
-            this.indexes.put("job", RPGCore.inst().getJobManager().getIndex());
+            this.indexes.put("job", RPGCore.inst().getJobManager().getIndexJob());
             this.indexes.put("skill", RPGCore.inst().getSkillManager().getIndex());
             this.indexes.put("collectible", RPGCore.inst().getNodeManager().getIndexCollectible());
             this.indexes.put("hotspot", RPGCore.inst().getNodeManager().getIndexHotspot());

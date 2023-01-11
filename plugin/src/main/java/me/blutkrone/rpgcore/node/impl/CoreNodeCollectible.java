@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
 import me.blutkrone.rpgcore.item.CoreItem;
+import me.blutkrone.rpgcore.job.CoreProfession;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.node.activity.ObserveCollectionActivity;
@@ -16,10 +17,7 @@ import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -29,6 +27,7 @@ import org.bukkit.util.Vector;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CoreNodeCollectible extends AbstractNode {
 
@@ -52,6 +51,12 @@ public class CoreNodeCollectible extends AbstractNode {
     // effects played while collecting/breaking
     private String effect_collecting;
     private String effect_collected;
+    // levelling related information
+    private Set<String> tag_required_to_collect;
+    private String profession;
+    private int profession_exp_gained;
+    private int profession_exp_maximum_level;
+    private int profession_level_required;
 
     public CoreNodeCollectible(String id, EditorNodeCollectible editor) {
         super(id, (int) editor.radius);
@@ -71,6 +76,42 @@ public class CoreNodeCollectible extends AbstractNode {
         this.lc_message = editor.lc_message;
         this.effect_collected = editor.effect_collected;
         this.effect_collecting = editor.effect_collecting;
+
+        this.tag_required_to_collect = editor.tag_requirement.stream()
+                .map(String::toLowerCase).collect(Collectors.toSet());
+        this.profession = editor.profession.equalsIgnoreCase("nothingness")
+                ? null : editor.profession.toLowerCase();
+        this.profession_exp_gained = (int) editor.profession_exp_gained;
+        this.profession_exp_maximum_level = (int) editor.profession_exp_maximum_level;
+        this.profession_level_required = (int) editor.profession_level_required;
+    }
+
+    /**
+     * Which profession is related to this collectible.
+     *
+     * @return profession we are related to.
+     */
+    public String getProfession() {
+        return profession;
+    }
+
+    /**
+     * Experience points gained upon successful collection.
+     *
+     * @return experience to be gained.
+     */
+    public int getProfessionExpGained() {
+        return profession_exp_gained;
+    }
+
+    /**
+     * No experience points are to be granted from this node, so
+     * long the player reached this specific level.
+     *
+     * @return maximum level we can gain experience
+     */
+    public int getProfessionExpMaximumLevel() {
+        return profession_exp_maximum_level;
     }
 
     @Override
@@ -118,6 +159,25 @@ public class CoreNodeCollectible extends AbstractNode {
         IActivity activity = core_player.getActivity();
         if (activity != null) {
             if (!(activity instanceof ObserveCollectionActivity)) {
+                return;
+            }
+        }
+
+        // check if we meet the level requirement
+        if (this.getProfession() != null) {
+            int have_level = core_player.getProfessionLevel().getOrDefault(getProfession(), 1);
+            if (have_level < this.profession_level_required) {
+                String message = RPGCore.inst().getLanguageManager().getTranslation("profession_" + this.getProfession() + "_too_low");
+                message = message.replace("%level%", String.valueOf(this.profession_level_required));
+                player.sendMessage(message);
+                return;
+            }
+        }
+        // check if we meet the tag requirement
+        for (String tag : this.tag_required_to_collect) {
+            if (!core_player.checkForTag(tag)) {
+                String message = RPGCore.inst().getLanguageManager().getTranslation("collect_missing_tag");
+                player.sendMessage(message);
                 return;
             }
         }
@@ -202,6 +262,17 @@ public class CoreNodeCollectible extends AbstractNode {
                 world.dropItem(scatter_point, stack, (item -> {
                     item.setVelocity(new Vector(Math.random() * 2 - 1, 0.5d, Math.random() * 2 - 1).multiply(0.25d));
                 }));
+            }
+        }
+
+        // offer experience to everyone involved in collecting
+        if (getProfession() != null) {
+            CoreProfession profession = RPGCore.inst().getJobManager().getIndexProfession().get(getProfession());
+            for (UUID collector : data.collecting) {
+                CorePlayer collector_player = RPGCore.inst().getEntityManager().getPlayer(collector);
+                if (collector_player != null) {
+                    profession.gainExpFromCollectible(collector_player, this);
+                }
             }
         }
 

@@ -16,7 +16,7 @@ public class JobProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             player.setJob(bundle.getString(0));
         }

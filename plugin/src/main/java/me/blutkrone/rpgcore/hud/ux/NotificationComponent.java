@@ -17,13 +17,6 @@ public class NotificationComponent implements IUXComponent<List<NotificationComp
     private Map<Player, Messages> buffered = new WeakHashMap<>();
 
     public NotificationComponent(ConfigWrapper section) {
-        Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
-            if (Math.random() < 0.3d) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    notify(player, "§r§cte§ast no§3tifi§2cat§4ion");
-                }
-            }
-        }, 1, 5);
     }
 
     /**

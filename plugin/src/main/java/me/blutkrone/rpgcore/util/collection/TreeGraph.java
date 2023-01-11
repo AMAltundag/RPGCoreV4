@@ -26,6 +26,28 @@ public class TreeGraph<T> {
     }
 
     /**
+     * Search the entire graph for a node which matches
+     * the predicate.
+     *
+     * @param predicate the predicate to check for
+     * @return the node or null if absent.
+     */
+    public TreeNode<T> find(Predicate<T> predicate) {
+        List<TreeNode<T>> nodes = new ArrayList<>();
+        nodes.add(this.root);
+
+        while (!nodes.isEmpty()) {
+            TreeNode<T> node = nodes.remove(0);
+            if (predicate.test(node.getData())) {
+                return node;
+            }
+            nodes.addAll(node.getChildren());
+        }
+
+        return null;
+    }
+
+    /**
      * The root node within our tree structure.
      *
      * @return what sort of node we have.

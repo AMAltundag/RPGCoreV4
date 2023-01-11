@@ -129,7 +129,7 @@ public class JobAdvancementMenu extends AbstractCoreMenu {
         } else {
             // focus on info of another job
             String id = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "job-id", "");
-            CoreJob job = id.isEmpty() ? null : RPGCore.inst().getJobManager().getIndex().get(id);
+            CoreJob job = id.isEmpty() ? null : RPGCore.inst().getJobManager().getIndexJob().get(id);
             if (job != null) {
                 focus = getJobs().indexOf(job);
             }

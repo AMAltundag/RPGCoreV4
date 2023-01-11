@@ -22,7 +22,7 @@ public class EditorProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             int i = bundle.getNumber(0).intValue();
             for (int j = 0; j < i; j++) {

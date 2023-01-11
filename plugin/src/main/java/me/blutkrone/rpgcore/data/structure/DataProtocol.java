@@ -19,6 +19,16 @@ public interface DataProtocol {
     boolean isRosterData();
 
     /**
+     * Data version for this specific protocol, always update
+     * the data to the latest protocol when saving.
+     *
+     * @return the current data version we have.
+     */
+    default int getDataVersion() {
+        return 0;
+    }
+
+    /**
      * Save the data from the player to the bundle.
      *
      * @param player whose data is being saved.
@@ -29,8 +39,9 @@ public interface DataProtocol {
     /**
      * Read the data from the bundle and write it to the player.
      *
-     * @param player
-     * @param bundle
+     * @param player whose data is being read.
+     * @param bundle where to read the data from.
+     * @param version version of the data bundle.
      */
-    void load(CorePlayer player, DataBundle bundle);
+    void load(CorePlayer player, DataBundle bundle, int version);
 }

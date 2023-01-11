@@ -37,6 +37,7 @@ public class CrafterMenu extends AbstractCoreMenu {
     public List<ItemStack> getCrafts() {
         if (this.crafts == null) {
             Player player = getMenu().getViewer();
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
 
             List<ItemStack> previews_header = new ArrayList<>();
             List<ItemStack> previews_footer = new ArrayList<>();
@@ -46,6 +47,11 @@ public class CrafterMenu extends AbstractCoreMenu {
 
             // check if player got the ingredients
             for (CoreCraftingRecipe recipe : allowed) {
+                // base check if recipe is unlocked
+                if (!recipe.hasUnlocked(core_player)) {
+                    continue;
+                }
+
                 ItemStack stack = recipe.getOutput().unidentified();
                 IChestMenu.setBrand(stack, RPGCore.inst(), "recipe-id", recipe.getId());
                 if (recipe.hasEnoughToCraftOnce(player)) {

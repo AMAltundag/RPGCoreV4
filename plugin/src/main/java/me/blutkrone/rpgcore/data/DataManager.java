@@ -188,11 +188,20 @@ public class DataManager implements Listener {
         Map<String, DataBundle> loaded_roster = data_adapter.loadRosterData(identity.getUserId());
         // load the data we got on this character
         data_protocol.forEach((id, protocol) -> {
+            // load relevant data bundle
+            DataBundle bundle;
             if (protocol.isRosterData()) {
-                protocol.load(core_player, loaded_roster.getOrDefault(id, new DataBundle()));
+                bundle = loaded_roster.getOrDefault(id, new DataBundle());
             } else {
-                protocol.load(core_player, loaded_character.getOrDefault(id, new DataBundle()));
+                bundle = loaded_character.getOrDefault(id, new DataBundle());
             }
+            // extract version number
+            int version = 0;
+            if (bundle.size() > 0) {
+                version = ((Number) bundle.getHandle().remove(0)).intValue();
+            }
+            // serialize into data bundle
+            protocol.load(core_player, bundle, version);
         });
         // offer up the created player
         return core_player;
@@ -208,6 +217,7 @@ public class DataManager implements Listener {
         Map<String, DataBundle> raw_data_roster = new HashMap<>();
         data_protocol.forEach((id, protocol) -> {
             DataBundle bundle = new DataBundle();
+            bundle.addNumber(protocol.getDataVersion());
             protocol.save(player, bundle);
             if (protocol.isRosterData()) {
                 raw_data_roster.put(id, bundle);

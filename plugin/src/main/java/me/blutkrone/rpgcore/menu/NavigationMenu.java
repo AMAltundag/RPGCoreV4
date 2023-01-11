@@ -6,6 +6,7 @@ import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.minimap.MapMarker;
 import me.blutkrone.rpgcore.minimap.MapRegion;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.npc.trait.impl.CoreTravelTrait;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
@@ -49,6 +50,65 @@ public class NavigationMenu {
         });
     }
 
+    public static class TravelCartography extends Cartography {
+
+        private final CoreTravelTrait trait;
+
+        public TravelCartography(MapRegion region, Location position, CoreTravelTrait trait) {
+            super(region, position);
+            this.trait = trait;
+        }
+
+        @Override
+        public ItemStack itemize(MapMarker marker) {
+            CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(getMenu().getViewer());
+            int cost = 0, have = 0;
+
+            Location location = marker.getLocation();
+            if (this.trait.getCurrency() != null) {
+                cost = (int) (trait.getMultiplier() * this.getMenu().getViewer().getLocation().distance(location));
+                have = player.getBankedItems().getOrDefault(trait.getCurrency(), 0);
+            }
+
+            ItemBuilder builder = language().getAsItem(marker.marker,
+                    trait.getCurrency() == null ? "" : cost + language().getTranslation("travel_currency_" + trait.getCurrency()),
+                    String.format("%s/%s/%s", location.getBlockX(), location.getBlockY(), location.getBlockZ()),
+                    cost <= have ? ChatColor.GREEN : ChatColor.RED,
+                    cost <= have ? ChatColor.WHITE : ChatColor.GRAY);
+            builder.inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
+            return builder.build();
+        }
+
+        @Override
+        public void onClickMarker(MapMarker marker) {
+            CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(getMenu().getViewer());
+
+            int cost = 0, have = 0;
+            if (this.trait.getCurrency() != null) {
+                cost = (int) (trait.getMultiplier() * this.getMenu().getViewer().getLocation().distance(marker.getLocation()));
+                have = player.getBankedItems().getOrDefault(trait.getCurrency(), 0);
+            }
+
+            // cannot travel if we cannot afford it.
+            if (cost > have) {
+                String message = RPGCore.inst().getLanguageManager().getTranslation("cannot_afford_travel");
+                getMenu().getViewer().sendMessage(message);
+                return;
+            }
+
+            // consume the cost of travelling
+            if (cost > 0) {
+                player.getBankedItems().merge(trait.getCurrency(), cost, (a,b) -> a-b);
+            }
+
+            // with a tick delay, move to target location
+            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                getMenu().getViewer().closeInventory();
+                getMenu().getViewer().teleport(marker.getLocation());
+            });
+        }
+    }
+
     public static class SpawnCartography extends Cartography {
 
         public SpawnCartography(Location position) {
@@ -83,13 +143,12 @@ public class NavigationMenu {
         ItemStack page_back;
         ItemStack page_next;
 
-        public Cartography(Location position) {
+        public Cartography(MapRegion region, Location position) {
             super(6);
-
             ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
 
             // ensure there is a position to inspect
-            this.region = RPGCore.inst().getMinimapManager().getRegionOf(position);
+            this.region = region;
             if (this.region == null) {
                 throw new IllegalArgumentException("Position contains no minimap!");
             }
@@ -114,6 +173,10 @@ public class NavigationMenu {
             this.page_next = RPGCore.inst().getLanguageManager().getAsItem("viewport_right").build();
         }
 
+        public Cartography(Location position) {
+            this(RPGCore.inst().getMinimapManager().getRegionOf(position), position);
+        }
+
         /**
          * Register a marker on this map, which will be
          * selectable from the map.
@@ -132,6 +195,17 @@ public class NavigationMenu {
          */
         public void onClickMarker(MapMarker marker) {
 
+        }
+
+        /**
+         * Itemize a marker at the given position.
+         *
+         * @param marker LC we are transforming
+         * @return output item
+         */
+        public ItemStack itemize(MapMarker marker) {
+            ItemBuilder builder = RPGCore.inst().getLanguageManager().getAsItem(marker.marker);
+            return builder.build();
         }
 
         /**
@@ -213,21 +287,18 @@ public class NavigationMenu {
             // scroller for links to the hotbar
             if (this.markers.size() <= 9) {
                 for (int i = 0; i < this.markers.size(); i++) {
-                    String marker = this.markers.get(i).marker;
-
-                    ItemStack marker_icon = RPGCore.inst().getLanguageManager().getAsItem(marker).build();
-                    IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
-                    getMenu().setItemAt(i, marker_icon);
+                    ItemStack item = itemize(this.markers.get(i));
+                    IChestMenu.setBrand(item, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
+                    getMenu().setItemAt(i, item);
                 }
             } else {
                 getMenu().setItemAt(0, this.page_back);
                 getMenu().setItemAt(8, this.page_next);
                 for (int i = 0; i < 7; i++) {
                     try {
-                        String marker = this.markers.get(this.marker_offset + i).marker;
-                        ItemStack marker_icon = RPGCore.inst().getLanguageManager().getAsItem(marker).build();
-                        IChestMenu.setBrand(marker_icon, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
-                        getMenu().setItemAt(1 + i, marker_icon);
+                        ItemStack item = itemize(this.markers.get(this.marker_offset + i));
+                        IChestMenu.setBrand(item, RPGCore.inst(), "shortcut", String.valueOf(this.marker_offset + i));
+                        getMenu().setItemAt(1 + i, item);
                     } catch (Exception ex) {
                         // ignored
                     }
@@ -265,9 +336,8 @@ public class NavigationMenu {
                                             continue;
                                         }
                                         // place an itemized marker on the location
-                                        ItemBuilder builder = RPGCore.inst().getLanguageManager().getAsItem(marker.marker);
-                                        builder.inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
-                                        ItemStack item = builder.build();
+                                        ItemStack item = itemize(marker);
+                                        ItemBuilder.of(item).inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
                                         IChestMenu.setBrand(item, RPGCore.inst(), "marker", String.valueOf(k));
                                         getMenu().setItemAt((where.y * 9) + where.x, item);
                                     }
@@ -324,10 +394,6 @@ public class NavigationMenu {
                 Bukkit.getScheduler().runTask(RPGCore.inst(), this::rebuild);
             }
         }
-    }
-
-    public static class Shortcut {
-
     }
 
     static class Pos {

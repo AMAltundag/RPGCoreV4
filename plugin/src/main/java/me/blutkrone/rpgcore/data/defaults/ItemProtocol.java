@@ -32,7 +32,7 @@ public class ItemProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             // retrieve the vanilla inventory
             Player entity = player.getEntity();

@@ -37,6 +37,19 @@ public class NodeWorld {
     }
 
     /**
+     * Reset node data of every active node.
+     */
+    public void reset() {
+        for (NodeActive node : this.node_by_id.values()) {
+            NodeData data = node.getData();
+            if (data != null) {
+                data.abandon();
+            }
+            node.setData(null);
+        }
+    }
+
+    /**
      * Request a tick on every node present on this world, provided
      * that the world associated with it is loaded.
      * <p>

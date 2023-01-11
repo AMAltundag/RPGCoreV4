@@ -35,7 +35,7 @@ public class EditorPassiveTree implements IEditorRoot<CorePassiveTree> {
     @EditorTooltip(tooltip = {"Prevents viewport of Y being anything but 0"})
     public boolean locked_y = false;
     @EditorBoolean(name = "Portrait")
-    @EditorTooltip(tooltip = {"Portrait to use when viewed in job menu."})
+    @EditorTooltip(tooltip = {"Portrait to use when viewed in menu."})
     public String job_portrait = "tree_nothing";
     @EditorBoolean(name = "Category")
     @EditorTooltip(tooltip = {"Category portrait, only shown with multiple categories."})

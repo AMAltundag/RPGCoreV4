@@ -26,6 +26,8 @@ public class TraitConstraint implements IEditorConstraint {
         id_to_constructor.put("refiner", EditorRefinerTrait::new);
         id_to_constructor.put("storage", EditorStorageTrait::new);
         id_to_constructor.put("vendor", EditorVendorTrait::new);
+        id_to_constructor.put("travel", EditorTravelTrait::new);
+        id_to_constructor.put("spawnpoint", EditorSpawnpointTrait::new);
 
         class_to_id.put(EditorBankerTrait.class, "banker");
         class_to_id.put(EditorCrafterTrait.class, "crafter");
@@ -37,6 +39,8 @@ public class TraitConstraint implements IEditorConstraint {
         class_to_id.put(EditorRefinerTrait.class, "refiner");
         class_to_id.put(EditorStorageTrait.class, "storage");
         class_to_id.put(EditorVendorTrait.class, "vendor");
+        class_to_id.put(EditorTravelTrait.class, "travel");
+        class_to_id.put(EditorSpawnpointTrait.class, "spawnpoint");
     }
 
     @Override

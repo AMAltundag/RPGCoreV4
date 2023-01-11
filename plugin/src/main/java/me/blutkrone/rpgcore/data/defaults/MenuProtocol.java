@@ -26,7 +26,7 @@ public class MenuProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             // retrieve the persistence
             int length = bundle.getNumber(0).intValue();

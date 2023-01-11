@@ -16,7 +16,7 @@ import java.util.List;
 public class ClassInitiator implements IRosterInitiator {
 
     public IndexAttachment<CoreJob, List<CoreJob>> attachment_starter_jobs
-            = RPGCore.inst().getJobManager().getIndex().createFiltered(CoreJob::isDefaults);
+            = RPGCore.inst().getJobManager().getIndexJob().createFiltered(CoreJob::isDefaults);
 
     public ClassInitiator(ConfigWrapper config) {
     }

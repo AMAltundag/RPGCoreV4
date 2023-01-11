@@ -2,18 +2,22 @@ package me.blutkrone.rpgcore.item.refinement;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.effect.CoreEffect;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorRefineRecipe;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
+import me.blutkrone.rpgcore.job.CoreProfession;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A progression path for collected resources.
@@ -30,6 +34,13 @@ public class CoreRefinerRecipe {
     private String effect_finished;
     private List<String> tags;
 
+    // levelling related information
+    private Set<String> tag_required_to_refine;
+    private String profession;
+    private int profession_exp_gained;
+    private int profession_exp_maximum_level;
+    private int profession_level_required;
+
     public CoreRefinerRecipe(String id, EditorRefineRecipe editor) {
         this.item_choices = EditorLoot.build(new ArrayList<>(editor.outputs));
         this.tags = new ArrayList<>(editor.tags);
@@ -42,6 +53,22 @@ public class CoreRefinerRecipe {
         this.priority = editor.priority;
         this.effect_working = editor.effect_working;
         this.effect_finished = editor.effect_finished;
+
+        this.tag_required_to_refine = editor.tag_requirement.stream()
+                .map(String::toLowerCase).collect(Collectors.toSet());
+        this.profession = editor.profession.equalsIgnoreCase("nothingness")
+                ? null : editor.profession.toLowerCase();
+        this.profession_exp_gained = (int) editor.profession_exp_gained;
+        this.profession_exp_maximum_level = (int) editor.profession_exp_maximum_level;
+        this.profession_level_required = (int) editor.profession_level_required;
+    }
+
+    public int getProfessionExpGained() {
+        return profession_exp_gained;
+    }
+
+    public int getProfessionExpMaximumLevel() {
+        return profession_exp_maximum_level;
     }
 
     public String getId() {
@@ -61,11 +88,12 @@ public class CoreRefinerRecipe {
      * Craft this recipe several times, offering up the total
      * crafts - however often it fit in the crafting attempt.
      *
+     * @param player  who is crafting the recipe
      * @param attempt how many attempts to craft
      * @param items   materials to consume for crafting
      * @return how often we could craft
      */
-    public int craftAndConsume(int attempt, List<ItemStack> items) {
+    public int craftAndConsume(CorePlayer player, int attempt, List<ItemStack> items) {
         ItemManager manager = RPGCore.inst().getItemManager();
         // identify the material types
         List<String> types = new ArrayList<>();
@@ -104,9 +132,48 @@ public class CoreRefinerRecipe {
                 }
             }
         }
+        // offer relevant experience reward
+        if (success > 0 && getProfession() != null) {
+            CoreProfession profession = RPGCore.inst().getJobManager().getIndexProfession().get(getProfession());
+            profession.gainExpFromRefinement(player, this, success);
+        }
+        // inform about how many refinements we did
         return success;
     }
 
+    /**
+     * The profession relevant for the recipe.
+     *
+     * @return relevant profession.
+     */
+    public String getProfession() {
+        return profession;
+    }
+
+    /**
+     * Check if this recipe is available to the targeted
+     * player.
+     *
+     * @param core_player who do we check against
+     * @return whether we've got the recipe unlocked
+     */
+    public boolean hasUnlocked(CorePlayer core_player) {
+        // check if we meet the level requirement
+        if (this.getProfession() != null) {
+            int have_level = core_player.getProfessionLevel().getOrDefault(getProfession(), 1);
+            if (have_level < this.profession_level_required) {
+                return false;
+            }
+        }
+        // check if we meet the tag requirement
+        for (String tag : this.tag_required_to_refine) {
+            if (!core_player.checkForTag(tag)) {
+                return false;
+            }
+        }
+        // we can craft the recipe
+        return true;
+    }
 
     /**
      * Check if the given ingredients archive this rule.

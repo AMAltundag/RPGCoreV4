@@ -1,18 +1,18 @@
 package me.blutkrone.rpgcore.item.crafting;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorItemWithQuantity;
 import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
+import me.blutkrone.rpgcore.job.CoreProfession;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CoreCraftingRecipe {
 
@@ -23,6 +23,11 @@ public class CoreCraftingRecipe {
     private String effect_crafted;
     private String effect_failed;
     private List<String> tags;
+    private Set<String> tag_required_to_craft;
+    private String profession;
+    private int profession_exp_gained;
+    private int profession_exp_maximum_level;
+    private int profession_level_required;
 
     public CoreCraftingRecipe(String id, EditorCraftingRecipe editor) {
         this.id = id;
@@ -38,6 +43,26 @@ public class CoreCraftingRecipe {
         this.quantity = editor.quantity;
         this.effect_crafted = editor.effect_crafted;
         this.effect_failed = editor.effect_failed;
+
+        this.tag_required_to_craft = editor.tag_requirement.stream()
+                .map(String::toLowerCase).collect(Collectors.toSet());
+        this.profession = editor.profession.equalsIgnoreCase("nothingness")
+                ? null : editor.profession.toLowerCase();
+        this.profession_exp_gained = (int) editor.profession_exp_gained;
+        this.profession_exp_maximum_level = (int) editor.profession_exp_maximum_level;
+        this.profession_level_required = (int) editor.profession_level_required;
+    }
+
+    public int getProfessionExpGained() {
+        return profession_exp_gained;
+    }
+
+    public int getProfessionExpMaximumLevel() {
+        return profession_exp_maximum_level;
+    }
+
+    public String getProfession() {
+        return profession;
     }
 
     /**
@@ -62,6 +87,31 @@ public class CoreCraftingRecipe {
             }
         }
         // offer true if we have any ingredients
+        return true;
+    }
+
+    /**
+     * Check if this recipe is available to the targeted
+     * player.
+     *
+     * @param core_player who do we check against
+     * @return whether we've got the recipe unlocked
+     */
+    public boolean hasUnlocked(CorePlayer core_player) {
+        // check if we meet the level requirement
+        if (this.getProfession() != null) {
+            int have_level = core_player.getProfessionLevel().getOrDefault(getProfession(), 1);
+            if (have_level < this.profession_level_required) {
+                return false;
+            }
+        }
+        // check if we meet the tag requirement
+        for (String tag : this.tag_required_to_craft) {
+            if (!core_player.checkForTag(tag)) {
+                return false;
+            }
+        }
+        // we can craft the recipe
         return true;
     }
 
@@ -112,6 +162,12 @@ public class CoreCraftingRecipe {
                 stack.setAmount(have - absorbed);
                 want -= absorbed;
             }
+        }
+        // offer relevant experience reward
+        if (getProfession() != null) {
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(bukkit_player);
+            CoreProfession profession = RPGCore.inst().getJobManager().getIndexProfession().get(getProfession());
+            profession.gainExpFromCrafting(core_player, this, amount);
         }
         // offer the volume we can merge
         return amount;

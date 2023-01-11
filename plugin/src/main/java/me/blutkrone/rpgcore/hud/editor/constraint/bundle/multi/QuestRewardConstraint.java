@@ -2,10 +2,7 @@ package me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardExp;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardItem;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardSkill;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardTrait;
+import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +20,13 @@ public class QuestRewardConstraint implements IEditorConstraint {
         id_to_constructor.put("item", EditorQuestRewardItem::new);
         id_to_constructor.put("trait", EditorQuestRewardTrait::new);
         id_to_constructor.put("skill", EditorQuestRewardSkill::new);
+        id_to_constructor.put("tag", EditorQuestRewardTag::new);
 
         class_to_id.put(EditorQuestRewardExp.class, "exp");
         class_to_id.put(EditorQuestRewardItem.class, "item");
         class_to_id.put(EditorQuestRewardTrait.class, "trait");
         class_to_id.put(EditorQuestRewardSkill.class, "skill");
+        class_to_id.put(EditorQuestRewardTag.class, "tag");
     }
 
     @Override

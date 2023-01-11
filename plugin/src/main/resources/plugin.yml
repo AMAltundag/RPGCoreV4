@@ -2,7 +2,7 @@ name: RPGCore
 version: 4.0.10
 main: me.blutkrone.rpgcore.RPGCore
 authors: [Blutkrone]
-description: "RPGCore - Developed by Blutkrone"
+description: "RPGCore - Just about everything you need for an RPG!"
 api-version: 1.18
 libraries:
 - "commons-io:commons-io:2.11.0"

@@ -21,7 +21,7 @@ public class RosterRefinementProtocol implements DataProtocol {
     }
 
     @Override
-    public void load(CorePlayer player, DataBundle bundle) {
+    public void load(CorePlayer player, DataBundle bundle, int version) {
         if (!bundle.isEmpty()) {
             int size = bundle.getNumber(0).intValue();
             for (int i = 0; i < size; i++) {

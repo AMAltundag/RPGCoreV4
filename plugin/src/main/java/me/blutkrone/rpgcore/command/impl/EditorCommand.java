@@ -66,7 +66,7 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("refine", RPGCore.inst().getItemManager().getRefineIndex());
             this.indexes.put("modifier", RPGCore.inst().getItemManager().getModifierIndex());
             this.indexes.put("effect", RPGCore.inst().getEffectManager().getIndex());
-            this.indexes.put("job", RPGCore.inst().getJobManager().getIndex());
+            this.indexes.put("job", RPGCore.inst().getJobManager().getIndexJob());
             this.indexes.put("skill", RPGCore.inst().getSkillManager().getIndex());
             this.indexes.put("collectible", RPGCore.inst().getNodeManager().getIndexCollectible());
             this.indexes.put("hotspot", RPGCore.inst().getNodeManager().getIndexHotspot());
@@ -79,6 +79,7 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("passive", RPGCore.inst().getPassiveManager().getNodeIndex());
             this.indexes.put("tree", RPGCore.inst().getPassiveManager().getTreeIndex());
             this.indexes.put("craft", RPGCore.inst().getItemManager().getCraftIndex());
+            this.indexes.put("profession", RPGCore.inst().getJobManager().getIndexProfession());
         }
 
         return this.indexes;

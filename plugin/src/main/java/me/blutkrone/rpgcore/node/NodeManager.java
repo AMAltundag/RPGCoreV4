@@ -112,6 +112,12 @@ public class NodeManager implements Listener {
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
+    public void reload() {
+        for (NodeWorld node_world : this.nodes_by_world.values()) {
+            node_world.reset();
+        }
+    }
+
     /**
      * An index for nodes granting certain content.
      *
