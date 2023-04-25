@@ -139,37 +139,37 @@ public class TextGenerator {
     public static List<ResourcePackFont> newList() {
         List<ResourcePackFont> generated = new ArrayList<>();
 
-        generated.add(ResourcePackFont.getAsAmberSpace(-3,    "\uF801"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-4,    "\uF802"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-5,    "\uF803"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-6,    "\uF804"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-7,    "\uF805"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-8,    "\uF806"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-9,    "\uF807"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-10,   "\uF808"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-18,   "\uF809"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-34,   "\uF80a"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-66,   "\uF80b"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-130,  "\uF80c"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-258,  "\uF80d"));
-        generated.add(ResourcePackFont.getAsAmberSpace(-514,  "\uF80e"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-3, "\uF801"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-4, "\uF802"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-5, "\uF803"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-6, "\uF804"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-7, "\uF805"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-8, "\uF806"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-9, "\uF807"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-10, "\uF808"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-18, "\uF809"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-34, "\uF80a"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-66, "\uF80b"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-130, "\uF80c"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-258, "\uF80d"));
+        generated.add(ResourcePackFont.getAsAmberSpace(-514, "\uF80e"));
         generated.add(ResourcePackFont.getAsAmberSpace(-1026, "\uF80f"));
 
-        generated.add(ResourcePackFont.getAsAmberSpace(0,     "\uF821"));
-        generated.add(ResourcePackFont.getAsAmberSpace(1,     "\uF822"));
-        generated.add(ResourcePackFont.getAsAmberSpace(2,     "\uF823"));
-        generated.add(ResourcePackFont.getAsAmberSpace(3,     "\uF824"));
-        generated.add(ResourcePackFont.getAsAmberSpace(4,     "\uF825"));
-        generated.add(ResourcePackFont.getAsAmberSpace(5,     "\uF826"));
-        generated.add(ResourcePackFont.getAsAmberSpace(6,     "\uF827"));
-        generated.add(ResourcePackFont.getAsAmberSpace(7,     "\uF828"));
-        generated.add(ResourcePackFont.getAsAmberSpace(15,    "\uF829"));
-        generated.add(ResourcePackFont.getAsAmberSpace(31,    "\uF82a"));
-        generated.add(ResourcePackFont.getAsAmberSpace(63,    "\uF82b"));
-        generated.add(ResourcePackFont.getAsAmberSpace(127,   "\uF82c"));
-        generated.add(ResourcePackFont.getAsAmberSpace(255,   "\uF82d"));
-        generated.add(ResourcePackFont.getAsAmberSpace(511,   "\uF82e"));
-        generated.add(ResourcePackFont.getAsAmberSpace(1023,  "\uF82f"));
+        generated.add(ResourcePackFont.getAsAmberSpace(0, "\uF821"));
+        generated.add(ResourcePackFont.getAsAmberSpace(1, "\uF822"));
+        generated.add(ResourcePackFont.getAsAmberSpace(2, "\uF823"));
+        generated.add(ResourcePackFont.getAsAmberSpace(3, "\uF824"));
+        generated.add(ResourcePackFont.getAsAmberSpace(4, "\uF825"));
+        generated.add(ResourcePackFont.getAsAmberSpace(5, "\uF826"));
+        generated.add(ResourcePackFont.getAsAmberSpace(6, "\uF827"));
+        generated.add(ResourcePackFont.getAsAmberSpace(7, "\uF828"));
+        generated.add(ResourcePackFont.getAsAmberSpace(15, "\uF829"));
+        generated.add(ResourcePackFont.getAsAmberSpace(31, "\uF82a"));
+        generated.add(ResourcePackFont.getAsAmberSpace(63, "\uF82b"));
+        generated.add(ResourcePackFont.getAsAmberSpace(127, "\uF82c"));
+        generated.add(ResourcePackFont.getAsAmberSpace(255, "\uF82d"));
+        generated.add(ResourcePackFont.getAsAmberSpace(511, "\uF82e"));
+        generated.add(ResourcePackFont.getAsAmberSpace(1023, "\uF82f"));
 
         return generated;
     }

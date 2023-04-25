@@ -247,4 +247,12 @@ public interface IChestMenu {
      * Open the chest menu to the player who initiated it.
      */
     void open();
+
+    /**
+     * This is just a reference to the AbstractCoreMenu which is not
+     * exposed usually.
+     *
+     * @return the core handle if we have one
+     */
+    Object getLinkedHandle();
 }

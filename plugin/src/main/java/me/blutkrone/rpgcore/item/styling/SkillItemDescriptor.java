@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.item.styling;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
 import me.blutkrone.rpgcore.damage.DamageMetric;
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
@@ -31,7 +30,7 @@ public class SkillItemDescriptor implements IItemDescriber {
     private int padding = 15;
     private int width_base = 250;
 
-    private List<BaseComponent[]> getHeader(CorePlayer viewer, ItemStylingRule styling, String name, String sub_name) {
+    private List<BaseComponent[]> getHeader(IDescriptorReference viewer, ItemStylingRule styling, String name, String sub_name) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -75,7 +74,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getHighlight(CorePlayer viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
+    private List<BaseComponent[]> getHighlight(IDescriptorReference viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -131,7 +130,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getTags(CorePlayer viewer, ItemStylingRule styling, List<String> tags) {
+    private List<BaseComponent[]> getTags(IDescriptorReference viewer, ItemStylingRule styling, List<String> tags) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -176,7 +175,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getAttributes(CorePlayer viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
+    private List<BaseComponent[]> getAttributes(IDescriptorReference viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -241,7 +240,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getAbilities(CorePlayer viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
+    private List<BaseComponent[]> getAbilities(IDescriptorReference viewer, ItemStylingRule styling, List<CoreSkillInfo> modifiers) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -330,7 +329,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getDescription(CorePlayer viewer, ItemStylingRule styling, List<String> lore) {
+    private List<BaseComponent[]> getDescription(IDescriptorReference viewer, ItemStylingRule styling, List<String> lore) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
         MagicStringBuilder msb = new MagicStringBuilder();
@@ -405,7 +404,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getLinked(CorePlayer viewer, ItemStylingRule styling, List<String> skills) {
+    private List<BaseComponent[]> getLinked(IDescriptorReference viewer, ItemStylingRule styling, List<String> skills) {
         if (skills.size() <= 0) {
             return new ArrayList<>();
         }
@@ -468,7 +467,7 @@ public class SkillItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
-    private List<BaseComponent[]> getFooter(CorePlayer viewer, ItemStylingRule styling) {
+    private List<BaseComponent[]> getFooter(IDescriptorReference viewer, ItemStylingRule styling) {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
@@ -508,7 +507,7 @@ public class SkillItemDescriptor implements IItemDescriber {
     }
 
     @Override
-    public void describe(ItemStack item, CorePlayer player) {
+    public void describe(ItemStack item, IDescriptorReference player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
         ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();

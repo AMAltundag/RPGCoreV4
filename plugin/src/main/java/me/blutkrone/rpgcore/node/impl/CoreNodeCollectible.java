@@ -17,7 +17,10 @@ import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -59,7 +62,7 @@ public class CoreNodeCollectible extends AbstractNode {
     private int profession_level_required;
 
     public CoreNodeCollectible(String id, EditorNodeCollectible editor) {
-        super(id, (int) editor.radius);
+        super(id, (int) editor.radius, editor.getPreview());
 
         this.item_choices = EditorLoot.build(new ArrayList<>(editor.item_weight));
         this.total = (int) editor.item_total;
@@ -372,15 +375,6 @@ public class CoreNodeCollectible extends AbstractNode {
             collider.move(visual.asBukkit().getLocation());
             // offer up our model entity
             return visual;
-        }
-
-        @Override
-        public void highlight(int time) {
-            IEntityCollider collider_entity = this.collide.get();
-            if (collider_entity == null) {
-                return;
-            }
-            collider_entity.highlight(30);
         }
 
         @Override

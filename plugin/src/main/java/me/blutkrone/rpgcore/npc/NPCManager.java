@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.npc;
 
 import me.blutkrone.external.juliarn.npc.AbstractPlayerNPC;
 import me.blutkrone.external.juliarn.npc.NPCPool;
+import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.root.npc.EditorNPC;
@@ -11,7 +12,10 @@ import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.EquipmentSlot;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -100,5 +104,19 @@ public class NPCManager implements Listener {
      */
     public void remove(AbstractPlayerNPC npc) {
         this.pool.remove(npc.id());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void onInteractNodeNPC(PlayerNPCInteractEvent e) {
+        // ensure we are not using world tool
+        if (RPGCore.inst().getWorldIntegrationManager().isUsingTool(e.getPlayer())) {
+            return;
+        }
+        // only one click should be detected
+        if (e.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        // delegate the interaction of the node if we got one
+        e.getNPC().interact(e.getPlayer());
     }
 }

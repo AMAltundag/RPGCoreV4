@@ -20,6 +20,15 @@ public class EditorStringAndNumber implements IEditorBundle {
     public EditorStringAndNumber() {
     }
 
+    public static Map<Integer, Set<String>> transformIntegerToStringList(List<IEditorBundle> editor) {
+        Map<Integer, Set<String>> output = new HashMap<>();
+        for (IEditorBundle bundle : editor) {
+            EditorStringAndNumber casted = (EditorStringAndNumber) bundle;
+            output.computeIfAbsent((int) casted.number, (k -> new HashSet<>())).add(casted.string);
+        }
+        return output;
+    }
+
     @Override
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.BOOK)
@@ -40,14 +49,5 @@ public class EditorStringAndNumber implements IEditorBundle {
         instruction.add("String And Number");
         instruction.add("A string associated with a number.");
         return instruction;
-    }
-
-    public static Map<Integer, Set<String>> transformIntegerToStringList(List<IEditorBundle> editor) {
-        Map<Integer, Set<String>> output = new HashMap<>();
-        for (IEditorBundle bundle : editor) {
-            EditorStringAndNumber casted = (EditorStringAndNumber) bundle;
-            output.computeIfAbsent((int) casted.number, (k -> new HashSet<>())).add(casted.string);
-        }
-        return output;
     }
 }

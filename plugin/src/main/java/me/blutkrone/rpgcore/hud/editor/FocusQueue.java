@@ -229,7 +229,7 @@ public class FocusQueue {
          *
          * @return true if all elements of a root bundle are visible.
          */
-        public boolean isRootInFullView() {
+        public boolean isRootAndFullView() {
             return this.bundle instanceof IEditorRoot<?>
                     && (this.category == null || this.getCategories().size() == 1);
         }

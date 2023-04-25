@@ -10,7 +10,7 @@ libraries:
 - "com.zaxxer:HikariCP:2.4.1"
 - "com.dropbox.core:dropbox-core-sdk:5.2.0"
 - "net.objecthunter:exp4j:0.4.8"
-- "org.mongodb:mongo-java-driver:3.12.7"
+- "org.mongodb:mongodb-driver-sync:4.8.2"
 - "org.jsoup:jsoup:1.15.2"
 - "com.github.depsypher:pngtastic:1.7"
 - "com.ezylang:EvalEx:3.0.1"

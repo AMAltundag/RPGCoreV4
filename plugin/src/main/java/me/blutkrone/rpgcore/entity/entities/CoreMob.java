@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.entity.entities;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
-import me.blutkrone.rpgcore.api.party.IActiveParty;
-import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
+import me.blutkrone.rpgcore.api.social.IPartySnapshot;
+import me.blutkrone.rpgcore.dungeon.structure.SpawnerStructure;
 import me.blutkrone.rpgcore.mob.CoreCreature;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -32,10 +32,22 @@ public class CoreMob extends CoreEntity {
     // prevents strolling outside of leash
     private double leash_range;
     private Location leash_anchor;
+    // in case we are spawned by a dungeon
+    private SpawnerStructure.ImportantData tracked_by_dungeon;
 
     public CoreMob(LivingEntity entity, EntityProvider provider, CoreCreature template) {
         super(entity, provider);
         this.template = template;
+    }
+
+    /**
+     * If spawned by a dungeon, this is used to track important
+     * creatures that are essential to logical progress.
+     *
+     * @param tracked_by_dungeon Data container to track with
+     */
+    public void setAsImportantDungeonSpawn(SpawnerStructure.ImportantData tracked_by_dungeon) {
+        this.tracked_by_dungeon = tracked_by_dungeon;
     }
 
     /**
@@ -104,7 +116,11 @@ public class CoreMob extends CoreEntity {
      * @return an accessor to low-level entity behaviour.
      */
     public IEntityBase getBase() {
-        return RPGCore.inst().getVolatileManager().getEntity(getEntity());
+        LivingEntity handle = getEntity();
+        if (handle == null) {
+            return null;
+        }
+        return RPGCore.inst().getVolatileManager().getEntity(handle);
     }
 
     /**
@@ -112,6 +128,11 @@ public class CoreMob extends CoreEntity {
      * if this creature is summoned by another.
      */
     public void giveDeathReward() {
+        // accredit important dungeon kill
+        if (this.tracked_by_dungeon != null) {
+            this.tracked_by_dungeon.slain = true;
+        }
+
         // summons should never give rewards
         if (this.getParent() == null && !this.killers.isEmpty()) {
             // identify who will be rewarded
@@ -125,14 +146,9 @@ public class CoreMob extends CoreEntity {
                 // assign player themselves
                 rewarded.add(player);
                 // assign every party member
-                IActiveParty party = RPGCore.inst().getPartyManager().getPartyOf(player);
+                IPartySnapshot party = RPGCore.inst().getSocialManager().getGroupHandler().getPartySnapshot(player);
                 if (party != null) {
-                    for (IOfflineCorePlayer offline : party.getAllMembers()) {
-                        CorePlayer other = RPGCore.inst().getEntityManager().getPlayer(offline.getUniqueId());
-                        if (other != null) {
-                            rewarded.add(other);
-                        }
-                    }
+                    rewarded.addAll(party.getAllOnlineMembers());
                 }
             }
             // contribution not awarded beyond 128 blocks

@@ -15,7 +15,7 @@ public class CoreItemReward extends AbstractQuestReward {
 
     public CoreItemReward(EditorQuestRewardItem editor) {
         this.item = editor.item;
-        this.amount = editor.amount;
+        this.amount = (int) editor.amount;
     }
 
     @Override

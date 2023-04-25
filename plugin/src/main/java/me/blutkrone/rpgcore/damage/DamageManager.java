@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
-import me.blutkrone.rpgcore.api.party.IActiveParty;
+import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.ailments.AttributeAilment;
@@ -15,7 +15,6 @@ import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.damage.interaction.types.SpellDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.TimeDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.WeaponDamageType;
-import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
@@ -99,6 +98,11 @@ public final class DamageManager implements IDamageManager, Listener {
             if (interaction.getAttacker().isFriendly(interaction.getDefender())) {
                 return;
             }
+        }
+
+        // do not process damage if we cannot be target
+        if (!interaction.getDefender().isAllowTarget()) {
+            return;
         }
 
         // do not process damage depending on immortality
@@ -230,11 +234,11 @@ public final class DamageManager implements IDamageManager, Listener {
 
             if (attacker instanceof CorePlayer) {
                 ((CoreMob) interaction.getDefender()).addContribution((CorePlayer) attacker);
-                IActiveParty party = RPGCore.inst().getPartyManager().getPartyOf(((CorePlayer) attacker));
+                IPartySnapshot party = RPGCore.inst().getSocialManager().getGroupHandler().getPartySnapshot(((CorePlayer) attacker));
                 if (party != null) {
-                    for (IOfflineCorePlayer partied : party.getAllMembers()) {
-                        if (partied instanceof CorePlayer) {
-                            ((CoreMob) interaction.getDefender()).addContribution(((CorePlayer) partied));
+                    for (CorePlayer other_player : party.getAllOnlineMembers()) {
+                        if (other_player != attacker) {
+                            ((CoreMob) interaction.getDefender()).addContribution(other_player);
                         }
                     }
                 }
@@ -259,6 +263,10 @@ public final class DamageManager implements IDamageManager, Listener {
                         Bukkit.getLogger().severe("not implemented (died trigger)");
                     });
                 }
+            } else if (interaction.getDefender() instanceof CorePlayer) {
+                ((CorePlayer) interaction.getDefender()).setAsGrave(interaction);
+                Bukkit.getLogger().severe("not implemented (kill trigger)");
+                Bukkit.getLogger().severe("not implemented (died trigger)");
             } else {
                 interaction.getDefender().die(interaction);
                 Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
@@ -372,7 +380,8 @@ public final class DamageManager implements IDamageManager, Listener {
                 if (defender instanceof CoreMob) {
                     IEntityBase base = ((CoreMob) defender).getBase();
                     double focus = attacker.evaluateAttribute("RAGE_FOCUS");
-                    base.enrage(attacker.getEntity(), 1d, 1d, focus, false);
+                    double cap = attacker.evaluateAttribute("RAGE_CAP_FROM_WEAPON");
+                    base.enrage(attacker.getEntity(), 1d, Math.max(1d, cap), focus, false);
                 }
             }
         }

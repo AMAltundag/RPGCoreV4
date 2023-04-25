@@ -12,6 +12,7 @@ import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -43,6 +44,8 @@ public class DesignWrite implements IDesignFieldEditor {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
+
+        Bukkit.getLogger().severe("not implemented (constraint as pick-list)");
     }
 
     @Override

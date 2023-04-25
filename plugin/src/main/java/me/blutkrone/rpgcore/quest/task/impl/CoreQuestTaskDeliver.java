@@ -20,12 +20,12 @@ import java.util.*;
  */
 public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
 
+    // approximation on delivery matching
+    private final Set<UUID> approximate_delivery = new HashSet<>();
     // what items need to be delivered
     private Map<String, Integer> items = new HashMap<>();
     // who takes the drop-off
     private String drop_off_npc;
-    // approximation on delivery matching
-    private final Set<UUID> approximate_delivery = new HashSet<>();
 
     public CoreQuestTaskDeliver(CoreQuest quest, EditorQuestTaskDeliver editor) {
         super(quest, editor);
@@ -111,7 +111,7 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
      * for this delivery quest, this is an APPROXIMATION do
      * not expect accuracy off this method.
      *
-     * @param player who wants to deliver the items.
+     * @param player   who wants to deliver the items.
      * @param accurate whether we require accurate info or not.
      * @return true if they got all the items.
      */

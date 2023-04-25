@@ -43,6 +43,18 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
     }
 
     /**
+     * A soft get, meaning that we get an object by its ID as an
+     * attachment which can be updated in case it was changed in
+     * the editor.
+     *
+     * @param id Identifier to grab
+     * @return Attachment wrapping object
+     */
+    public IndexAttachment<?, K> getSoft(String id) {
+        return createAttachment(index -> index.get(id));
+    }
+
+    /**
      * Create an attachment which will keep a value cached until
      * the index updates..
      *

@@ -53,9 +53,12 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     private Runnable ticking_handler;
     // used to not send packets (interaction detection fails.)
     private BaseComponent[] last_title = null;
+    // handle used by the core
+    private Object core_handle;
 
-    public VolatileChestMenu(JavaPlugin plugin, int size, Player player) {
+    public VolatileChestMenu(JavaPlugin plugin, int size, Player player, Object core_handle) {
         super(null, size, "opened without a title!");
+        this.core_handle = core_handle;
         this.player = player;
         this.plugin = plugin;
         this.click_event_handler = (event -> {
@@ -188,6 +191,11 @@ public class VolatileChestMenu extends CraftInventoryCustom implements IChestMen
     public void open() {
         this.last_title = null;
         this.player.openInventory(this);
+    }
+
+    @Override
+    public Object getLinkedHandle() {
+        return core_handle;
     }
 
     public void on(InventoryClickEvent event) {

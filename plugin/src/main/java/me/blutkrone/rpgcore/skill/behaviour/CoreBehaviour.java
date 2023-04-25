@@ -16,6 +16,7 @@ import me.blutkrone.rpgcore.skill.trigger.AbstractCoreTrigger;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -74,15 +75,6 @@ public class CoreBehaviour {
      */
     public BehaviourEffect createEffect(SkillContext context) {
         return new BehaviourEffect(context, this);
-    }
-
-    /**
-     * Create an effect serving as a proxy for the behaviour.
-     *
-     * @param context the context created within.
-     */
-    public BehaviourEffect createEffect(SkillContext context, int duration) {
-        return new BehaviourEffect(context, this, duration);
     }
 
     /**
@@ -147,7 +139,7 @@ public class CoreBehaviour {
         // run the actions backing the behaviour
         CoreEntity entity = context.getCoreEntity();
         for (CoreAction action : this.actions) {
-            entity.getActions().add(action.pipeline(context));
+            entity.getActions().add(action.pipeline(context, Arrays.asList(entity)));
         }
     }
 }

@@ -70,7 +70,7 @@ public class VolatilePacketSerializer extends PacketDataSerializer {
     public void writeUTF(String string) {
         super.a(string);
     }
-    
+
     public void writeGameProfile(GameProfile profile) {
         super.a(profile);
     }

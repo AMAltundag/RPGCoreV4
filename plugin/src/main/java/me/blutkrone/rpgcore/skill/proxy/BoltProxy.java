@@ -83,7 +83,9 @@ public class BoltProxy extends AbstractSkillProxy {
         // invoke impact on all entities within cast
         List<CoreEntity> impacted = this.anchor.rayCastEntities(this.speed, this.radius);
         impacted.removeIf(e -> this.blacklist.add(e.getUniqueId()));
-        impacted.remove(getContext().getCoreEntity());
+        if (getContext().getCoreEntity() != null) {
+            impacted.remove(getContext().getCoreEntity());
+        }
         if (!impacted.isEmpty()) {
             this.pierce -= impacted.size();
             this.impact.doMechanic(getContext(), new ArrayList<>(impacted));

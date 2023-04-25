@@ -22,5 +22,6 @@
         <module>NMS_1_18_R2</module>
         <module>NMS_1_19_R1</module>
         <module>plugin</module>
+        <module>proxy</module>
     </modules>
 </project>

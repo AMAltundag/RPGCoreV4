@@ -26,6 +26,7 @@ public abstract class MultiTreeMenu extends AbstractCoreMenu {
 
     /**
      * Get a list of all passive trees we do care about
+     *
      * @param player
      * @return
      */

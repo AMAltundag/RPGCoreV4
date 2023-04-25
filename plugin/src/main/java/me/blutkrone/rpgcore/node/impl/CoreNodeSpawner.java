@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.mob.CoreCreature;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
@@ -31,7 +32,7 @@ public class CoreNodeSpawner extends AbstractNode {
     private List<String> mobs;
 
     public CoreNodeSpawner(String id, EditorNodeSpawner editor) {
-        super(id, (int) editor.radius);
+        super(id, (int) editor.radius, editor.getPreview());
         this.count = (int) editor.count;
         this.cooldown = (int) editor.cooldown;
         this.level = (int) editor.level;
@@ -39,7 +40,91 @@ public class CoreNodeSpawner extends AbstractNode {
         this.mobs = new ArrayList<>(editor.mobs);
     }
 
-    private Location computeRandomSpawnpoint(World world, Location around, double spread, int attempts) {
+    public static void leash(UUID uuid, Location where, double leash) {
+        CoreMob mob = RPGCore.inst().getEntityManager().getMob(uuid);
+        // ignore leash while in death sequence
+        if (mob == null) {
+            return;
+        }
+        // do not leash while in death sequence
+        IEntityBase base = mob.getBase();
+        if (base == null || base.isInDeathSequence()) {
+            return;
+        }
+        // check how long the leash should be
+        LivingEntity handle = mob.getEntity();
+        double dist = handle.getLocation().distance(where);
+        double my_leash = leash;
+        if (mob.getBase().getRageEntity() != null) {
+            my_leash = my_leash * 1.5d;
+        }
+        // update force teleport tracking
+        if (dist < my_leash) {
+            return;
+        }
+        // reset the creature since the leash kicked in
+        mob.getHealth().recoverBy(mob.getHealth().getSnapshotMaximum());
+        mob.getBase().resetRage();
+        // decide on a location to retreat to
+        Location home = computeRandomSpawnpoint(handle.getWorld(), where, 8d, 6);
+        if (home == null) {
+            home = where;
+        }
+        // move back to valid spawnpoint
+        if (dist >= 24d) {
+            // too far away, just teleport back
+            handle.teleport(home);
+        } else {
+            // walk request, if failed we can teleport
+            if (!mob.getBase().walkTo(home, 1d)) {
+                handle.teleport(home);
+            }
+        }
+    }
+
+    public static List<UUID> spawn(int count, List<String> mobs, Location where, int level, double leash) {
+        List<UUID> output = new ArrayList<>();
+        World world = where.getWorld();
+
+        if (count <= 1) {
+            // roll a random mob to spawn
+            String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
+            CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
+            // track the mobs for respawning
+            where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
+            CoreMob spawned = creature.spawn(where, level);
+            if (spawned != null) {
+                if (leash > 0d) {
+                    spawned.setStrollLeash(leash, where);
+                }
+                output.add(spawned.getUniqueId());
+            }
+        } else {
+            // spawn a pack of mobs at the location
+            for (int i = 0; i < count; i++) {
+                // grab a random position to spawn from
+                Location spawnpoint = computeRandomSpawnpoint(world, where, 6d, 4);
+                if (spawnpoint != null) {
+                    // roll a random mob to spawn
+                    String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
+                    CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
+                    // track the mobs for respawning
+                    where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
+                    CoreMob spawned = creature.spawn(where, level);
+                    if (spawned != null) {
+                        if (leash > 0d) {
+                            spawned.setStrollLeash(leash, where);
+                        }
+                        output.add(spawned.getUniqueId());
+                    }
+                }
+            }
+        }
+
+        return output;
+    }
+
+    private static Location computeRandomSpawnpoint(World world, Location around, double spread, int attempts) {
         around = around.clone().add(0d, spread / 3d, 0d);
 
         for (int i = 0; i < attempts; i++) {
@@ -78,10 +163,6 @@ public class CoreNodeSpawner extends AbstractNode {
 
     @Override
     public void tick(World world, NodeActive active, List<Player> players) {
-        if (players.isEmpty()) {
-            return;
-        }
-
         Location where = new Location(world, active.getX(), active.getY(), active.getZ());
 
         // skip if we cannot spawn anything
@@ -98,45 +179,9 @@ public class CoreNodeSpawner extends AbstractNode {
         // handle leash logic of the creatures
         if (this.leash > 0d) {
             for (UUID uuid : data.mobs) {
-                CoreMob mob = RPGCore.inst().getEntityManager().getMob(uuid);
-                // ignore leash while in death sequence
-                if (mob.getBase().isInDeathSequence()) {
-                    continue;
-                }
-                // check how long the leash should be
-                LivingEntity handle = mob.getEntity();
-                double dist = handle.getLocation().distance(where);
-                double my_leash = this.leash;
-                if (mob.getBase().getRageEntity() != null) {
-                    my_leash = my_leash * 1.5d;
-                }
-                // update force teleport tracking
-                if (dist < my_leash) {
-                    data.fails.remove(uuid);
-                    continue;
-                }
-                data.fails.merge(uuid, 1, (a, b) -> a + b);
-                // reset the creature since the leash kicked in
-                mob.getHealth().recoverBy(mob.getHealth().getSnapshotMaximum());
-                mob.getBase().resetRage();
-                // decide on a location to retreat to
-                Location home = computeRandomSpawnpoint(world, where, 8d, 6);
-                if (home == null) {
-                    home = where;
-                }
-                // move back to valid spawnpoint
-                if (dist >= 24d || data.fails.get(uuid) >= 3) {
-                    // too far away, just teleport back
-                    handle.teleport(home);
-                } else {
-                    // walk request, if failed we can teleport
-                    if (!mob.getBase().walkTo(home, 1d)) {
-                        handle.teleport(home);
-                    }
-                }
+                leash(uuid, where, this.leash);
             }
         }
-
         // while any mobs are spawned, retain cooldown
         if (!data.mobs.isEmpty()) {
             data.cooldown = RPGCore.inst().getTimestamp() + cooldown;
@@ -146,43 +191,15 @@ public class CoreNodeSpawner extends AbstractNode {
         if (data.cooldown > RPGCore.inst().getTimestamp()) {
             return;
         }
+        // require players in range to spawn mobs
+        if (players.isEmpty()) {
+            return;
+        }
 
-        if (count <= 1) {
-            // roll a random mob to spawn
-            String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
-            CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
-            // track the mobs for respawning
-            where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
-            CoreMob spawned = creature.spawn(where, level);
-            if (spawned != null) {
-                if (leash > 0d) {
-                    spawned.setStrollLeash(leash, where);
-                }
-                data.mobs.add(spawned.getUniqueId());
-                // update the cooldown of the world
-                data.cooldown = RPGCore.inst().getTimestamp() + cooldown;
-            }
-        } else {
-            // spawn a pack of mobs at the location
-            for (int i = 0; i < count; i++) {
-                // grab a random position to spawn from
-                Location spawnpoint = computeRandomSpawnpoint(world, where, 6d, 4);
-                if (spawnpoint != null) {
-                    // roll a random mob to spawn
-                    String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
-                    CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
-                    // track the mobs for respawning
-                    where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
-                    CoreMob spawned = creature.spawn(where, level);
-                    if (spawned != null) {
-                        if (leash > 0d) {
-                            spawned.setStrollLeash(leash, where);
-                        }
-                        data.mobs.add(spawned.getUniqueId());
-                    }
-                }
-            }
-            // apply cooldown since we've spawned something
+        // spawn in the mobs
+        List<UUID> spawned = spawn(count, mobs, where, level, leash);
+        if (!spawned.isEmpty()) {
+            data.mobs.addAll(spawned);
             data.cooldown = RPGCore.inst().getTimestamp() + cooldown;
         }
     }
@@ -201,19 +218,12 @@ public class CoreNodeSpawner extends AbstractNode {
 
         Set<UUID> mobs = new HashSet<>();
         int cooldown = 0;
-        Map<UUID, Integer> fails = new HashMap<>();
 
         private void validate() {
             mobs.removeIf(uuid -> {
                 CoreMob mob = RPGCore.inst().getEntityManager().getMob(uuid);
                 return mob == null || mob.getBase() == null;
             });
-            fails.keySet().removeIf(uuid -> !mobs.contains(uuid));
-        }
-
-        @Override
-        public void highlight(int time) {
-
         }
 
         @Override
@@ -227,8 +237,6 @@ public class CoreNodeSpawner extends AbstractNode {
                 // unregister from the core
                 RPGCore.inst().getEntityManager().unregister(mob);
             }
-            // reset leash failure count
-            fails.clear();
             // clear the spawned creatures
             mobs.clear();
         }

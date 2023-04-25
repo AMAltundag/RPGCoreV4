@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.item.styling;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataDurability;
@@ -646,7 +645,7 @@ public class DefaultItemDescriptor implements IItemDescriber {
     }
 
     @Override
-    public void describe(ItemStack item, CorePlayer player) {
+    public void describe(ItemStack item, IDescriptorReference player) {
         // try to describe as an identified item
         if (describeIdentified(item)) {
             return;

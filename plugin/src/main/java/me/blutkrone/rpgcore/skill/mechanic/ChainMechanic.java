@@ -51,7 +51,7 @@ public class ChainMechanic extends AbstractCoreMechanic {
             }
 
             ChainProxy proxy = new ChainProxy(context, where, this.impact, this.effects, chains, delay, radius, filter);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

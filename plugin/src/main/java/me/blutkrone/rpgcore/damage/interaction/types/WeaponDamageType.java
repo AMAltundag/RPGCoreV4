@@ -7,7 +7,11 @@ import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
+import me.blutkrone.rpgcore.hud.menu.EquipMenu;
+import me.blutkrone.rpgcore.item.CoreItem;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -185,6 +189,19 @@ public class WeaponDamageType implements IDamageType {
         double multi_weapon = 0d;
         if (interaction.getAttacker() != null)
             multi_weapon = interaction.evaluateAttribute("WEAPON_MULTIPLIER", interaction.getAttacker());
+        // apply damage scaling of the weapon
+        if (interaction.getAttacker() instanceof CorePlayer) {
+            CorePlayer attacker = (CorePlayer) interaction.getAttacker();
+            ItemStack weapon = RPGCore.inst().getHUDManager().getEquipMenu().getBukkitEquipment(attacker, EquipMenu.BukkitSlot.MAIN_HAND);
+            CoreItem core_weapon = RPGCore.inst().getItemManager().getItemFrom(weapon).orElse(null);
+            if (core_weapon != null) {
+                for (String attribute : core_weapon.getWeaponScalingAttribute()) {
+                    multi_weapon += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                }
+            }
+        }
+
+
         // apply armor specific damage reduction
         double armor_weapon = interaction.evaluateAttribute("WEAPON_ARMOR", interaction.getDefender());
         if (approx_damage > 0) {

@@ -22,6 +22,10 @@ public class ResourceCost extends AbstractCoreCost {
     @Override
     public boolean canAfford(IContext context) {
         CoreEntity entity = context.getCoreEntity();
+        if (entity == null) {
+            return false;
+        }
+
         EntityResource resource = entity.getMana();
         if (stamina.evaluate(context)) {
             resource = entity.getStamina();
@@ -35,6 +39,10 @@ public class ResourceCost extends AbstractCoreCost {
     @Override
     public void consumeCost(IContext context) {
         CoreEntity entity = context.getCoreEntity();
+        if (entity == null) {
+            return;
+        }
+
         EntityResource resource = entity.getMana();
         if (stamina.evaluate(context)) {
             resource = entity.getStamina();

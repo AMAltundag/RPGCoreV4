@@ -3,11 +3,21 @@ package me.blutkrone.rpgcore.api.data;
 import me.blutkrone.rpgcore.data.DataBundle;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public interface IDataAdapter {
+
+    /**
+     * Whether the data adapter is currently working, do note that a
+     * data adapter has to perform as synchronized otherwise we don't
+     * have a guarantee on data integrity.
+     *
+     * @return Check if adapter is currently working.
+     */
+    boolean isWorking();
 
     /**
      * Load, process and save the customized data, despite using a consumer
@@ -72,8 +82,31 @@ public interface IDataAdapter {
     void saveCharacterData(UUID uuid, int character, Map<String, DataBundle> data) throws IOException;
 
     /**
-     * Block the thread and force all operations to complete instantly, do
-     * note that this will block the thread we called from.
+     * Save one data bundle
+     *
+     * @param uuid
+     * @param info
+     * @param bundle
      */
-    void flush();
+    default void saveInfo(UUID uuid, String info, DataBundle bundle) throws IOException {
+        Map<String, DataBundle> wrapped = new HashMap<>();
+        wrapped.put("info", bundle);
+        saveCustom(uuid, "info_" + info, wrapped);
+    }
+
+    /**
+     * Load one data bundle
+     *
+     * @param uuid
+     * @param info
+     * @return
+     */
+    default DataBundle loadInfo(UUID uuid, String info) throws IOException {
+        Map<String, DataBundle> wrapped = loadCustom(uuid, "info_" + info);
+        DataBundle bundle = wrapped.get("info");
+        if (bundle == null) {
+            bundle = new DataBundle();
+        }
+        return bundle;
+    }
 }

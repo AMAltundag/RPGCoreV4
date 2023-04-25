@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.nms.api.packet;
 
 import me.blutkrone.rpgcore.nms.api.packet.handle.IBlockMutator;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IHighlight;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
 import org.bukkit.World;
@@ -34,4 +35,14 @@ public interface IVolatilePackets {
      * @return packet handler
      */
     IPlayerNPC npc(UUID uuid);
+
+    /**
+     * Highlight a certain block.
+     *
+     * @param x Location to highlight
+     * @param y Location to highlight
+     * @param z Location to highlight
+     * @return Highlight wrapper
+     */
+    IHighlight highlight(int x, int y, int z);
 }

@@ -1,6 +1,8 @@
 package me.blutkrone.rpgcore.util;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.AttributeInstance;
@@ -8,6 +10,8 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 
 public final class Utility {
@@ -17,6 +21,35 @@ public final class Utility {
 
     private Utility() {
 
+    }
+
+    private static String getMaybeDevFile(File file, String keyword) throws IOException {
+        // read from dev file
+        File root_folder = Bukkit.getWorldContainer();
+        File config = new File(root_folder, "__developer.rpgcore");
+        if (config.exists()) {
+            ConfigWrapper wrapper = me.blutkrone.rpgcore.util.io.FileUtil.asConfigYML(config);
+            if (wrapper.contains(keyword)) {
+                return wrapper.getString(keyword);
+            }
+        }
+        // read from actual config file
+        if (file != null && file.exists()) {
+            ConfigWrapper wrapper = me.blutkrone.rpgcore.util.io.FileUtil.asConfigYML(file);
+            return wrapper.getString("database", "");
+        }
+        // empty feedback
+        return "";
+    }
+
+    public static String getDatabaseToken() throws IOException {
+        File file = me.blutkrone.rpgcore.util.io.FileUtil.file("network.yml");
+        return getMaybeDevFile(file, "database");
+    }
+
+    public static String getSyncDatabaseToken() throws IOException {
+        File file = me.blutkrone.rpgcore.util.io.FileUtil.file("network.yml");
+        return getMaybeDevFile(file, "sync-database");
     }
 
     public static boolean isChunkLoaded(Location location) {

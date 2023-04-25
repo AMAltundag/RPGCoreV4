@@ -30,7 +30,7 @@ public class AlliesSelector extends AbstractCoreSelector {
         }
         // trim to only allied targets
         discovered.removeIf(entity -> {
-            return !entity.isFriendly(context.getCoreEntity());
+            return !entity.isFriendly(context);
         });
         // retain only the relevant targets
         List<IOrigin> sorted = new ArrayList<>(discovered);

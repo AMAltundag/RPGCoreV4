@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorTrapMechanic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
@@ -39,7 +38,7 @@ public class TrapMechanic extends AbstractCoreMechanic {
      * @param entity whose trap proxies to count
      * @return how many traps we have
      */
-    private int count(CoreEntity entity) {
+    private int count(IContext entity) {
         int output = 0;
         List<AbstractSkillProxy> proxies = entity.getProxies();
         for (AbstractSkillProxy proxy : proxies) {
@@ -56,13 +55,13 @@ public class TrapMechanic extends AbstractCoreMechanic {
         double radius = this.radius.evalAsDouble(context);
         double multi = 1d + Math.max(0d, this.multi.evalAsDouble(context));
         int limit = this.limit.evalAsInt(context);
-        int active = count(context.getCoreEntity());
+        int active = count(context);
 
         for (IOrigin target : targets) {
             double multi_remaining = multi;
             while (Math.random() < multi_remaining-- && active < limit) {
                 TrapProxy proxy = new TrapProxy(context, target, this.item, duration, radius, this.impact, this.filter);
-                context.getCoreEntity().getProxies().add(proxy);
+                context.addProxy(proxy);
                 active += 1;
             }
         }

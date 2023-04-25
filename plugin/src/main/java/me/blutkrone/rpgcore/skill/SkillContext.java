@@ -5,6 +5,8 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.attribute.AttributeCollection;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
+import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
 import org.bukkit.Location;
 
 import java.util.*;
@@ -91,6 +93,31 @@ public class SkillContext implements IContext, IOrigin {
     @Override
     public CoreEntity getCoreEntity() {
         return this.owner;
+    }
+
+    @Override
+    public IOrigin getOrigin() {
+        return getCoreEntity();
+    }
+
+    @Override
+    public void addProxy(AbstractSkillProxy proxy) {
+        getCoreEntity().addProxy(proxy);
+    }
+
+    @Override
+    public List<AbstractSkillProxy> getProxies() {
+        return getCoreEntity().getProxies();
+    }
+
+    @Override
+    public void addPipeline(CoreAction.ActionPipeline pipeline) {
+        getCoreEntity().addPipeline(pipeline);
+    }
+
+    @Override
+    public List<CoreAction.ActionPipeline> getPipelines() {
+        return getCoreEntity().getPipelines();
     }
 
     @Override

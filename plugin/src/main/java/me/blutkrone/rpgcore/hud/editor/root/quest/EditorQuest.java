@@ -43,10 +43,10 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
     @EditorList(name = "Condition", constraint = SelectorConstraint.class)
     @EditorTooltip(tooltip = "Condition must be met to accept quest.")
     public List<IEditorBundle> accept_requirement = new ArrayList<>();
-    @EditorList(name = "Required", constraint = QuestRewardConstraint.class)
+    @EditorList(name = "Required", constraint = QuestConstraint.class)
     @EditorTooltip(tooltip = "Cannot accept quest if not completed.")
     public List<String> required_quest = new ArrayList<>();
-    @EditorList(name = "Forbidden", constraint = QuestRewardConstraint.class)
+    @EditorList(name = "Forbidden", constraint = QuestConstraint.class)
     @EditorTooltip(tooltip = "Cannot accept quest if completed OR accepted.")
     public List<String> forbidden_quest = new ArrayList<>();
 

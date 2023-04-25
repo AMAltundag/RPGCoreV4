@@ -40,6 +40,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -160,10 +162,12 @@ public class ResourcePackManager implements Listener {
         try {
             ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("resourcepack", "config.yml"));
             do_compression = config.getBoolean("compress");
+
             download_link = config.getString("download-url");
             if (download_link != null && download_link.contains("dropbox")) {
                 download_link = download_link.replace("?dl=0", "?dl=1");
             }
+
         } catch (Exception e) {
             throw new RuntimeException("Resource Pack Manager could not be loaded", e);
         }
@@ -197,10 +201,23 @@ public class ResourcePackManager implements Listener {
         // deal with resourcepack related events
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
-        // if no RP url is set, start to generate one
-        if (this.download_link == null) {
+        // ensure URL is fine
+        if (this.download_link == null || this.download_link.isEmpty()) {
             compile((file -> {
             }));
+        } else {
+            try {
+                URL url = new URL(this.download_link);
+                HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+                int responseCode = huc.getResponseCode();
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    compile((file -> {
+                    }));
+                }
+            } catch (Exception e) {
+                compile((file -> {
+                }));
+            }
         }
 
         // wipe cache once per 5 minutes
@@ -446,6 +463,7 @@ public class ResourcePackManager implements Listener {
             // reset the clock used to measure time
             clock.loop();
             int minimap_slice = 0;
+            int map_keying = 0;
             // prepare the maps we are going to work with
             for (File file : FileUtil.buildAllFiles(INPUT_MINIMAP)) {
                 // identify the texture we will be using
@@ -459,9 +477,6 @@ public class ResourcePackManager implements Listener {
                 // needed to identify the slice to show
                 indexed_parameter.put("map-" + map + "-height", 0d + raw_image.getHeight());
                 indexed_parameter.put("map-" + map + "-width", 0d + raw_image.getWidth());
-                // parameters for generating the RP information
-                int current_page = 1;
-                int current_table = 1;
                 // pool textures by isolated atlas groups
                 for (int y = 0; y < raw_image.getHeight(); y += 128) {
                     for (int x = 0; x < raw_image.getWidth(); x += 128) {
@@ -491,30 +506,27 @@ public class ResourcePackManager implements Listener {
                         for (int i = 0; i < 16; i++) {
                             StringBuilder sb = new StringBuilder();
                             for (int j = 0; j < 16; j++) {
-                                sb.append((char) ((256 * current_page) + (i * 16 + j)));
+                                sb.append((char) (256 + (i * 16 + j)));
                             }
                             symbols.add(sb.toString());
                         }
                         // register to RP and offer an access-point
                         for (int offset = 0; offset < 14; offset++) {
                             // register to the resourcepack
-                            List<ResourcePackFont> font = fonts.computeIfAbsent("minimap_" + current_table + "_" + offset, (k -> TextGenerator.newList()));
+                            List<ResourcePackFont> font = fonts.computeIfAbsent("minimap_" + ++map_keying + "_" + offset, (k -> TextGenerator.newList()));
                             font.add(new ResourcePackFont("bitmap", "minecraft:font/minimap_" + minimap_slice + ".png", 0 - (offset * 8) - rules.minimap_offset + 4, 8, symbols));
                             // allow the user to retrieve the generated entries
                             for (int dY = 0; dY < 16; dY++) {
                                 for (int dX = 0; dX < 16; dX++) {
                                     String id = "map_" + map + "_" + (dX + x / 8) + "_" + (dY + y / 8) + "_" + offset;
-                                    self_indexed.put(id, new IndexedTexture.StaticTexture((char) (256 * current_page + (dY * 16 + dX)), "minimap_" + current_table + "_" + offset, 8));
+                                    self_indexed.put(id, new IndexedTexture.StaticTexture(
+                                            (char) (256 + (dY * 16 + dX)), "minimap_" + map_keying + "_" + offset, 8));
                                 }
                             }
                         }
 
                         // increment the resourcepack addressing
                         minimap_slice += 1;
-                        if (current_page++ >= 232) {
-                            current_page = 1;
-                            current_table += 1;
-                        }
                     }
                 }
             }
@@ -768,7 +780,7 @@ public class ResourcePackManager implements Listener {
                 // transform to json based data
                 JSONObject font_output = new JSONObject();
                 JSONArray font_providers = new JSONArray();
-                font_providers.add(ResourcePackFont.getAsSpace(" " , 4));
+                font_providers.add(ResourcePackFont.getAsSpace(" ", 4));
                 for (ResourcePackFont generated_character : letters)
                     font_providers.add(generated_character.transform());
                 font_output.put("providers", font_providers);

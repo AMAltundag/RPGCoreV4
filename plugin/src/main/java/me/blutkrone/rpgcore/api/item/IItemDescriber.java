@@ -1,15 +1,16 @@
 package me.blutkrone.rpgcore.api.item;
 
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
 import org.bukkit.inventory.ItemStack;
 
 public interface IItemDescriber {
+
     /**
      * Describe an item within RPGCore specification, do note that if we
      * are called by non RPGCore items ignore this call.
      *
      * @param item   the item to describe.
-     * @param player
+     * @param player Player to describe relative to.
      */
-    void describe(ItemStack item, CorePlayer player);
+    void describe(ItemStack item, IDescriptorReference player);
 }

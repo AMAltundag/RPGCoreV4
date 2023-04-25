@@ -17,7 +17,7 @@ public class FriendlySelector extends AbstractCoreSelector {
     public List<IOrigin> doSelect(IContext context, List<IOrigin> previous) {
         List<IOrigin> updated = new ArrayList<>();
         for (IOrigin target : previous) {
-            if (target instanceof CoreEntity && ((CoreEntity) target).isFriendly(context.getCoreEntity())) {
+            if (target instanceof CoreEntity && ((CoreEntity) target).isFriendly(context)) {
                 updated.add(target);
             }
         }

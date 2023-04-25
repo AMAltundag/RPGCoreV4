@@ -9,6 +9,7 @@ import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -175,6 +176,23 @@ public class LanguageManager {
     }
 
     /**
+     * Format a versatile string with numeric parameters
+     *
+     * @param string the string to be formatted
+     * @return the formatted string
+     */
+    public String formatAsVague(String string) {
+        // replace arbitrary matches
+        string = string.replace("{INTEGER}", "???");
+        string = string.replace("{DECIMAL}", "???");
+        string = string.replace("{PERCENT}", "???");
+        string = string.replace("{RANGE}", "???");
+        string = string.replace("{BOOLEAN}", "???");
+        string = string.replace("{TIME}", "???");
+        return string;
+    }
+
+    /**
      * Format time by the greatest unit in milliseconds.
      *
      * @param time milliseconds to format
@@ -242,6 +260,21 @@ public class LanguageManager {
     public String getTranslation(String key) {
         List<String> value = translation.computeIfAbsent(key.toLowerCase(), (k -> new ArrayList<>(Collections.singletonList("missing translation " + key))));
         return value.isEmpty() ? "missing translation " + key : value.get(0);
+    }
+
+    /**
+     * Send a chat message to the given player.
+     *
+     * @param player  Who should receive the message
+     * @param message What message to be translated
+     * @param args    What arguments to insert
+     */
+    public void sendMessage(Player player, String message, String... args) {
+        message = getTranslation(message);
+        for (int i = 0; i < args.length; i++) {
+            message = message.replace("{" + i + "}", args[i]);
+        }
+        player.sendMessage(message);
     }
 
     /**

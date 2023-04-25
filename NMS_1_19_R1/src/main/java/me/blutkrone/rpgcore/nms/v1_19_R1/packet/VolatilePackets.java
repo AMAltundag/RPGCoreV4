@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.Property;
 import me.blutkrone.rpgcore.nms.api.packet.IDispatchPacket;
 import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IBlockMutator;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IHighlight;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.*;
@@ -17,6 +18,7 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.entity.monster.EntityMagmaCube;
 import net.minecraft.world.level.EnumGamemode;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -42,11 +44,13 @@ import static me.blutkrone.rpgcore.nms.v1_19_R1.packet.VolatilePacketSerializer.
 
 public class VolatilePackets implements IVolatilePackets {
     private static final EntityTypes<EntityArmorStand> ENTITY_TYPE_ARMOR_STAND = EntityTypes.d;
+    private static final EntityTypes<EntityMagmaCube> ENTITY_TYPE_MAGMA_CUBE = EntityTypes.aa;
     private static final VolatilePacketSerializer.DataWatcher<Byte> STATUS = new VolatilePacketSerializer.DataWatcher<>(0, BYTE_SERIALIZER);
     private static final VolatilePacketSerializer.DataWatcher<Optional<IChatBaseComponent>> CUSTOM_NAME = new VolatilePacketSerializer.DataWatcher<>(2, OPTIONAL_CHAT_COMPONENT_SERIALIZER);
     private static final VolatilePacketSerializer.DataWatcher<Boolean> CUSTOM_NAME_VISIBILITY = new VolatilePacketSerializer.DataWatcher<>(3, BOOLEAN_SERIALIZER);
     private static final VolatilePacketSerializer.DataWatcher<EntityPose> POSE = new VolatilePacketSerializer.DataWatcher<>(6, POSE_SERIALIZER);
     private static final VolatilePacketSerializer.DataWatcher<Byte> ARMOR_STAND = new VolatilePacketSerializer.DataWatcher<>(15, BYTE_SERIALIZER);
+    private static final VolatilePacketSerializer.DataWatcher<Integer> SLIME_SIZE = new VolatilePacketSerializer.DataWatcher<>(16, INT_SERIALIZER);
     private static final VolatilePacketSerializer.DataWatcher<Byte> SKIN = new VolatilePacketSerializer.DataWatcher<>(17, BYTE_SERIALIZER);
     private static int ID_TRACKER = 600_000_000;
 
@@ -75,6 +79,11 @@ public class VolatilePackets implements IVolatilePackets {
         return new VolatilePlayerNPC(uuid);
     }
 
+    @Override
+    public IHighlight highlight(int x, int y, int z) {
+        return new VolatileHighlight(x, y, z);
+    }
+
     /*
      * Convenient wrapper that allows the calling source to decide
      * on when a packet will be dispatched.
@@ -94,6 +103,55 @@ public class VolatilePackets implements IVolatilePackets {
                     sendPacket(player, packet);
                 }
             }
+        }
+    }
+
+    private class VolatileHighlight implements IHighlight {
+
+        private final int id;
+        private final UUID uuid;
+        private final int x;
+        private final int y;
+        private final int z;
+
+        public VolatileHighlight(int x, int y, int z) {
+            this.id = VolatilePackets.ID_TRACKER++;
+            this.uuid = UUID.randomUUID();
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        @Override
+        public void enable(Player player) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeUUID(this.uuid); // uuid
+            serializer.writeVarInt(IRegistry.X.a(ENTITY_TYPE_MAGMA_CUBE)); // type
+            serializer.writeDouble(x + 0.5);// position
+            serializer.writeDouble(y); // position
+            serializer.writeDouble(z + 0.5); // position
+            serializer.writeRotation(0f); // body rotation
+            serializer.writeRotation(0f); // body rotation
+            serializer.writeInt(0); // data
+            serializer.writeShort(0); // velocity
+            serializer.writeShort(0); // velocity
+            serializer.writeShort(0); // velocity
+            sendPacket(player, new PacketPlayOutSpawnEntity(serializer));
+
+            serializer.clear();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeDataWatcherEntry(STATUS, (byte) (0x20 | 0x40)); // invisible + glowing
+            serializer.writeDataWatcherEntry(SLIME_SIZE, 2); // size 2 = block
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new PacketPlayOutEntityMetadata(serializer));
+        }
+
+        @Override
+        public void disable(Player player) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarIntArray(this.id); // id
+            sendPacket(player, new PacketPlayOutEntityDestroy(serializer));
         }
     }
 

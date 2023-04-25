@@ -3,17 +3,22 @@ package me.blutkrone.rpgcore.entity.entities;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.data.IDataIdentity;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
+import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.damage.DamageMetric;
+import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
+import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
 import me.blutkrone.rpgcore.entity.focus.FocusTracker;
 import me.blutkrone.rpgcore.entity.tasks.PlayerFocusTask;
+import me.blutkrone.rpgcore.entity.tasks.PlayerGraveTask;
 import me.blutkrone.rpgcore.hud.menu.SettingsMenu;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
+import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.minimap.MapMarker;
@@ -34,7 +39,7 @@ import org.bukkit.util.RayTraceResult;
 import java.io.IOException;
 import java.util.*;
 
-public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataIdentity {
+public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataIdentity, IDescriptorReference {
 
     // character of the roster we represent
     private final int character;
@@ -42,8 +47,10 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // a tracker for the focus ux component
     private FocusTracker focus_tracker = new FocusTracker();
 
-    // a counter until the entity will die for real
+    // how many ticks before player actually dies
     private int grave_counter = -1;
+    // interaction to blame for the player death
+    private DamageInteraction grave_interaction;
 
     // settings customizable by player
     private SettingsMenu.Settings settings = new SettingsMenu.Settings();
@@ -59,6 +66,8 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     private Location respawn_position;
     // location to go to once ready to play
     private Location login_position;
+    // force to respawn when logging in
+    private boolean force_respawn;
 
     // flag the entity for initiation having finished
     private boolean initiated;
@@ -124,6 +133,12 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // levelling parameters
     private double current_exp;
 
+    // character slot used for quick join
+    private int quick_join_slot = -1;
+
+    // cooldown for auto-save
+    private int auto_save_cooldown;
+
     public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
         super(entity, provider);
         this.getMyTags().add("PLAYER");
@@ -132,8 +147,22 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.skillbar = new OwnedSkillbar(this);
         // task to invalidate the tracking when appropriate
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
+        // task to handle death in grave
+        this.bukkit_tasks.add(new PlayerGraveTask(this).runTaskTimer(RPGCore.inst(), 1, 1));
         // the character which we represent
         this.character = character;
+    }
+
+    /**
+     * Process the grave logic
+     */
+    public void processGraveTimer() {
+        // process grave timer until we can die again
+        if (this.grave_interaction != null && this.grave_counter-- <= 0) {
+
+            super.die(this.grave_interaction);
+            Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(this.grave_interaction));
+        }
     }
 
     @Override
@@ -149,6 +178,37 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         attributes.forEach((id, factor) -> {
             modifiers.add(getAttribute(id).create(factor));
         });
+    }
+
+    /**
+     * Whether we can perform an auto save right now, this
+     * will update the cooldown.
+     *
+     * @return Perform an auto save operation
+     */
+    public boolean canAutoSaveNow() {
+        if (auto_save_cooldown > RPGCore.inst().getTimestamp()) {
+            return false;
+        }
+        auto_save_cooldown = RPGCore.inst().getTimestamp() + 1200;
+        return true;
+    }
+
+    /**
+     * Perform a "quick-join" (i.E.: Instantly connect on the current
+     * character next time we join.)
+     */
+    public void quickJoinNextTime() {
+        this.quick_join_slot = this.getCharacter();
+    }
+
+    /**
+     * If not -1 we can perform a quick join.
+     *
+     * @return character slot, if defined.
+     */
+    public int getQuickJoinSlot() {
+        return quick_join_slot;
     }
 
     /**
@@ -230,6 +290,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * @param blame the blame identifies damage origin.
      * @return a metric for a certain damage.
      */
+    @Override
     public DamageMetric getMetric(String blame) {
         return this.metrics.computeIfAbsent(blame, (k -> new DamageMetric()));
     }
@@ -417,6 +478,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      *
      * @return tree type to position that holds an item
      */
+    @Override
     public Map<String, Map<Long, ItemStack>> getPassiveSocketed() {
         return passive_socketed;
     }
@@ -717,6 +779,17 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
+     * Player is about to die, handle the interaction that
+     * relates to it.
+     *
+     * @param interaction The interaction causing death
+     */
+    public void setAsGrave(DamageInteraction interaction) {
+        this.grave_counter = 100;
+        this.grave_interaction = interaction;
+    }
+
+    /**
      * The position to resurrect at after death, should there be an
      * external override on the respawn position it will be taking
      * precedence.
@@ -739,13 +812,37 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
+     * During login phase will force the respawn mechanism.
+     *
+     * @param force_respawn Force to respawn
+     */
+    public void setForceRespawn(boolean force_respawn) {
+        this.force_respawn = force_respawn;
+    }
+
+    /**
      * Move to the login position, if no login position was set we
      * move to the respawn location instead.
      */
     public void moveToLoginPosition() {
         try {
-            // attempt to recover login position
-            getEntity().teleport(this.login_position);
+            // verify respawn handling
+            if (this.force_respawn) {
+                IDungeonInstance instance = RPGCore.inst().getDungeonManager().getInstance(this.login_position);
+                if (instance != null) {
+                    // move to dungeon checkpoint
+                    getEntity().teleport(instance.getCheckpoint(getEntity()));
+                } else {
+                    // move to spawn position
+                    getEntity().teleport(this.respawn_position);
+                }
+            } else if (this.login_position == null) {
+                // respawn if last position doesn't exist anymore
+                getEntity().teleport(this.respawn_position);
+            } else {
+                // return to last known location
+                getEntity().teleport(this.login_position);
+            }
         } catch (Exception e1) {
             // attempt to recover to respawn position
             try {
@@ -781,19 +878,15 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     }
 
     /**
-     * The location intended for logging in, this method will not matter once
-     * the player instance was teleported to the login position.
-     *
-     * @return where to login the player.
-     */
-    public Location getLoginPosition() {
-        return login_position;
-    }
-
-    /**
      * Define the login position, used to make sure that delayed
      * spawn position rules can be applied properly. Do note that
      * this value is only processed once.
+     * <p>
+     * <ul>
+     * <li>Player picks spawnpoint from menu</li>
+     * <li>last known location of the player</li>
+     * <li>Menu auto-picks only choice offered</li>
+     * </ul>
      *
      * @param login_position where to spawn-in once available.
      */
@@ -846,6 +939,16 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      */
     public SettingsMenu.Settings getSettings() {
         return settings;
+    }
+
+    /**
+     * We are dying should we have a grave interaction, which happens
+     * if a damage interaction dropped health to zero.
+     *
+     * @return Player will be dying after a bit
+     */
+    public boolean isDying() {
+        return this.grave_interaction != null;
     }
 
     /**
@@ -953,11 +1056,19 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     @Override
     public boolean isAllowTarget() {
         Player player = getEntity();
-        // if (getGraveTimer() > 0) return false;
-        if (player == null) return false;
-        if (player.isDead()) return false;
-        if (player.getGameMode() == GameMode.SPECTATOR) return false;
-        if (player.getGameMode() == GameMode.CREATIVE) return false;
+        if (player == null) {
+            return false;
+        } else if (player.isDead()) {
+            return false;
+        } else if (player.getGameMode() == GameMode.SPECTATOR) {
+            return false;
+        } else if (player.getGameMode() == GameMode.CREATIVE) {
+            return false;
+        } else if (this.isDying()) {
+            return false;
+        } else if (!this.isInitiated()) {
+            return false;
+        }
         return true;
     }
 
@@ -1006,4 +1117,5 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
 
         return context;
     }
+
 }

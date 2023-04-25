@@ -9,6 +9,7 @@ import me.blutkrone.rpgcore.item.data.ItemDataDurability;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
+import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.NamespacedKey;
@@ -19,6 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CoreItem {
     private final String id;
@@ -61,6 +63,8 @@ public class CoreItem {
     private int bank_quantity;
     private String bank_symbol;
 
+    private List<String> weapon_scaling_attribute;
+
     private Map<String, String> hidden_data;
 
     /**
@@ -81,6 +85,7 @@ public class CoreItem {
         this.tags = new ArrayList<>(editor.tags);
         this.tags.add("direct_" + id);
         this.tags.replaceAll(String::toLowerCase);
+        this.weapon_scaling_attribute = editor.weapon_scaling_attribute.stream().distinct().collect(Collectors.toList());
         this.maximum_durability = (int) editor.durability;
         this.repair_grade = (int) editor.repair_grade;
         this.implicits = new ArrayList<>(editor.implicits);
@@ -112,6 +117,16 @@ public class CoreItem {
     }
 
     /**
+     * Attributes that scale damage if we are used as the weapon when
+     * dealing weapon damage.
+     *
+     * @return attributes to scale weapon damage
+     */
+    public List<String> getWeaponScalingAttribute() {
+        return weapon_scaling_attribute;
+    }
+
+    /**
      * Check hidden internal data, this may be null.
      *
      * @param id tag to search for.
@@ -138,7 +153,7 @@ public class CoreItem {
      * @param quality the quality affects random modifiers
      * @return the item to acquire
      */
-    public ItemStack acquire(CorePlayer player, double quality) {
+    public ItemStack acquire(IDescriptorReference player, double quality) {
         ItemManager manager = RPGCore.inst().getItemManager();
 
         // create a copy of our base template
@@ -146,7 +161,11 @@ public class CoreItem {
 
         // initiate the relevant data compounds
         try {
-            new ItemDataGeneric(this, quality, player).save(item);
+            if (player instanceof CorePlayer) {
+                new ItemDataGeneric(this, quality, (CorePlayer) player).save(item);
+            } else {
+                new ItemDataGeneric(this, quality, null).save(item);
+            }
             new ItemDataModifier(this, quality).save(item);
             new ItemDataDurability(this, quality).save(item);
             new ItemDataJewel(this, quality).save(item);
@@ -220,6 +239,15 @@ public class CoreItem {
         manager.describe(item, null);
 
         return item;
+    }
+
+    /**
+     * Template design of the item.
+     *
+     * @return Template item design.
+     */
+    public ItemStack getTemplate() {
+        return template;
     }
 
     /**

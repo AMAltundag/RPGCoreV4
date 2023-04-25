@@ -22,13 +22,6 @@ public interface IEntityBase {
     boolean doBarrierDamageSoak(int damage);
 
     /**
-     * Update the rage limit, we will never exceed this rage limit.
-     *
-     * @param maximum_rage upper rage limit
-     */
-    void setRageLimit(double maximum_rage);
-
-    /**
      * Generate rage on the entity
      *
      * @param source  who generated the rage
@@ -38,13 +31,6 @@ public interface IEntityBase {
      * @param forced  ignores quick-swap cooldown
      */
     void enrage(LivingEntity source, double amount, double maximum, double focus, boolean forced);
-
-    /**
-     * Manipulate rage directly.
-     *
-     * @param amount the rage we've manipulated.
-     */
-    void enrage(double amount);
 
     /**
      * Who is the current entity we hold rage against.

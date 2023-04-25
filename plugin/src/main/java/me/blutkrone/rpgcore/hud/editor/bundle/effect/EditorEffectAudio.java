@@ -18,7 +18,7 @@ public class EditorEffectAudio implements EditorEffect.IEditorEffectBundle {
     @EditorWrite(name = "Sound", constraint = SoundConstraint.class)
     @EditorTooltip(tooltip = "Which sound to use")
     public String sound = "ENTITY_GHAST_SCREAM";
-    @EditorNumber(name = "Pitch", minimum = -1d, maximum = +1d)
+    @EditorNumber(name = "Pitch")
     @EditorTooltip(tooltip = "Pitch of the sound to play.")
     public double pitch = 0d;
     @EditorNumber(name = "Volume")

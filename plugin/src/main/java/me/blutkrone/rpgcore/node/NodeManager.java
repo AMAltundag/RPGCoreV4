@@ -1,43 +1,28 @@
 package me.blutkrone.rpgcore.node;
 
-import me.blutkrone.external.juliarn.npc.event.PlayerNPCInteractEvent;
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.command.impl.NodeToolCommand;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeBox;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeHotspot;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
-import me.blutkrone.rpgcore.node.impl.CoreNodeBox;
-import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
-import me.blutkrone.rpgcore.node.impl.CoreNodeHotspot;
-import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
+import me.blutkrone.rpgcore.hud.editor.root.node.*;
+import me.blutkrone.rpgcore.node.impl.*;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
-import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.node.struct.NodeWorld;
-import me.blutkrone.rpgcore.npc.ActiveCoreNPC;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class NodeManager implements Listener {
     // nodes organized into world templates
@@ -47,6 +32,7 @@ public class NodeManager implements Listener {
     private EditorIndex<CoreNodeSpawner, EditorNodeSpawner> index_spawner;
     private EditorIndex<CoreNodeCollectible, EditorNodeCollectible> index_collectible;
     private EditorIndex<CoreNodeHotspot, EditorNodeHotspot> index_hotspot;
+    private EditorIndex<CoreNodeGate, EditorNodeGate> index_gate;
 
     public NodeManager() {
         // load all indexes in the world
@@ -54,6 +40,7 @@ public class NodeManager implements Listener {
         this.index_spawner = new EditorIndex<>("spawner", EditorNodeSpawner.class, EditorNodeSpawner::new);
         this.index_collectible = new EditorIndex<>("collectible", EditorNodeCollectible.class, EditorNodeCollectible::new);
         this.index_hotspot = new EditorIndex<>("hotspot", EditorNodeHotspot.class, EditorNodeHotspot::new);
+        this.index_gate = new EditorIndex<>("gate", EditorNodeGate.class, EditorNodeGate::new);
 
         // load all nodes which we got in memory (including of unloaded worlds.)
         try {
@@ -76,46 +63,40 @@ public class NodeManager implements Listener {
 
         // trigger all nodes known on the server
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
-            nodes_by_world.forEach((id, world) -> {
-                world.tick();
-            });
+            nodes_by_world.forEach((id, world) -> world.tick());
         }, 1, 60);
-
-        Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                // check if we got a node world setup
-                NodeWorld node_world = nodes_by_world.get(player.getWorld().getName());
-                if (node_world == null) {
-                    continue;
-                }
-                // ensure we got a player who can use admin tools
-                if (!player.hasPermission("rpg.admin")) {
-                    continue;
-                }
-                // identify if we got a tool that we can use
-                String tool = NodeToolCommand.getTool(player.getEquipment().getItemInMainHand());
-                if (tool == null) {
-                    continue;
-                }
-                // all nodes within range should glow
-                Block where = player.getLocation().getBlock();
-                List<NodeActive> nodes = node_world.getNodesNear(where.getX(), where.getY(), where.getZ(), 32);
-                for (NodeActive node : nodes) {
-                    NodeData data = node.getData();
-                    if (data != null) {
-                        data.highlight(30);
-                    }
-                }
-            }
-        }, 1, 20);
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
+    /**
+     * This will flush the data of active nodes, and re-generate
+     * them at the next opportunity.
+     */
     public void reload() {
         for (NodeWorld node_world : this.nodes_by_world.values()) {
             node_world.reset();
         }
+    }
+
+    /**
+     * Fetch the layout of nodes on the given world.
+     *
+     * @param world World to check
+     * @return The layout of nodes in the world
+     */
+    public NodeWorld getNodeWorld(World world) {
+        return this.nodes_by_world.get(world.getName());
+    }
+
+    /**
+     * Fetch the layout of nodes on the given world.
+     *
+     * @param world World to check
+     * @return The layout of nodes in the world
+     */
+    public NodeWorld getOrCreateNodeWorld(World world) {
+        return this.nodes_by_world.computeIfAbsent(world.getName(), NodeWorld::new);
     }
 
     /**
@@ -154,76 +135,21 @@ public class NodeManager implements Listener {
         return index_hotspot;
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    void onCreateNodeWithTool(PlayerInteractEvent e) {
-        // only admins can create a node
-        if (!e.getPlayer().hasPermission("rpg.admin")) {
-            return;
-        }
-        // tool editing only cares about one hand
-        if (e.getClickedBlock() == null) {
-            return;
-        }
-        // only one click should be detected
-        if (e.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-        // only allow to create above
-        if (e.getBlockFace() != BlockFace.UP) {
-            return;
-        }
-        // identify what type of tool we got
-        String tool = NodeToolCommand.getTool(e.getItem());
-        if (tool == null) {
-            return;
-        }
-        tool = tool.replace(" ", ":");
-        // ensure we can create a node here
-        Block where = e.getClickedBlock().getRelative(BlockFace.UP);
-        NodeWorld node_world = this.nodes_by_world.computeIfAbsent(e.getPlayer().getWorld().getName(), NodeWorld::new);
-        if (!node_world.getNodesNear(where.getX(), where.getY(), where.getZ(), 4).isEmpty()) {
-            e.getPlayer().sendMessage("§cCreation failed, another node is too close by!");
-            return;
-        }
-        // actually create the node we are dealing with
-        node_world.create(where.getX(), where.getY(), where.getZ(), tool);
-        e.getPlayer().sendMessage("§cA node has been created!");
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    void onInteractNodeNPC(PlayerNPCInteractEvent e) {
-        // only one click should be detected
-        if (e.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-
-        // if using a tool, destroy the engaged node
-        if (e.getPlayer().hasPermission("rpg.admin")) {
-            ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-            String tool = NodeToolCommand.getTool(item);
-            if (tool != null) {
-                // check if there is a node associated
-                NodeWorld node_world = this.nodes_by_world.get(e.getPlayer().getWorld().getName());
-                if (node_world != null) {
-                    if (e.getNPC() instanceof ActiveCoreNPC) {
-                        UUID origin = ((ActiveCoreNPC) e.getNPC()).node();
-                        if (origin != null) {
-                            node_world.destruct(origin);
-                            e.getPlayer().sendMessage("§cA node has been destroyed!");
-                        }
-                    }
-                }
-                // admin tool, prevent further interaction
-                return;
-            }
-        }
-
-        // delegate the interaction of the node if we got one
-        e.getNPC().interact(e.getPlayer());
+    /**
+     * An index for nodes for dungeon gates
+     *
+     * @return an index to configure
+     */
+    public EditorIndex<CoreNodeGate, EditorNodeGate> getIndexGate() {
+        return index_gate;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     void onInteractNodeRightClick(PlayerInteractEntityEvent e) {
+        // ensure we are not using world tool
+        if (RPGCore.inst().getWorldIntegrationManager().isUsingTool(e.getPlayer())) {
+            return;
+        }
         // only one click should be detected
         if (e.getHand() != EquipmentSlot.HAND) {
             return;
@@ -240,16 +166,6 @@ public class NodeManager implements Listener {
         }
         // do not actually process a node interaction
         e.setCancelled(true);
-        // if using a tool, destroy the engaged node
-        if (e.getPlayer().hasPermission("rpg.admin")) {
-            ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-            String tool = NodeToolCommand.getTool(item);
-            if (tool != null) {
-                node_world.destruct(node.getID());
-                e.getPlayer().sendMessage("§cA node has been destroyed!");
-                return;
-            }
-        }
         // otherwise we will interact with the node
         node.getNode().right(e.getPlayer().getWorld(), node, e.getPlayer());
     }
@@ -258,6 +174,10 @@ public class NodeManager implements Listener {
     void onInteractNodeLeftClick(EntityDamageByEntityEvent e) {
         // only check player interactions
         if (!(e.getDamager() instanceof Player)) {
+            return;
+        }
+        // ensure we are not using world tool
+        if (RPGCore.inst().getWorldIntegrationManager().isUsingTool(((Player) e.getDamager()))) {
             return;
         }
         // check if there is a node associated
@@ -272,16 +192,6 @@ public class NodeManager implements Listener {
         }
         // do not actually process a node interaction
         e.setCancelled(true);
-        // if using a tool, destroy the engaged node
-        if (e.getDamager().hasPermission("rpg.admin")) {
-            ItemStack item = ((Player) e.getDamager()).getInventory().getItemInMainHand();
-            String tool = NodeToolCommand.getTool(item);
-            if (tool != null) {
-                node_world.destruct(node.getID());
-                e.getDamager().sendMessage("§cA node has been destroyed!");
-                return;
-            }
-        }
         // otherwise we will interact with the node
         node.getNode().left(e.getDamager().getWorld(), node, ((Player) e.getDamager()));
     }

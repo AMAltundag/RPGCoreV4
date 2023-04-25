@@ -1,9 +1,11 @@
 package me.blutkrone.rpgcore.data;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.util.Vector;
+import org.bukkit.World;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -15,50 +17,65 @@ import java.util.List;
  * a persistent manner.
  */
 public class DataBundle {
-    private List<Object> handle = new ArrayList<>();
+    private List<String> handle = new ArrayList<>();
+
+    public DataBundle(String... defaults) {
+        this.handle.addAll(Arrays.asList(defaults));
+    }
+
+    public DataBundle() {
+    }
 
     public void addNumber(Number value) {
-        handle.add(value);
+        this.handle.add(String.valueOf(value));
     }
 
     public void addBoolean(Boolean value) {
-        handle.add(value);
+        this.handle.add(String.valueOf(value));
     }
 
     public void addString(String value) {
-        handle.add(value);
-    }
-
-    public void addVector(Vector value) {
-        handle.add(value);
+        this.handle.add(String.valueOf(value));
     }
 
     public void addLocation(Location value) {
-        handle.add(value);
+        this.handle.add(String.format("%s;%s;%s;%s;%s;%s",
+                value.getWorld().getName(), value.getX(), value.getY(), value.getZ(), value.getPitch(), value.getYaw()));
     }
 
     public Number getNumber(int index) {
-        return (Number) this.handle.get(index);
+        return Double.parseDouble(this.handle.get(index));
     }
 
     public Boolean getBoolean(int index) {
-        return (Boolean) this.handle.get(index);
+        return Boolean.parseBoolean(this.handle.get(index));
     }
 
     public String getString(int index) {
-        return (String) this.handle.get(index);
-    }
-
-    public Vector getVector(int index) {
-        return (Vector) this.handle.get(index);
+        return this.handle.get(index);
     }
 
     public Location getLocation(int index) {
-        return (Location) this.handle.get(index);
+        try {
+            String[] split = this.handle.get(index).split("\\;");
+            World world = Bukkit.getWorld(split[0]);
+            if (world == null) {
+                return null;
+            }
+
+            double x = Double.parseDouble(split[1]);
+            double y = Double.parseDouble(split[2]);
+            double z = Double.parseDouble(split[3]);
+            float pitch = Float.parseFloat(split[4]);
+            float yaw = Float.parseFloat(split[5]);
+            return new Location(world, x, y, z, pitch, yaw);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
-    public List<Object> getHandle() {
-        return handle;
+    public List<String> getHandle() {
+        return this.handle;
     }
 
     public boolean isEmpty() {

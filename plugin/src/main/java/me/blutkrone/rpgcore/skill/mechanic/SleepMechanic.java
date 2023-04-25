@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorMobSleepMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
@@ -28,7 +27,7 @@ public class SleepMechanic extends AbstractCoreMechanic {
      * @param mob who is asking
      * @return the duration to sleep
      */
-    public int timeToSleep(CoreEntity mob) {
+    public int timeToSleep(IContext mob) {
         return Math.max(0, this.duration.evalAsInt(mob));
     }
 }

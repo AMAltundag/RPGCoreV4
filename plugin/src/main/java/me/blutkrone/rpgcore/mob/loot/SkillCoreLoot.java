@@ -45,14 +45,14 @@ public class SkillCoreLoot extends AbstractCoreLoot {
             String point_type = tree_index.get("skill_" + skill.getId()).getPoint();
             int point_have = player.getPassivePoints().getOrDefault(point_type, 0);
             if (point_have < this.maximum) {
-                player.getPassivePoints().merge(point_type, 1, (a,b) -> a+b);
+                player.getPassivePoints().merge(point_type, 1, (a, b) -> a + b);
             }
             // chance for any other skill to gain a point
             for (CoreSkill _skill : skills) {
                 point_type = tree_index.get("skill_" + _skill.getId()).getPoint();
                 point_have = player.getPassivePoints().getOrDefault(point_type, 0);
                 if (point_have < this.maximum && Math.random() <= this.multi_chance) {
-                    player.getPassivePoints().merge(point_type, 1, (a,b) -> a+b);
+                    player.getPassivePoints().merge(point_type, 1, (a, b) -> a + b);
                 }
             }
         }

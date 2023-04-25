@@ -39,8 +39,8 @@ public interface DataProtocol {
     /**
      * Read the data from the bundle and write it to the player.
      *
-     * @param player whose data is being read.
-     * @param bundle where to read the data from.
+     * @param player  whose data is being read.
+     * @param bundle  where to read the data from.
      * @param version version of the data bundle.
      */
     void load(CorePlayer player, DataBundle bundle, int version);

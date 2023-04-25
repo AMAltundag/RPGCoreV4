@@ -76,7 +76,9 @@ public class TotemProxy extends AbstractSkillProxy {
 
         CoreTotem totem = new CoreTotem(bukkit_entity, factory);
         totem.getAttribute("HEALTH_MAXIMUM").create(health);
-        totem.setParent(context.getCoreEntity());
+        if (context.getCoreEntity() != null) {
+            totem.setParent(context.getCoreEntity());
+        }
 
         this.anchor = totem.getUniqueId();
         RPGCore.inst().getEntityManager().register(this.anchor, totem);

@@ -1,6 +1,8 @@
 package me.blutkrone.rpgcore.util.io;
 
 import me.blutkrone.rpgcore.RPGCore;
+import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -15,8 +17,31 @@ public class FileUtil {
 
     }
 
+    public static void copyDirectory(File from, File to) {
+        try {
+            // clear the initial directory
+            FileUtils.deleteDirectory(to);
+            // prepare to copy files over
+            File[] files = from.listFiles();
+            if (files == null) {
+                Bukkit.getLogger().severe("Directory does not exist: " + from.getAbsolutePath());
+                return;
+            }
+            // copy files over
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    FileUtils.copyDirectoryToDirectory(file, to);
+                } else {
+                    FileUtils.copyFileToDirectory(file, to);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static File directory(String directory) {
-        return new File(RPGCore.inst().getDataFolder() + "/" + directory);
+        return new File(RPGCore.inst().getDataFolder() + File.separator + directory);
     }
 
     public static File file(String directory, String file_name) {
@@ -68,6 +93,7 @@ public class FileUtil {
     }
 
     public static void saveToDirectory(YamlConfiguration data, File file) throws IOException {
+        file.getParentFile().mkdirs();
         if (!file.exists()) {
             file.createNewFile();
         }

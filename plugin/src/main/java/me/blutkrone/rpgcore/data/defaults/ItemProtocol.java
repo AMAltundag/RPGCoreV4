@@ -26,9 +26,6 @@ public class ItemProtocol implements DataProtocol {
             bundle.addString(slot);
             bundle.addString(BukkitSerialization.toBase64(item));
         });
-        // wipe items held by the player
-        player.getEntity().getInventory().clear();
-        player.getEntity().getEquipment().clear();
     }
 
     @Override

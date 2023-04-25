@@ -2,17 +2,18 @@ package me.blutkrone.rpgcore.hud.ux;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.hud.IUXComponent;
-import me.blutkrone.rpgcore.api.party.IActiveParty;
-import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
+import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.ResourceSnapshot;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class PartyComponent implements IUXComponent<List<PartyComponent.Snapshot>> {
@@ -54,23 +55,36 @@ public class PartyComponent implements IUXComponent<List<PartyComponent.Snapshot
     public List<Snapshot> prepare(CorePlayer core_player, Player bukkit_player) {
         List<Snapshot> snapshots = new ArrayList<>();
 
-        IActiveParty party = RPGCore.inst().getPartyManager().getPartyOf(core_player);
+        IPartySnapshot party = RPGCore.inst().getSocialManager().getGroupHandler().getPartySnapshot(core_player);
         if (party != null) {
-            List<IOfflineCorePlayer> members = party.getAllMembers();
-            for (IOfflineCorePlayer member : members) {
-                if (member instanceof CorePlayer) {
-                    snapshots.add(new Snapshot((CorePlayer) member));
+            List<OfflinePlayer> players = new ArrayList<>(party.getAllMembers());
+            players.sort(Comparator.comparingDouble(player -> {
+                if (player instanceof Player) {
+                    return ((Player) player).getLocation().distanceSquared(bukkit_player.getLocation());
                 } else {
-                    snapshots.add(new Snapshot(member));
+                    return Double.MAX_VALUE;
+                }
+            }));
+
+            for (OfflinePlayer player : players) {
+                CorePlayer party_player = RPGCore.inst().getEntityManager().getPlayer(player.getUniqueId());
+                if (party_player != null) {
+                    snapshots.add(new Snapshot(party_player));
+                } else {
+                    snapshots.add(new Snapshot(player));
                 }
             }
-        } else {
-            snapshots.add(new Snapshot("§aBilly And His Book", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
-            snapshots.add(new Snapshot("§aBobby And His Sword", new ResourceSnapshot(100, 300, 0.33), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
-            snapshots.add(new Snapshot("§aMicky And His Shoe", new ResourceSnapshot(100, 400, 0.25), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
-            snapshots.add(new Snapshot("§8Dobby And His Sock", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
-            snapshots.add(new Snapshot("§8Ricky And His Pickle", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
+
+            if (players.size() != 1) {
+                players.removeIf(player -> player.getUniqueId().equals(bukkit_player.getUniqueId()));
+            }
         }
+
+        snapshots.add(new Snapshot("§aBilly And His Book", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
+        snapshots.add(new Snapshot("§aBobby And His Sword", new ResourceSnapshot(100, 300, 0.33), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
+        snapshots.add(new Snapshot("§aMicky And His Shoe", new ResourceSnapshot(100, 400, 0.25), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
+        snapshots.add(new Snapshot("§8Dobby And His Sock", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
+        snapshots.add(new Snapshot("§8Ricky And His Pickle", new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5), new ResourceSnapshot(100, 200, 0.5)));
 
         return snapshots;
     }
@@ -124,7 +138,7 @@ public class PartyComponent implements IUXComponent<List<PartyComponent.Snapshot
             this.ward = online.getWard().snapshot();
         }
 
-        Snapshot(IOfflineCorePlayer offline) {
+        Snapshot(OfflinePlayer offline) {
             this.name = "§8" + offline.getName();
         }
     }

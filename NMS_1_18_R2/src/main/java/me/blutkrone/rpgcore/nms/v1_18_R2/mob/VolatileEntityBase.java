@@ -202,12 +202,6 @@ public class VolatileEntityBase implements IEntityBase {
         getAI().rage_value = 0;
         getAI().rage_cooldown = 0;
         getAI().rage_focus = 0;
-        getAI().rage_maximum = 0;
-    }
-
-    @Override
-    public void setRageLimit(double maximum_rage) {
-        getAI().rage_maximum = maximum_rage;
     }
 
     @Override
@@ -230,12 +224,13 @@ public class VolatileEntityBase implements IEntityBase {
             // 3 second cooldown before allowing to pull
             getAI().rage_cooldown = System.currentTimeMillis() + 5000L;
         } else if (getAI().rage_entity == source) {
-            // accumulate rage, and respect limits
-            double updated = getAI().rage_value + amount;
-            updated = Math.min(updated, maximum);
-            updated = Math.min(updated, getAI().rage_maximum);
-            // update the rage we're holding
-            getAI().rage_value = updated;
+            if (getAI().rage_value < maximum) {
+                // accumulate rage, and respect limits
+                double updated = getAI().rage_value + amount;
+                updated = Math.min(updated, maximum);
+                // update the rage we're holding
+                getAI().rage_value = updated;
+            }
         } else {
             // pull rage (reduced by focus from the rage holder)
             double updated = getAI().rage_value - (amount / (1d + Math.max(0d, getAI().rage_focus)));
@@ -254,21 +249,6 @@ public class VolatileEntityBase implements IEntityBase {
                 // 3 second cooldown before allowing to pull
                 getAI().rage_cooldown = System.currentTimeMillis() + 5000L;
             }
-        }
-    }
-
-    @Override
-    public void enrage(double amount) {
-        // rage cannot change during death sequence
-        if (getAI().death_routine != null) {
-            return;
-        }
-
-        // manipulate the rage (respecting maximum)
-        getAI().rage_value = Math.max(0d, Math.min(amount, getAI().rage_maximum));
-        // lose target if rage dipped below 0
-        if (getAI().rage_value <= 0d) {
-            getAI().rage_entity = null;
         }
     }
 
@@ -324,7 +304,6 @@ public class VolatileEntityBase implements IEntityBase {
         Map<String, List<AbstractEntityRoutine>> routines = new HashMap<>();
         Map<String, AbstractEntityRoutine> active = new HashMap<>();
         List<AbstractEntityRoutine> death_routines = new ArrayList<>();
-        double rage_maximum;
         LivingEntity rage_entity;
         double rage_value;
         double rage_focus;

@@ -207,10 +207,16 @@ public class EditorMenu extends AbstractCoreMenu {
         } else if (focused instanceof FocusQueue.ElementFocus) {
             FocusQueue.ElementFocus casted = (FocusQueue.ElementFocus) focused;
 
-            // save/clone only for non-categorized root element
-            if (casted.isRootInFullView()) {
+            // control elements for root objects
+            if (casted.isRootAndFullView()) {
                 this.getMenu().setItemAt(1, this.icon_save);
                 this.getMenu().setItemAt(2, this.icon_clone);
+                // custom editor objects
+                IEditorRoot<?> root = (IEditorRoot) casted.getBundle();
+                List<ItemStack> controls = root.getCustomControls();
+                for (int i = 0; i < controls.size(); i++) {
+                    this.getMenu().setItemAt(3 + i, controls.get(i));
+                }
             }
 
             if (casted.getCategory() != null) {
@@ -294,6 +300,16 @@ public class EditorMenu extends AbstractCoreMenu {
         // the element we've focused on
         FocusQueue.AbstractFocus focused = focus.getHeader();
 
+        // check for custom interaction
+        if (focused instanceof FocusQueue.ElementFocus) {
+            IEditorBundle bundle = ((FocusQueue.ElementFocus) focused).getBundle();
+            if (bundle instanceof IEditorRoot<?>) {
+                if (((IEditorRoot) bundle).onCustomControl(this, event.getCurrentItem(), event.getClick())) {
+                    return;
+                }
+            }
+        }
+
         if (this.icon_list_add.isSimilar(event.getCurrentItem())) {
             // add element to list
             this.actionAddToList();
@@ -309,7 +325,7 @@ public class EditorMenu extends AbstractCoreMenu {
             this.actionCreateOrLoad();
         } else if (this.icon_save.isSimilar(event.getCurrentItem())) {
             // create backup, save to disk
-            this.actionSaveToDisk();
+            this.actionSaveToDisk(false);
         } else if (this.icon_clone.isSimilar(event.getCurrentItem())) {
             // create copy of current and open that
             this.actionCreateClone();
@@ -464,31 +480,37 @@ public class EditorMenu extends AbstractCoreMenu {
         getMenu().queryRebuild();
     }
 
-    /*
+    /**
      * Keep a back-up before saving to the disk and applying a
      * synchronization call.
      *
-     * @param editor which menu to implement logic on
+     * @param silent Offer feedback
      */
-    private void actionSaveToDisk() {
+    public boolean actionSaveToDisk(boolean silent) {
         // check if we've got an element focused
         FocusQueue.AbstractFocus focused = focus.getHeader();
         if (!(focused instanceof FocusQueue.ElementFocus)) {
-            getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
-            return;
+            if (!silent) {
+                getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
+            }
+            return false;
         }
         // check if we are a root focus
         FocusQueue.ElementFocus casted = (FocusQueue.ElementFocus) focused;
         if (!casted.isRootElement()) {
-            getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
-            return;
+            if (!silent) {
+                getMenu().getViewer().sendMessage("§cThe focus is not a RootFocus!");
+            }
+            return false;
         }
         // apply our changes to the focused element
         IEditorRoot root = (IEditorRoot) casted.getBundle();
         String id = casted.getId().orElse(null);
         if (id == null) {
-            getMenu().getViewer().sendMessage("§cMissing an ID to save to!");
-            return;
+            if (!silent) {
+                getMenu().getViewer().sendMessage("§cMissing an ID to save to!");
+            }
+            return false;
         }
         // save the changes we did
         casted.getIndex().update(id, root.build(id));
@@ -498,14 +520,20 @@ public class EditorMenu extends AbstractCoreMenu {
             Bukkit.getLogger().severe("not implemented (backup before save)");
             // apply the actual saving
             root.save();
-            // drop an element and attempt to save
-            focus.drop();
-            getMenu().queryRebuild();
             // inform about having saved
-            getMenu().getViewer().sendMessage("§aSaved '" + id + "' to disk!");
+            if (!silent) {
+                focus.drop();
+                getMenu().queryRebuild();
+                getMenu().getViewer().sendMessage("§aSaved '" + id + "' to disk!");
+            }
+
+            return true;
         } catch (IOException e) {
-            getMenu().getViewer().sendMessage("§cSomething went wrong while saving!");
+            if (!silent) {
+                getMenu().getViewer().sendMessage("§cSomething went wrong while saving!");
+            }
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -676,6 +704,8 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void response(String text) {
+            text = text.toLowerCase();
+
             // try adding the value to the list
             if (text.isBlank()) {
                 // warn about input value being too short
@@ -754,6 +784,7 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void response(String text) {
+            text = text.toLowerCase();
             EditorIndex index = getFocus().getHeader().getIndex();
 
             if (text.isBlank()) {
@@ -844,6 +875,7 @@ public class EditorMenu extends AbstractCoreMenu {
 
         @Override
         public void response(String text) {
+            text = text.toLowerCase();
             EditorIndex index = getFocus().getHeader().getIndex();
 
             if (!text.isBlank() && !index.has(text)) {

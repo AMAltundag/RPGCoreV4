@@ -25,7 +25,7 @@ public class FaceMechanic extends AbstractCoreMechanic {
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         // pick the anchor point to pick
-        List<IOrigin> where = Collections.singletonList(context.getCoreEntity());
+        List<IOrigin> where = Collections.singletonList(context.getOrigin());
         for (AbstractCoreSelector selector : this.where) {
             where = selector.doSelect(context, where);
         }

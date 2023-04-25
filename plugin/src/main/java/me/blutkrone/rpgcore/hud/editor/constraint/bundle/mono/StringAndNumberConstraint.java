@@ -1,13 +1,10 @@
 package me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorStringAndNumber;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.AbstractMonoConstraint;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class StringAndNumberConstraint extends AbstractMonoConstraint {
 

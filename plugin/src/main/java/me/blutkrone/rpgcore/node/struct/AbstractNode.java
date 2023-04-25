@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.node.struct;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ import java.util.List;
  */
 public abstract class AbstractNode {
 
+    // preview of the node
+    private ItemStack preview;
     // unique identifier to edit the node
     private String id;
     // permission necessary to engage node
@@ -18,9 +21,20 @@ public abstract class AbstractNode {
     // maximum distance to 'tick' the node
     private int engage_radius;
 
-    public AbstractNode(String id, int radius) {
+    public AbstractNode(String id, int radius, ItemStack preview) {
         this.id = id;
         this.engage_radius = radius;
+        this.preview = preview;
+    }
+
+    /**
+     * Preview of the backing node, snapshot from
+     * the editor instance.
+     *
+     * @return Preview of node
+     */
+    public ItemStack getPreview() {
+        return preview;
     }
 
     /**

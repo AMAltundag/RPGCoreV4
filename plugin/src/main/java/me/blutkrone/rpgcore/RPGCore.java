@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
-import me.blutkrone.rpgcore.api.guild.IGuildManager;
-import me.blutkrone.rpgcore.api.party.IPartyManager;
-import me.blutkrone.rpgcore.api.social.ISocialManager;
+import me.blutkrone.rpgcore.api.social.IGuildHandler;
 import me.blutkrone.rpgcore.attribute.AttributeManager;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.command.CommandArgumentException;
@@ -21,6 +21,7 @@ import me.blutkrone.rpgcore.hologram.HologramManager;
 import me.blutkrone.rpgcore.hud.HUDManager;
 import me.blutkrone.rpgcore.hud.editor.bundle.EditorBundleGsonAdapter;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.hud.world.WorldIntegrationManager;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.job.JobManager;
 import me.blutkrone.rpgcore.language.LanguageManager;
@@ -32,28 +33,51 @@ import me.blutkrone.rpgcore.mount.MountManager;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
 import me.blutkrone.rpgcore.node.NodeManager;
 import me.blutkrone.rpgcore.npc.NPCManager;
-import me.blutkrone.rpgcore.party.PartyManager;
 import me.blutkrone.rpgcore.passive.PassiveManager;
 import me.blutkrone.rpgcore.quest.QuestManager;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.skin.SkinPool;
+import me.blutkrone.rpgcore.social.BungeeTable;
+import me.blutkrone.rpgcore.social.SocialManager;
 import me.blutkrone.rpgcore.util.io.FileUtil;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public final class RPGCore extends JavaPlugin {
+public final class RPGCore extends JavaPlugin implements PluginMessageListener {
+
+    static {
+        Logger.getLogger("org.mongodb.driver").setLevel(Level.WARNING);
+        Logger.getLogger("org.mongodb.driver.cluster").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.protocol.event").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.connection").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.cluster").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.connection.tls").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.command").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.management").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.authenticator").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.operation").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.protocol.event").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.client").setFilter((log -> false));
+        Logger.getLogger("org.mongodb.driver.cluster.event").setFilter((log -> false));
+
+    }
 
     // incremented by +1 each tick
     private int timestamp;
@@ -83,14 +107,15 @@ public final class RPGCore extends JavaPlugin {
     private NPCManager npc_manager;
     private MailManager mail_manager;
     private SkillManager skill_manager;
-    private IPartyManager party_manager;
     private QuestManager quest_manager;
     private MobManager mob_manager;
     private PassiveManager passive_manager;
+    private SocialManager social_manager;
+    private WorldIntegrationManager world_integration_manager;
+
     // Managers providing high-level functionality for the server
     private MountManager mount_manager;
-    private IGuildManager guild_manager;
-    private ISocialManager social_manager;
+    private IGuildHandler guild_manager;
     private LevelManager level_manager;
     private DungeonManager dungeon_manager;
 
@@ -100,14 +125,20 @@ public final class RPGCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // synchronize configuration
+        ToolConfigPushCommand.pullConfig();
         // copy our demo world if we got one
-        File demo_template = FileUtil.directory("demo_world");
-        File demo_current = new File(Bukkit.getWorldContainer().getAbsolutePath() + File.separator + "rpgcore_demo");
-        if (demo_template.exists() && !demo_current.exists()) {
-            org.bukkit.util.FileUtil.copy(demo_template, demo_current);
+        File demo_want = FileUtil.directory("demo_world");
+        File demo_have = new File(Bukkit.getWorldContainer().getAbsolutePath() + File.separator + "rpgcore_demo");
+        if (demo_want.exists() && !demo_have.exists()) {
+            try {
+                FileUtils.copyDirectory(demo_want, demo_have);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         // load demo world if it is registered
-        if (demo_current.exists()) {
+        if (demo_have.exists()) {
             World demo = WorldCreator.name("rpgcore_demo")
                     .type(WorldType.FLAT)
                     .generateStructures(false)
@@ -166,13 +197,11 @@ public final class RPGCore extends JavaPlugin {
         this.language_manager = new LanguageManager();
         this.damage_manager = new DamageManager();
         this.resourcepack_manager = new ResourcePackManager();
-
         this.attribute_manager = new AttributeManager();
         this.job_manager = new JobManager();
         this.minimap_manager = new MinimapManager();
         this.item_manager = new ItemManager();
         this.skill_manager = new SkillManager();
-        this.party_manager = new PartyManager();
         this.effect_manager = new EffectManager();
         this.node_manager = new NodeManager();
         this.npc_manager = new NPCManager();
@@ -180,10 +209,12 @@ public final class RPGCore extends JavaPlugin {
         this.quest_manager = new QuestManager();
         this.passive_manager = new PassiveManager();
         this.level_manager = new LevelManager();
-
+        this.dungeon_manager = new DungeonManager();
+        this.social_manager = new SocialManager();
         this.mail_manager = new MailManager();
         this.hud_manager = new HUDManager();
         this.hologram_manager = new HologramManager();
+        this.world_integration_manager = new WorldIntegrationManager();
 
         // initialize relevant commands
         this.commands.put("mob", new SpawnMobCommand());
@@ -195,7 +226,7 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("compile", new ResourcepackCompileCommand());
         this.commands.put("url", new ResourcepackLinkCommand());
         this.commands.put("debug", new DebugCommand());
-        this.commands.put("tool", new NodeToolCommand());
+        this.commands.put("tool", new WorldToolCommand());
         this.commands.put("reload", new ReloadCommand());
         this.commands.put("help", new HelpCommand());
         this.commands.put("attribute", new TemporaryAttributeCommand());
@@ -203,6 +234,15 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("passive", new PassivePointCommand());
         this.commands.put("tree", new ViewPassiveTreeCommand());
         this.commands.put("exp", new ExpCommand());
+        this.commands.put("social", new SocialCommand());
+        this.commands.put("dexit", new DungeonExitCommand());
+
+        this.commands.put("migrate", new ToolPlayerMigrateCommand());
+        this.commands.put("push", new ToolConfigPushCommand());
+
+        // hook into bungeecord for RPGCore protocol
+        getServer().getMessenger().registerOutgoingPluginChannel(this, BungeeTable.CHANNEL_RPGCORE);
+        getServer().getMessenger().registerIncomingPluginChannel(this, BungeeTable.CHANNEL_RPGCORE, this);
 
         // task to update the timestamp
         Bukkit.getScheduler().runTaskTimer(this, () -> this.timestamp += 1, 1, 1);
@@ -225,6 +265,9 @@ public final class RPGCore extends JavaPlugin {
         }
         // make sure the data adapter finished
         getDataManager().flush();
+        // close down message channel
+        this.getServer().getMessenger().unregisterOutgoingPluginChannel(this);
+        this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
     }
 
     /**
@@ -322,6 +365,30 @@ public final class RPGCore extends JavaPlugin {
         return true;
     }
 
+    @Override
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+        if (BungeeTable.CHANNEL_RPGCORE.equals(channel)) {
+            ByteArrayDataInput in = ByteStreams.newDataInput(message);
+            channel = in.readUTF();
+            if (channel.equalsIgnoreCase(BungeeTable.PROXY_BASIC_MESSAGE)) {
+                // proxy wants to deploy message
+                String proxy_message = in.readUTF();
+                // grab LC information
+                LanguageManager language = RPGCore.inst().getLanguageManager();
+                String translation = language.getTranslation(proxy_message);
+                int size = in.readInt();
+                for (int i = 0; i < size; i++) {
+                    String arg = in.readUTF();
+                    translation = translation.replace("{" + i + "}", arg);
+                }
+                // send message to player
+                player.sendMessage(translation);
+            } else {
+                getSocialManager().onBungeeMessage(player, channel, in);
+            }
+        }
+    }
+
     public AbstractVolatileManager getVolatileManager() {
         return volatile_manager;
     }
@@ -370,10 +437,6 @@ public final class RPGCore extends JavaPlugin {
         return skill_manager;
     }
 
-    public IPartyManager getPartyManager() {
-        return party_manager;
-    }
-
     public JobManager getJobManager() {
         return job_manager;
     }
@@ -408,5 +471,17 @@ public final class RPGCore extends JavaPlugin {
 
     public LevelManager getLevelManager() {
         return level_manager;
+    }
+
+    public DungeonManager getDungeonManager() {
+        return dungeon_manager;
+    }
+
+    public SocialManager getSocialManager() {
+        return social_manager;
+    }
+
+    public WorldIntegrationManager getWorldIntegrationManager() {
+        return world_integration_manager;
     }
 }

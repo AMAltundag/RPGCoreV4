@@ -55,6 +55,11 @@ public class TriggerMechanic extends AbstractCoreMechanic {
         double cooldown_recovery = this.cooldown_recovery.evalAsDouble(context);
         String cooldown_id = this.cooldown_id.evaluate(context);
 
+        // non-entity cannot use triggers
+        if (context.getCoreEntity() == null) {
+            return;
+        }
+
         // skip if on cooldown
         if (context.getCoreEntity().getCooldown(cooldown_id) > 0) {
             return;
@@ -111,7 +116,7 @@ public class TriggerMechanic extends AbstractCoreMechanic {
             if (casting.getBinding() instanceof SkillBindCast) {
                 for (CoreAction action : ((SkillBindCast) casting.getBinding()).actions) {
                     CoreAction.ActionPipeline pipeline = action.pipeline(context, Collections.singletonList(target));
-                    context.getCoreEntity().getActions().add(pipeline);
+                    context.addPipeline(pipeline);
                 }
             }
         }

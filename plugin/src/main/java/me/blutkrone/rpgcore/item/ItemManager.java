@@ -14,6 +14,7 @@ import me.blutkrone.rpgcore.item.data.*;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
 import me.blutkrone.rpgcore.item.styling.DefaultItemDescriptor;
+import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
 import me.blutkrone.rpgcore.item.styling.ItemStylingRule;
 import me.blutkrone.rpgcore.item.styling.SkillItemDescriptor;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -255,7 +256,7 @@ public class ItemManager implements Listener {
      * @param item   the item we are to describe.
      * @param player who will see the item.
      */
-    public void describe(ItemStack item, CorePlayer player) {
+    public void describe(ItemStack item, IDescriptorReference player) {
         if (item == null) {
             return;
         }

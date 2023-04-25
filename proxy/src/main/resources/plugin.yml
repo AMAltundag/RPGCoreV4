@@ -1,0 +1,4 @@
+name: RPGProxy
+version: ${project.version}
+main: com.blutkrone.rpgproxy.RPGProxy
+description: Proxy plugin for RPGCore

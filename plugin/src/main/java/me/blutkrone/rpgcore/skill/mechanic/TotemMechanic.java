@@ -61,7 +61,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
      * @param entity whose trap proxies to count
      * @return how many traps we have
      */
-    private int count(CoreEntity entity) {
+    private int count(IContext entity) {
         int output = 0;
         List<AbstractSkillProxy> proxies = entity.getProxies();
         for (AbstractSkillProxy proxy : proxies) {
@@ -145,14 +145,14 @@ public class TotemMechanic extends AbstractCoreMechanic {
         double multi = 1d + Math.max(0d, this.multi.evalAsDouble(context));
         int limit = this.limit.evalAsInt(context);
         boolean exact = this.exact.evaluate(context);
-        int active = count(context.getCoreEntity());
+        int active = count(context);
 
         if (exact) {
             // spawn one totem at the exact location, respecting limit
             for (IOrigin target : targets) {
                 if (active < limit) {
                     TotemProxy proxy = new TotemProxy(context, target, interval, duration, this.provider, this.logic_on_tick, this.logic_on_finish, health, this.filter);
-                    context.getCoreEntity().getProxies().add(proxy);
+                    context.addProxy(proxy);
                     active += 1;
                 }
             }
@@ -167,7 +167,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
                 // spawn one totem at where we are facing
                 if (active < limit) {
                     TotemProxy proxy = new TotemProxy(context, spawn_where, interval, duration, this.provider, this.logic_on_tick, this.logic_on_finish, health, this.filter);
-                    context.getCoreEntity().getProxies().add(proxy);
+                    context.addProxy(proxy);
                     active += 1;
                     proxy.getTotem().getEntity().setVelocity(new Vector(0d, 0.2d, 0d));
                 }
@@ -176,7 +176,7 @@ public class TotemMechanic extends AbstractCoreMechanic {
                 while (Math.random() < multi_remaining-- && active < limit) {
                     // spawn totem at the given spot
                     TotemProxy proxy = new TotemProxy(context, spawn_where, interval, duration, this.provider, this.logic_on_tick, this.logic_on_finish, health, this.filter);
-                    context.getCoreEntity().getProxies().add(proxy);
+                    context.addProxy(proxy);
                     active += 1;
                     // bounce to a proper location
                     proxy.getTotem().getEntity().setVelocity(new Vector(Math.random() - 0.5, 0.2d, Math.random() - 0.5));

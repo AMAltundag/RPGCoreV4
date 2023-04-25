@@ -373,6 +373,16 @@ public class CoreEntity implements IContext, IOrigin {
         return proxies;
     }
 
+    @Override
+    public void addPipeline(CoreAction.ActionPipeline pipeline) {
+        this.getActions().add(pipeline);
+    }
+
+    @Override
+    public List<CoreAction.ActionPipeline> getPipelines() {
+        return this.getActions();
+    }
+
     /**
      * The current activity which the player has.
      *
@@ -627,6 +637,16 @@ public class CoreEntity implements IContext, IOrigin {
         return this;
     }
 
+    @Override
+    public IOrigin getOrigin() {
+        return new SnapshotOrigin(getLocation());
+    }
+
+    @Override
+    public void addProxy(AbstractSkillProxy proxy) {
+        this.getProxies().add(proxy);
+    }
+
     /**
      * Acquire a certain tag, until it is expired.
      *
@@ -751,10 +771,39 @@ public class CoreEntity implements IContext, IOrigin {
      * Check if we are considered friendly to the other entity, this
      * is expected to be bi-directional.
      *
+     * @param context who to compare against
+     * @return whether we are friendly
+     */
+    public boolean isFriendly(IContext context) {
+        CoreEntity other = context.getCoreEntity();
+        return other != null && isFriendly(other);
+    }
+
+    /**
+     * Check if we are considered hostile to the other entity, this
+     * is expected to be bi-directional.
+     *
+     * @param context who to compare against
+     * @return whether we are hostile
+     */
+    public boolean isHostile(IContext context) {
+        CoreEntity other = context.getCoreEntity();
+        return other != null && isHostile(other);
+    }
+
+    /**
+     * Check if we are considered friendly to the other entity, this
+     * is expected to be bi-directional.
+     *
      * @param other who to compare against
      * @return whether we are friendly
      */
     public boolean isFriendly(CoreEntity other) {
+        // relationship fail if null
+        if (other == null) {
+            return false;
+        }
+
         // grab parent of this entity
         CoreEntity a = this;
         while (a.getParent() != null) {
@@ -800,6 +849,11 @@ public class CoreEntity implements IContext, IOrigin {
      * @return whether we are hostile
      */
     public boolean isHostile(CoreEntity other) {
+        // relationship fail null
+        if (other == null) {
+            return false;
+        }
+
         // grab parent of this entity
         CoreEntity a = this;
         while (a.getParent() != null) {

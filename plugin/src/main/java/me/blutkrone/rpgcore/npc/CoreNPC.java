@@ -23,7 +23,10 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Entity meant for miscellaneous purposes.
@@ -52,7 +55,7 @@ public class CoreNPC extends AbstractNode {
     private ItemStack offhand;
 
     public CoreNPC(String id, EditorNPC editor) {
-        super(id, 32);
+        super(id, 32, editor.getPreview());
 
         if (!editor.skin.equalsIgnoreCase("NOTHINGNESS")) {
             this.skin = editor.skin;
@@ -67,6 +70,25 @@ public class CoreNPC extends AbstractNode {
         }
         this.quest_whitelist = new ArrayList<>(editor.quest_required);
         this.quest_blacklist = new ArrayList<>(editor.quest_forbidden);
+
+        if (!editor.item_helmet.equalsIgnoreCase("nothingness")) {
+            this.helmet = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_helmet).getTemplate();
+        }
+        if (!editor.item_chestplate.equalsIgnoreCase("nothingness")) {
+            this.chestplate = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_chestplate).getTemplate();
+        }
+        if (!editor.item_boots.equalsIgnoreCase("nothingness")) {
+            this.boots = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_boots).getTemplate();
+        }
+        if (!editor.item_mainhand.equalsIgnoreCase("nothingness")) {
+            this.mainhand = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_mainhand).getTemplate();
+        }
+        if (!editor.item_offhand.equalsIgnoreCase("nothingness")) {
+            this.offhand = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_offhand).getTemplate();
+        }
+        if (!editor.item_pants.equalsIgnoreCase("nothingness")) {
+            this.pants = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_pants).getTemplate();
+        }
     }
 
     /**
@@ -168,28 +190,29 @@ public class CoreNPC extends AbstractNode {
      * @return the offer if available
      */
     public CoreQuest getQuestRewardOffer(CorePlayer player) {
-        // grab quest list from the quest trait
-        Set<String> offered_quests = new HashSet<>();
-        Optional.ofNullable(getTrait(CoreQuestTrait.class)).ifPresent(trait -> {
-            offered_quests.addAll(trait.getQuests());
-        });
-        // search for any quest that has no more tasks (finished)
-        for (String id : player.getActiveQuestIds()) {
-            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
-            // ensure this NPC can actually offer the rewards
-            String npc = quest.getRewardNPC();
-            if (npc == null) {
-                if (!offered_quests.contains(id)) {
+        CoreQuestTrait trait = getTrait(CoreQuestTrait.class);
+        if (trait != null && trait.isAvailable(player)) {
+            // grab quest list from the quest trait
+            Set<String> offered_quests = new HashSet<>(trait.getQuests());
+            // search for any quest that has no more tasks (finished)
+            for (String id : player.getActiveQuestIds()) {
+                CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+                // ensure this NPC can actually offer the rewards
+                String npc = quest.getRewardNPC();
+                if (npc == null) {
+                    if (!offered_quests.contains(id)) {
+                        continue;
+                    }
+                } else if (!npc.equalsIgnoreCase(this.getId())) {
                     continue;
                 }
-            } else if (!npc.equalsIgnoreCase(this.getId())) {
-                continue;
-            }
-            // if no tasks are left, we can claim a reward
-            if (quest.getCurrentTask(player) == null) {
-                return quest;
+                // if no tasks are left, we can claim a reward
+                if (quest.getCurrentTask(player) == null) {
+                    return quest;
+                }
             }
         }
+
         // this NPC has no quests to claim
         return null;
     }
@@ -245,8 +268,8 @@ public class CoreNPC extends AbstractNode {
      * The cortex allows to organize traits of an NPC into a single
      * menu.
      *
-     * @param player    who wants to view the cortex
-     * @param shortcut  bypass cortex selection if we have a priority
+     * @param player   who wants to view the cortex
+     * @param shortcut bypass cortex selection if we have a priority
      */
     public void interact(Player player, boolean shortcut) {
         CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
@@ -257,9 +280,6 @@ public class CoreNPC extends AbstractNode {
         // find the traits we can interact with
         List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
         traits.removeIf((trait -> !trait.isAvailable(core_player)));
-        if (traits.isEmpty()) {
-            return;
-        }
 
         // handle shortcuts if appropriate
         if (shortcut) {
@@ -297,6 +317,60 @@ public class CoreNPC extends AbstractNode {
         } else if (traits.size() >= 6) {
             new CortexMenu.Cortex6(traits, this).finish(player);
         }
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getHelmet() {
+        return helmet;
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getChestplate() {
+        return chestplate;
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getPants() {
+        return pants;
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getBoots() {
+        return boots;
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getMainhand() {
+        return mainhand;
+    }
+
+    /**
+     * Item model to show on the NPC
+     *
+     * @return Item model, or null
+     */
+    public ItemStack getOffhand() {
+        return offhand;
     }
 
     @Override
@@ -339,10 +413,6 @@ public class CoreNPC extends AbstractNode {
         NodeDataSpawnerNPC() {
         }
 
-        @Override
-        public void highlight(int time) {
-
-        }
 
         @Override
         public void abandon() {

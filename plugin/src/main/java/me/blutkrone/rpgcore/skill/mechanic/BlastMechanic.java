@@ -53,7 +53,7 @@ public class BlastMechanic extends AbstractCoreMechanic {
                 where = target.isolate();
             }
             BlastProxy proxy = new BlastProxy(context, where, this.impact, this.effects, duration, start, expansion_per_second, angle, shrink_per_second);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

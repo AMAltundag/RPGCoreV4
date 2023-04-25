@@ -14,10 +14,10 @@ public class DialogueMenu {
     /**
      * Present dialogue to a player.
      *
-     * @param _dialogue  which dialogue are we presenting
-     * @param _player    who will see the dialogue
-     * @param npc        who to source the dialogue from
-     * @param task       an optional task we sourced the dialogue from
+     * @param _dialogue which dialogue are we presenting
+     * @param _player   who will see the dialogue
+     * @param npc       who to source the dialogue from
+     * @param task      an optional task we sourced the dialogue from
      */
     public void open(CoreDialogue _dialogue, Player _player, CoreNPC npc, CoreQuestTaskTalk task) {
         new me.blutkrone.rpgcore.menu.DialogueMenu(_dialogue, npc, task).finish(_player);

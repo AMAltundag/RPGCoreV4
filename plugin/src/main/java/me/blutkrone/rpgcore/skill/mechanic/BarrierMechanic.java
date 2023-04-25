@@ -43,10 +43,14 @@ public class BarrierMechanic extends AbstractCoreMechanic {
      * Create a barrier that stalls execution until a certain
      * amount of damage is taken.
      *
-     * @param mob who creates the barrier.
+     * @param context Context to build barrier of
      * @return the barrier instance created.
      */
-    public ActiveBarrier activate(CoreEntity mob) {
+    public ActiveBarrier activate(IContext context) {
+        CoreEntity mob = context.getCoreEntity();
+        if (mob == null) {
+            return null;
+        }
         return new ActiveBarrier(mob);
     }
 

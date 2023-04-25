@@ -41,7 +41,7 @@ public class CoreToBukkitAttributeTask extends BukkitRunnable {
         }
 
         // adjust bukkit movement speed modifier
-        double move_speed = Math.min(5d, Math.max(0.25, (1d + this.entity.evaluateAttribute("MOVE_SPEED")) * (1d + action_speed)));
+        double move_speed = Math.min(5d, Math.max(0.01, (1d + this.entity.evaluateAttribute("MOVE_SPEED")) * (1d + action_speed)));
         if (Math.abs(move_speed - last_move_speed) > 0.001d) {
             AttributeInstance attribute = bukkit_entity.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MOVEMENT_SPEED);
             Utility.swapModifier(attribute, "rpgcore_move_speed", move_speed, AttributeModifier.Operation.MULTIPLY_SCALAR_1);

@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.data.defaults;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
@@ -118,6 +119,7 @@ public class PassiveProtocol implements DataProtocol {
                     String socketedB64 = bundle.getString(header++);
                     try {
                         ItemStack socketed = BukkitSerialization.fromBase64(socketedB64)[0];
+                        RPGCore.inst().getItemManager().describe(socketed, player);
                         player.setPassiveSocketed(tree, where, socketed);
                     } catch (IOException e) {
                         e.printStackTrace();

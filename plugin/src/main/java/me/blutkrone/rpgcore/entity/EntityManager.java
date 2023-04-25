@@ -65,6 +65,15 @@ public class EntityManager implements Listener {
     }
 
     /**
+     * Handle backing the entity manager.
+     *
+     * @return active entities
+     */
+    public Map<UUID, CoreEntity> getHandleUnsafe() {
+        return entity;
+    }
+
+    /**
      * Register the entity to the entity mapping, a finished entity is
      * expected to be provided
      */

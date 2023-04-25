@@ -128,7 +128,7 @@ public abstract class AbstractVolatileManager {
      * @return the menu that was created
      */
     @Deprecated
-    public abstract IChestMenu createMenu(int size, Player holder);
+    public abstract IChestMenu createMenu(int size, Player holder, Object core_handle);
 
     /**
      * Create a text input, do not recycle.

@@ -142,7 +142,8 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
 
         Snapshot(CoreEntity entity) {
             if (entity instanceof CoreMob) {
-                this.name = ((CoreMob) entity).getTemplate().getName();
+                this.name = ((CoreMob) entity).getTemplate().getName()
+                        .replace("{LEVEL}", String.valueOf(entity.getCurrentLevel()));
             } else {
                 this.name = entity.getEntity().getName();
             }

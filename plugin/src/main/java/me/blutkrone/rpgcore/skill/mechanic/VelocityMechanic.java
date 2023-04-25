@@ -34,7 +34,7 @@ public class VelocityMechanic extends AbstractCoreMechanic {
         double vertical = this.vertical.evalAsDouble(context);
 
         // compute our anchor
-        List<IOrigin> anchors = Collections.singletonList(context.getCoreEntity());
+        List<IOrigin> anchors = Collections.singletonList(context.getOrigin());
         for (AbstractCoreSelector selector : origin) {
             anchors = selector.doSelect(context, anchors);
         }

@@ -28,7 +28,7 @@ public class CoreNodeHotspot extends AbstractNode {
     private static ItemStack NOTHING = ItemBuilder.of(Material.STONE_PICKAXE).model(0).build();
 
     public CoreNodeHotspot(String id, EditorNodeHotspot editor) {
-        super(id, (int) editor.radius);
+        super(id, (int) editor.radius, editor.getPreview());
     }
 
     @Override
@@ -123,15 +123,6 @@ public class CoreNodeHotspot extends AbstractNode {
             collider.move(visual.asBukkit().getLocation());
             // offer up our model entity
             return visual;
-        }
-
-        @Override
-        public void highlight(int time) {
-            IEntityCollider collider_entity = this.collide.get();
-            if (collider_entity == null) {
-                return;
-            }
-            collider_entity.highlight(30);
         }
 
         @Override

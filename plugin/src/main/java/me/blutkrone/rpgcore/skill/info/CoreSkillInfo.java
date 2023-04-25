@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorSkillInfo;
 import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
+import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import org.bukkit.Bukkit;
@@ -61,6 +62,15 @@ public class CoreSkillInfo {
         readables.replaceAll((string -> {
             return manager.formatAsVersatile(string, Collections.singletonMap("auto", value));
         }));
+        // render the specific modifier we have
+        return readables;
+    }
+
+    public List<String> getLCReadable(IDescriptorReference player) {
+        // grab translation and format it to the value
+        LanguageManager manager = RPGCore.inst().getLanguageManager();
+        List<String> readables = manager.getTranslationList(this.lc_readable);
+        readables.replaceAll(manager::formatAsVague);
         // render the specific modifier we have
         return readables;
     }

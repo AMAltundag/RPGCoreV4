@@ -21,7 +21,7 @@ public class EditorQuestRewardItem extends AbstractEditorQuestReward {
     public String item = "NOTHINGNESS";
     @EditorNumber(name = "Amount", minimum = 0, maximum = 64)
     @EditorTooltip(tooltip = "Amount is limited by effective stack size.")
-    public int amount = 1;
+    public double amount = 1;
 
     public EditorQuestRewardItem() {
     }

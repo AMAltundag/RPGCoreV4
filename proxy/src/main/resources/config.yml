@@ -1,0 +1,11 @@
+matchmaker-configuration:
+  example_dungeon:
+    # How many players to play content (will bypass local server config)
+    players: 6
+    # Use server with least players online
+    servers:
+    - "server-1"
+    - "server-2"
+    - "server-3"
+    # Limited player count (queued + server)
+    maximum-players: 50

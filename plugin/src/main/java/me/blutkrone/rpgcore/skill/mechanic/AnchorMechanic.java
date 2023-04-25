@@ -27,7 +27,7 @@ public class AnchorMechanic extends AbstractCoreMechanic {
 
         for (IOrigin target : targets) {
             AnchorProxy proxy = new AnchorProxy(context, target, this.item, this.ticker, duration);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

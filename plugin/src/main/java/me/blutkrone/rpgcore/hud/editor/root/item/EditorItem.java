@@ -13,6 +13,7 @@ import me.blutkrone.rpgcore.hud.editor.constraint.enums.ItemTypeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.enums.MaterialConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.ItemStyleConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
+import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.AttributeConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ImplicitModifierConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
@@ -55,6 +56,9 @@ public class EditorItem implements IEditorRoot<CoreItem> {
     @EditorList(name = "Tags", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = {"Tags which the item can be addressed with", "The ID 'DIRECT_<id>' is always generated"})
     public List<String> tags = new ArrayList<>();
+    @EditorList(name = "Weapon", constraint = AttributeConstraint.class)
+    @EditorTooltip(tooltip = {"Damage multiplier attributes if used as a weapon.", "This only applies for damage type 'weapon'"})
+    public List<String> weapon_scaling_attribute = new ArrayList<>();
 
     @EditorCategory(icon = Material.ANVIL, info = {"Durability", "Configure durability and repairing"})
     @EditorNumber(name = "Durability")

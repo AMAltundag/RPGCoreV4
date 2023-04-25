@@ -5,7 +5,6 @@ import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.menu.NavigationMenu;
 import me.blutkrone.rpgcore.minimap.MapMarker;
-import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -31,18 +30,18 @@ public class SpawnInitiator implements IRosterInitiator {
 
     @Override
     public boolean initiate(CorePlayer player) {
-        // check if a spawnpoint selection is mandatory
+        // only pick spawnpoint if none was picked
         if (player.getRespawnPosition() != null) {
-            // prevent getting stuck after logging off during character creation
-            if (player.getLoginPosition() != null) {
-                double distSq = Utility.distanceSqOrWorld(player.getLoginPosition(), RPGCore.inst().getDataManager().getPreLoginPosition());
-                if (distSq <= 1d) {
-                    player.setLoginPosition(player.getRespawnPosition());
-                }
-            }
-
+            // // prevent getting stuck after logging off during character creation
+            // if (player.getLoginPosition() != null) {
+            //     double distSq = Utility.distanceSqOrWorld(player.getLoginPosition(), RPGCore.inst().getDataManager().getPreLoginPosition());
+            //     if (distSq <= 1d) {
+            //         player.setLoginPosition(player.getRespawnPosition());
+            //     }
+            // }
             return false;
         }
+
         // ensure that the spawn-camp locations are valid
         this.spawnpoints.removeIf(point -> {
             Location where = point.getWhere();

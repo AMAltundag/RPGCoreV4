@@ -54,6 +54,7 @@ public class HUDManager implements Listener {
     private DialogueMenu dialogue_menu;
     private QuestMenu quest_menu;
     private PlayerMenu player_menu;
+    private SocialMenu social_menu;
 
     public HUDManager() {
         // load the appropriate UX components
@@ -79,6 +80,7 @@ public class HUDManager implements Listener {
             this.dialogue_menu = new DialogueMenu();
             this.quest_menu = new QuestMenu();
             this.player_menu = new PlayerMenu();
+            this.social_menu = new SocialMenu();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -180,6 +182,10 @@ public class HUDManager implements Listener {
 
     public QuestMenu getQuestMenu() {
         return quest_menu;
+    }
+
+    public SocialMenu getSocialMenu() {
+        return social_menu;
     }
 
     /**

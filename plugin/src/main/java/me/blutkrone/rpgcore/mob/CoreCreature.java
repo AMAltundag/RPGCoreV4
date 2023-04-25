@@ -108,7 +108,7 @@ public class CoreCreature {
 
         // initialization within bukkit space
         LivingEntity bukkit_entity = this.mob_factory.create(where);
-        bukkit_entity.setCustomName(this.getName());
+        bukkit_entity.setCustomName(this.getName().replace("{LEVEL}", String.valueOf(level)));
         bukkit_entity.setCustomNameVisible(false);
         bukkit_entity.setPersistent(false);
 

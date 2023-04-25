@@ -52,12 +52,12 @@ public class LevelManager {
     /**
      * Get an exp multiplier with relative levels.
      *
-     * @param self level of the one gaining the exp
+     * @param self  level of the one gaining the exp
      * @param other level of the one providing the exp
      * @return multiplier to experience
      */
     public double getMultiplier(int self, int other) {
-        return this.exp_multiplier.computeIfAbsent((self-other), (diff -> {
+        return this.exp_multiplier.computeIfAbsent((self - other), (diff -> {
             try {
                 return this.lazy_exp_multiplier.with("difference", diff).evaluate().getNumberValue().doubleValue();
             } catch (Exception e) {
@@ -109,7 +109,7 @@ public class LevelManager {
      * accumulated by the player
      *
      * @param player who we are dealing with
-     * @param point the points we have
+     * @param point  the points we have
      * @return how many passive points of a certain point we get
      */
     public int getPassivesFromLevels(CorePlayer player, String point) {
@@ -122,7 +122,7 @@ public class LevelManager {
                     for (Map.Entry<String, Double> entry : segment.point_per_level.entrySet()) {
                         String p = entry.getKey();
                         double multi = entry.getValue();
-                        points.merge(p, ((int) multi * relative_level), (a,b)->a+b);
+                        points.merge(p, ((int) multi * relative_level), (a, b) -> a + b);
                     }
                 }
             }
@@ -143,11 +143,11 @@ public class LevelManager {
 
             for (LevelSegment segment : this.segments) {
                 if (level >= segment.minimum_level && level <= segment.maximum_level) {
-                    int relative_level = 1 + (level - segment.minimum_level);
+                    int relative_level = (level - segment.minimum_level);
                     for (Map.Entry<String, Double> entry : segment.attribute_per_level.entrySet()) {
                         String attr = entry.getKey();
                         double multi = entry.getValue();
-                        attributes.merge(attr, multi * relative_level, (a,b)->a+b);
+                        attributes.merge(attr, multi * relative_level, (a, b) -> a + b);
                     }
                 }
             }

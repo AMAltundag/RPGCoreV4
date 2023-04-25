@@ -121,7 +121,9 @@ public class TrapProxy extends AbstractSkillProxy {
         }
         // search for anyone within range
         List<IOrigin> nearby = new ArrayList<>(this.anchor.getNearby(this.radius));
-        nearby.remove(getContext().getCoreEntity());
+        if (getContext().getCoreEntity() != null) {
+            nearby.remove(getContext().getCoreEntity());
+        }
         for (AbstractCoreSelector selector : this.filter) {
             nearby = selector.doSelect(getContext(), nearby);
         }

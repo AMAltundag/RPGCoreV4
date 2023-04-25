@@ -41,7 +41,7 @@ public abstract class AbstractCoreMenu implements IMenuWrapper {
             throw new IllegalStateException("Menu was already finished!");
         }
 
-        this.menu = RPGCore.inst().getVolatileManager().createMenu(getSize(), player);
+        this.menu = RPGCore.inst().getVolatileManager().createMenu(getSize(), player, this);
         this.menu.setTickingHandler(this::tick);
         this.menu.setClickHandler(this::click);
         this.menu.setCloseHandler(this::close);

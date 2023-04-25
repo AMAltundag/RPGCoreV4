@@ -27,6 +27,9 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("offset", EditorOffsetSelector::new);
         id_to_constructor.put("chance", EditorChanceSelector::new);
         id_to_constructor.put("looking", EditorLookingSelector::new);
+        id_to_constructor.put("level", EditorLevelSelector::new);
+        id_to_constructor.put("score", EditorDungeonScoreSelector::new);
+
         class_to_id.put(EditorAlliesSelector.class, "allies");
         class_to_id.put(EditorEnemiesSelector.class, "enemies");
         class_to_id.put(EditorFriendlySelector.class, "friendly");
@@ -38,6 +41,8 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         class_to_id.put(EditorOffsetSelector.class, "offset");
         class_to_id.put(EditorChanceSelector.class, "chance");
         class_to_id.put(EditorLookingSelector.class, "looking");
+        class_to_id.put(EditorLevelSelector.class, "level");
+        class_to_id.put(EditorDungeonScoreSelector.class, "score");
     }
 
     @Override

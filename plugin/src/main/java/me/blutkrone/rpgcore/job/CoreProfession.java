@@ -73,18 +73,18 @@ public class CoreProfession {
             return;
         }
         // join with the experience to be gained
-        double have_experience = player.getProfessionExp().merge(this.id, 0d+experience, (a,b) -> a+b);
+        double have_experience = player.getProfessionExp().merge(this.id, 0d + experience, (a, b) -> a + b);
         double want_exp = RPGCore.inst().getLevelManager().getExpToLevelUpProfession(level_current);
         // inform player about the experience gained
         if (have_experience < want_exp) {
             String message = RPGCore.inst().getLanguageManager().getTranslation("profession_" + this.id + "_gain_exp");
             message = message.replace("%exp%", "" + experience);
-            message = message.replace("%ratio%", String.format("%.1f%%", 100d*(have_experience/want_exp)));
+            message = message.replace("%ratio%", String.format("%.1f%%", 100d * (have_experience / want_exp)));
             player.notify(message);
             return;
         }
         // check if profession is gated by tags
-        if (!canGainProfessionExpAtLevel(player, level_current+1)) {
+        if (!canGainProfessionExpAtLevel(player, level_current + 1)) {
             player.getProfessionExp().put(this.id, want_exp - 1d);
             String message = RPGCore.inst().getLanguageManager().getTranslation("profession_" + this.id + "_stuck");
             player.notify(message);
@@ -104,7 +104,7 @@ public class CoreProfession {
      *
      * @param player who wants to gain experience
      * @param recipe the recipe completed
-     * @param count how often recipe was completed
+     * @param count  how often recipe was completed
      */
     public void gainExpFromCrafting(CorePlayer player, CoreCraftingRecipe recipe, int count) {
         this.gainExpInternal(player, recipe.getProfessionExpGained() * count, recipe.getProfessionExpMaximumLevel());
@@ -115,7 +115,7 @@ public class CoreProfession {
      *
      * @param player who wants to gain experience
      * @param recipe the recipe completed
-     * @param count how often recipe was completed
+     * @param count  how often recipe was completed
      */
     public void gainExpFromRefinement(CorePlayer player, CoreRefinerRecipe recipe, int count) {
         this.gainExpInternal(player, recipe.getProfessionExpGained() * count, recipe.getProfessionExpMaximumLevel());
@@ -126,7 +126,7 @@ public class CoreProfession {
      * on the experience gained
      *
      * @param player who wants to gain experience
-     * @param node the node that was collected
+     * @param node   the node that was collected
      */
     public void gainExpFromCollectible(CorePlayer player, CoreNodeCollectible node) {
         this.gainExpInternal(player, node.getProfessionExpGained(), node.getProfessionExpMaximumLevel());

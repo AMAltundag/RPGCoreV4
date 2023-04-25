@@ -29,7 +29,7 @@ public class EnemiesSelector extends AbstractCoreSelector {
         }
         // trim to only allied targets
         discovered.removeIf(entity -> {
-            return !entity.isHostile(context.getCoreEntity());
+            return !entity.isHostile(context);
         });
         // retain only the relevant targets
         List<IOrigin> sorted = new ArrayList<>(discovered);

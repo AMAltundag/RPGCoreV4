@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.hud.editor.bundle.npc;
 
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.hud.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
@@ -19,7 +19,7 @@ import java.util.List;
 public class EditorSpawnpointTrait extends AbstractEditorNPCTrait {
 
     @EditorCategory(info = "Spawnpoint", icon = Material.END_GATEWAY)
-    @EditorList(name = "Cooldown", constraint = StringConstraint.class)
+    @EditorNumber(name = "Cooldown")
     @EditorTooltip(tooltip = {"Global cooldown to rebind spawnpoint.", "§cMeasured in hours"})
     public double cooldown = 1.0d;
 

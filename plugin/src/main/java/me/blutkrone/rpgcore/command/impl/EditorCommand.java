@@ -70,6 +70,7 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("skill", RPGCore.inst().getSkillManager().getIndex());
             this.indexes.put("collectible", RPGCore.inst().getNodeManager().getIndexCollectible());
             this.indexes.put("hotspot", RPGCore.inst().getNodeManager().getIndexHotspot());
+            this.indexes.put("gate", RPGCore.inst().getNodeManager().getIndexGate());
             this.indexes.put("spawner", RPGCore.inst().getNodeManager().getIndexSpawner());
             this.indexes.put("box", RPGCore.inst().getNodeManager().getIndexBox());
             this.indexes.put("npc", RPGCore.inst().getNPCManager().getIndex());
@@ -80,6 +81,7 @@ public class EditorCommand extends AbstractCommand {
             this.indexes.put("tree", RPGCore.inst().getPassiveManager().getTreeIndex());
             this.indexes.put("craft", RPGCore.inst().getItemManager().getCraftIndex());
             this.indexes.put("profession", RPGCore.inst().getJobManager().getIndexProfession());
+            this.indexes.put("dungeon", RPGCore.inst().getDungeonManager().getDungeonIndex());
         }
 
         return this.indexes;

@@ -31,7 +31,7 @@ public class MultiMechanic extends AbstractCoreMechanic {
         for (CoreAction action : getActions()) {
             CoreAction.ActionPipeline pipeline = action.pipeline(context, targets);
             if (!pipeline.update()) {
-                context.getCoreEntity().getActions().add(pipeline);
+                context.addPipeline(pipeline);
             }
         }
     }

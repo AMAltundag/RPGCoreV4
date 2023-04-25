@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.npc;
 
 import me.blutkrone.external.juliarn.npc.AbstractPlayerNPC;
 import me.blutkrone.external.juliarn.npc.NPCPool;
+import me.blutkrone.external.juliarn.npc.modifier.EquipmentModifier;
 import me.blutkrone.external.juliarn.npc.modifier.MetadataModifier;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
@@ -15,6 +16,7 @@ import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.Collections;
 import java.util.List;
@@ -102,6 +104,27 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         MetadataModifier metadata = this.metadata();
         metadata.skin(VolatileSkin.values());
         metadata.flush(player);
+        // deploy equipment packets
+        EquipmentModifier equipment = this.equipment();
+        if (this.template.getHelmet() != null) {
+            equipment.queue(EquipmentSlot.HEAD, this.template.getHelmet());
+        }
+        if (this.template.getBoots() != null) {
+            equipment.queue(EquipmentSlot.FEET, this.template.getBoots());
+        }
+        if (this.template.getChestplate() != null) {
+            equipment.queue(EquipmentSlot.CHEST, this.template.getChestplate());
+        }
+        if (this.template.getPants() != null) {
+            equipment.queue(EquipmentSlot.LEGS, this.template.getPants());
+        }
+        if (this.template.getMainhand() != null) {
+            equipment.queue(EquipmentSlot.HAND, this.template.getMainhand());
+        }
+        if (this.template.getOffhand() != null) {
+            equipment.queue(EquipmentSlot.OFF_HAND, this.template.getOffhand());
+        }
+        equipment.flush();
         // create a hologram for the NPC name
         hologram().spawn(player, location());
         hologram().mount(player, this.id());

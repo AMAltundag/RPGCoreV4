@@ -65,7 +65,7 @@ public class BeamMechanic extends AbstractCoreMechanic {
             BeamProxy proxy = new BeamProxy(context, target, this.item, rotation_offset, rotation_per_second,
                     freestyle, range_original, range_per_second, range_maximum,
                     impact, beam_effects, head_effects, cooldown, duration, filter);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

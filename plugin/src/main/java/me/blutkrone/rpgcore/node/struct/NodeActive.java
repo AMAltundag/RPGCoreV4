@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.node.struct;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IHighlight;
 import me.blutkrone.rpgcore.node.NodeManager;
 
 import java.util.UUID;
@@ -12,8 +13,9 @@ public class NodeActive {
     private final int x, y, z;
     // an identifier of the backing node
     private final String node;
-    // information about this particular node
+
     private transient NodeData data;
+    private transient IHighlight highlight;
 
     /**
      * A wrapper that associates a node with a location, the node
@@ -31,6 +33,28 @@ public class NodeActive {
         this.y = y;
         this.z = z;
         this.node = node;
+    }
+
+    /**
+     * Internal identifier of the node.
+     *
+     * @return Internal node identifier.
+     */
+    public String getRawNode() {
+        return this.node;
+    }
+
+    /**
+     * Retrieve the highlighter for this node.
+     *
+     * @return Highlighter
+     */
+    public IHighlight getHighlight() {
+        if (this.highlight == null) {
+            this.highlight = RPGCore.inst().getVolatileManager().getPackets().highlight(x, y, z);
+        }
+
+        return this.highlight;
     }
 
     /**
@@ -70,6 +94,8 @@ public class NodeActive {
             return node_manager.getIndexHotspot().get(id[1]);
         } else if (id[0].equalsIgnoreCase("npc")) {
             return RPGCore.inst().getNPCManager().getIndex().get(id[1]);
+        } else if (id[0].equalsIgnoreCase("gate")) {
+            return node_manager.getIndexGate().get(id[1]);
         }
 
         throw new IllegalArgumentException("Bad node: '" + this.node + "'!");

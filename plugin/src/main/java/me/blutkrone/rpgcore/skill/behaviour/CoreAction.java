@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.skill.behaviour;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.AbstractEditorMechanic;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
@@ -12,7 +11,6 @@ import me.blutkrone.rpgcore.skill.mechanic.*;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -59,15 +57,6 @@ public class CoreAction {
      *
      * @return the pipeline that we created.
      */
-    public ActionPipeline pipeline(IContext context) {
-        return new ActionPipeline(context, Collections.singletonList(context.getCoreEntity()));
-    }
-
-    /**
-     * Create a pipeline for the execution of an action.
-     *
-     * @return the pipeline that we created.
-     */
     public ActionPipeline pipeline(IContext context, List<IOrigin> origins) {
         return new ActionPipeline(context, origins);
     }
@@ -107,8 +96,6 @@ public class CoreAction {
                 return true;
             }
 
-            CoreEntity core_entity = this.context.getCoreEntity();
-
             // asleep for a fixed duration
             if (sleeping > 0) {
                 // work off our sleep timer
@@ -120,9 +107,9 @@ public class CoreAction {
             if (stalled != null) {
                 // check if we've archived our target condition
                 List<IOrigin> targets = new ArrayList<>();
-                targets.add(context.getCoreEntity());
+                targets.add(context.getOrigin());
                 for (AbstractCoreSelector selector : stalled) {
-                    targets = selector.doSelect(core_entity, targets);
+                    targets = selector.doSelect(context, targets);
                 }
                 // if we found anyone, we do no longer stall
                 if (!targets.isEmpty()) {
@@ -137,7 +124,7 @@ public class CoreAction {
                 // check if barrier ran out of time
                 if (barrier.duration > 0) {
                     if (--barrier.duration == 0) {
-                        barrier.applyFailure(core_entity);
+                        barrier.applyFailure(context.getCoreEntity());
                         boolean terminate = barrier.doTerminateWhenFailed();
                         barrier = null;
                         return terminate;
@@ -159,7 +146,7 @@ public class CoreAction {
                 // grab the target we want to use
                 List<IOrigin> targets = new ArrayList<>(this.targets);
                 for (AbstractCoreSelector sel : worker.action.selectors) {
-                    targets = sel.doSelect(core_entity, targets);
+                    targets = sel.doSelect(context, targets);
                 }
 
                 while (worker.mechanics.hasNext()) {
@@ -181,11 +168,11 @@ public class CoreAction {
                         break A;
                     } else if (next instanceof BarrierMechanic) {
                         // invoke a barrier on the mob
-                        barrier = ((BarrierMechanic) next).activate(core_entity);
+                        barrier = ((BarrierMechanic) next).activate(context);
                         return false;
                     } else if (next instanceof SleepMechanic) {
                         // delay by a number of ticks
-                        sleeping = ((SleepMechanic) next).timeToSleep(core_entity);
+                        sleeping = ((SleepMechanic) next).timeToSleep(context);
                         return false;
                     } else if (next instanceof StallMechanic) {
                         // delay until condition is archived

@@ -13,6 +13,7 @@ import me.blutkrone.rpgcore.util.Utility;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -77,7 +78,7 @@ public class ChannelSkillActivity implements ISkillActivity {
             this.context.getCoreEntity().proliferateTrigger(CoreChannelTrigger.class, this);
             // invoke the logic
             for (CoreAction action : this.binding.actions) {
-                this.working.add(action.pipeline(this.context));
+                this.working.add(action.pipeline(this.context, Arrays.asList(this.context)));
             }
             // calculate how long a cooldown we receive
             double cooldown_recovery = 1d + this.binding.cooldown_recovery.evalAsDouble(this.context);
@@ -92,7 +93,7 @@ public class ChannelSkillActivity implements ISkillActivity {
             this.context.getCoreEntity().proliferateTrigger(CoreChannelTrigger.class, this);
             // invoke the logic
             for (CoreAction action : this.binding.actions) {
-                this.working.add(action.pipeline(this.context));
+                this.working.add(action.pipeline(this.context, Arrays.asList(this.context)));
             }
             // ensure we can afford the cost, otherwise we are done
             if (!this.binding.isAffordable(this.context)) {

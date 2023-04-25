@@ -69,7 +69,9 @@ public class ChainProxy extends AbstractSkillProxy {
         // identify candidates
         List<CoreEntity> nearby = this.anchor.getNearby(this.radius);
         nearby.removeIf(n -> this.blacklist.contains(n.getUniqueId()));
-        nearby.remove(getContext().getCoreEntity());
+        if (getContext().getCoreEntity() != null) {
+            nearby.remove(getContext().getCoreEntity());
+        }
         List<IOrigin> filtered = new ArrayList<>(nearby);
         for (AbstractCoreSelector selector : this.filter) {
             filtered = selector.doSelect(getContext(), filtered);

@@ -146,8 +146,8 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
     }
 
     @Override
-    public IChestMenu createMenu(int size, Player player) {
-        return new VolatileChestMenu(getPlugin(), size * 9, player);
+    public IChestMenu createMenu(int size, Player player, Object core_handle) {
+        return new VolatileChestMenu(getPlugin(), size * 9, player, core_handle);
     }
 
     @Override
@@ -400,6 +400,10 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
 
         // initialize the bukkit entity into a wrapper
         LivingEntity bukkit_entity = (LivingEntity) entity.getBukkitEntity();
+        if (bukkit_entity == null) {
+            throw new IllegalStateException("Could not bukkit resolve " + entity.getClass());
+        }
+
         VolatileEntityBase entity_base = new VolatileEntityBase(bukkit_entity);
         entity_base.getAI();
         return entity_base;

@@ -58,7 +58,7 @@ public class CoreModifierNumber {
         while (!modifiers.isEmpty()) {
             CoreModifierNumber remove = modifiers.poll();
             // ensure modifier meets the usage condition
-            if (!AbstractCoreSelector.doSelect(this.condition, context, Collections.singletonList(context.getCoreEntity())).isEmpty()) {
+            if (!AbstractCoreSelector.doSelect(this.condition, context, Collections.singletonList(context.getOrigin())).isEmpty()) {
                 // acquire parameters of this modifier
                 base += remove.base_number;
                 for (String attribute : remove.base_attribute) {

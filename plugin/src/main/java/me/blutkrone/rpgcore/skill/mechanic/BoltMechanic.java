@@ -51,7 +51,7 @@ public class BoltMechanic extends AbstractCoreMechanic {
                 where = target.isolate();
             }
             BoltProxy proxy = new BoltProxy(context, where, this.item, this.impact, this.effect, pierce, speed, radius);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

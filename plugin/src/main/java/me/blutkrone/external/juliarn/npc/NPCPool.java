@@ -89,6 +89,17 @@ public class NPCPool implements Listener {
         });
     }
 
+    /**
+     * Creates a new builder for a npc pool.
+     *
+     * @param plugin the instance of the plugin which creates the builder for the pool.
+     * @return a new builder for creating a npc pool instance.
+     * @since 2.5-SNAPSHOT
+     */
+    public static Builder builder(@NotNull Plugin plugin) {
+        return new Builder(plugin);
+    }
+
     public double getSpawnDistance() {
         return spawnDistance;
     }
@@ -182,17 +193,6 @@ public class NPCPool implements Listener {
                 npc.hide(player, PlayerNPCHideEvent.Reason.QUIT);
             }
         });
-    }
-
-    /**
-     * Creates a new builder for a npc pool.
-     *
-     * @param plugin the instance of the plugin which creates the builder for the pool.
-     * @return a new builder for creating a npc pool instance.
-     * @since 2.5-SNAPSHOT
-     */
-    public static Builder builder(@NotNull Plugin plugin) {
-        return new Builder(plugin);
     }
 
     /**

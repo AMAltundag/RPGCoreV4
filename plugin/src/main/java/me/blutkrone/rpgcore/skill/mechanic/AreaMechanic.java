@@ -46,7 +46,7 @@ public class AreaMechanic extends AbstractCoreMechanic {
         for (IOrigin target : targets) {
             AreaProxy proxy = new AreaProxy(context, target, this.item, inner_radius, outer_radius, this.effects, cooldown, duration,
                     this.impact, this.ticker, this.filter);
-            context.getCoreEntity().getProxies().add(proxy);
+            context.addProxy(proxy);
         }
     }
 }

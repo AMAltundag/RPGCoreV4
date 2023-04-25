@@ -6,8 +6,8 @@ import me.blutkrone.external.juliarn.npc.modifier.*;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
-import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileInfoAction;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileGameProfile;
+import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileInfoAction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -37,8 +37,8 @@ public abstract class AbstractPlayerNPC {
     /**
      * A fake player serving as a NPC.
      *
-     * @param pool         The pool we are initialized by.
-     * @param location     The location of the npc.
+     * @param pool     The pool we are initialized by.
+     * @param location The location of the npc.
      */
     public AbstractPlayerNPC(NPCPool pool, Location location, VolatileGameProfile profile) {
         this.pool = pool;
@@ -193,7 +193,7 @@ public abstract class AbstractPlayerNPC {
      * Shows this npc to a player, a negative tabList duration will
      * never remove the NPC from the tab-list.
      *
-     * @param player             The player to show this npc to.
+     * @param player The player to show this npc to.
      */
     public void show(Player player) {
         this.seeing.add(player);

@@ -17,7 +17,7 @@ public class HostileSelector extends AbstractCoreSelector {
     public List<IOrigin> doSelect(IContext context, List<IOrigin> previous) {
         List<IOrigin> updated = new ArrayList<>();
         for (IOrigin target : previous) {
-            if (target instanceof CoreEntity && ((CoreEntity) target).isHostile(context.getCoreEntity())) {
+            if (target instanceof CoreEntity && ((CoreEntity) target).isHostile(context)) {
                 updated.add(target);
             }
         }

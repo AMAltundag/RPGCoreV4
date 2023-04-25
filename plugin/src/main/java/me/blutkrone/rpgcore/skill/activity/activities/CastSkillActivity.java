@@ -13,6 +13,7 @@ import me.blutkrone.rpgcore.util.Utility;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -93,7 +94,7 @@ public class CastSkillActivity implements ISkillActivity {
 
         // track the working pipelines
         for (CoreAction action : this.binding.actions) {
-            this.working.add(action.pipeline(this.context));
+            this.working.add(action.pipeline(this.context, Arrays.asList(this.context)));
         }
 
         // drop the activity

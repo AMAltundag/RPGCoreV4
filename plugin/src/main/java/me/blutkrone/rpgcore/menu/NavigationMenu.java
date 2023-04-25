@@ -98,7 +98,7 @@ public class NavigationMenu {
 
             // consume the cost of travelling
             if (cost > 0) {
-                player.getBankedItems().merge(trait.getCurrency(), cost, (a,b) -> a-b);
+                player.getBankedItems().merge(trait.getCurrency(), cost, (a, b) -> a - b);
             }
 
             // with a tick delay, move to target location

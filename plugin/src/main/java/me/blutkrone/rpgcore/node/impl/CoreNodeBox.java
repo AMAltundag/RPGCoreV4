@@ -14,10 +14,7 @@ import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
@@ -47,7 +44,7 @@ public class CoreNodeBox extends AbstractNode {
     private ItemStack unavailable;
 
     public CoreNodeBox(String id, EditorNodeBox editor) {
-        super(id, (int) editor.radius);
+        super(id, (int) editor.radius, editor.getPreview());
 
         this.item_choices = EditorLoot.build(new ArrayList<>(editor.item_weight));
         this.total = (int) editor.item_total;
@@ -111,7 +108,6 @@ public class CoreNodeBox extends AbstractNode {
     }
 
     private void showBox(Player player, CorePlayer core_player) {
-
         // error in case no items could be discovered
         if (this.item_choices.get().isEmpty()) {
             player.sendMessage("§cUnexpected error (No items found!)");
@@ -159,15 +155,6 @@ public class CoreNodeBox extends AbstractNode {
             this.where = new Location(world, node.getX() + 0.5d, node.getY(), node.getZ() + 0.5d);
             this.visual = new WeakReference<>(null);
             this.collide = new WeakReference<>(null);
-        }
-
-        @Override
-        public void highlight(int time) {
-            IEntityCollider collider_entity = this.collide.get();
-            if (collider_entity == null) {
-                return;
-            }
-            collider_entity.highlight(30);
         }
 
         @Override

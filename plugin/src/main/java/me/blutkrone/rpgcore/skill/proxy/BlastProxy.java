@@ -6,9 +6,9 @@ import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
-import me.blutkrone.rpgcore.skill.selector.ConeSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -63,6 +63,49 @@ public class BlastProxy extends AbstractSkillProxy {
         this.shrink_per_second = shrink_per_second / 20 * BLAST_PROXY_INTERVAL;
     }
 
+    /**
+     * Applies a filter on the given subset of entities, the output
+     * given is the
+     *
+     * @param pivot      the pivot to expand the cone from
+     * @param radius_min the radius of the cone
+     * @param radius_max the radius of the cone
+     * @param angle      the angle of the cone
+     * @param targets    the entities to filter
+     * @return the targets within the cone shape
+     */
+    public static List<IOrigin> filter(IOrigin pivot, double radius_min, double radius_max, double angle, List<IOrigin> targets) {
+        List<IOrigin> result = new ArrayList<>();
+
+        // squared parameters perform better
+        radius_min = radius_min * radius_min;
+        radius_max = radius_max * radius_max;
+        // turn pivot into vectors instead
+        org.bukkit.util.Vector source = pivot.getLocation().toVector();
+        org.bukkit.util.Vector direction = pivot.getLocation().getDirection();
+
+        for (IOrigin target : targets) {
+            // ensure we are in the same world
+            if (target.getWorld() != pivot.getWorld()) {
+                continue;
+            }
+            // ensure that entity is within cone radius
+            Vector relative = target.getLocation().toVector().subtract(source);
+            double length = relative.lengthSquared();
+            if (length < radius_min || length > radius_max) {
+                continue;
+            }
+            // ensure that entity is within cone angle
+            if (Math.abs(Math.toDegrees(direction.angle(relative))) > angle) {
+                continue;
+            }
+            // allow to retain this collection
+            result.add(target);
+        }
+
+        return result;
+    }
+
     @Override
     public boolean update() {
         // early termination
@@ -81,8 +124,10 @@ public class BlastProxy extends AbstractSkillProxy {
         // search for new affected entities
         List<CoreEntity> entities = this.anchor.getNearby(this.distance);
         entities.removeIf(e -> this.blacklist.contains(e.getUniqueId()));
-        entities.remove(getContext().getCoreEntity());
-        List<IOrigin> filtered = ConeSelector.filter(this.anchor, Math.max(0d, this.distance - 2), this.distance,
+        if (getContext().getCoreEntity() != null) {
+            entities.remove(getContext().getCoreEntity());
+        }
+        List<IOrigin> filtered = filter(this.anchor, Math.max(0d, this.distance - 2), this.distance,
                 this.angle, new ArrayList<>(entities));
 
         // put the entity on the blacklist
@@ -108,7 +153,7 @@ public class BlastProxy extends AbstractSkillProxy {
                 positions.add(new IOrigin.SnapshotOrigin(position));
             }
             // filter to a cone-like shape
-            positions = ConeSelector.filter(this.anchor, 0d, distance + 1d, angle, positions);
+            positions = filter(this.anchor, 0d, distance + 1d, angle, positions);
             // render the effects at the relevant positions
             for (IOrigin position : positions) {
                 String effect_id = this.effects.get(ThreadLocalRandom.current().nextInt(this.effects.size()));

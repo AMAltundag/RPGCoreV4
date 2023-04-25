@@ -1,9 +1,14 @@
 package me.blutkrone.rpgcore.hud.editor.root;
 
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.menu.EditorMenu;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface IEditorRoot<K> extends IEditorBundle {
 
@@ -34,4 +39,25 @@ public interface IEditorRoot<K> extends IEditorBundle {
      * @return the baked runtime instance
      */
     K build(String id);
+
+    /**
+     * Custom control for specialized editing interfaces.
+     *
+     * @return List of control items
+     */
+    default List<ItemStack> getCustomControls() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Custom control for specialized editing interfaces.
+     *
+     * @param menu Which menu was interacted.
+     * @param item What custom control was clicked.
+     * @param click
+     * @return Evaluated custom interaction.
+     */
+    default boolean onCustomControl(EditorMenu menu, ItemStack item, ClickType click) {
+        return false;
+    }
 }

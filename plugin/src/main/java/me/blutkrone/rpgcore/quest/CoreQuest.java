@@ -188,13 +188,13 @@ public class CoreQuest {
      * <p>
      * Quick transition can be invoked in following cases:
      * <ul>
-     *     <li>the player accepted a quest</li>
-     *     <li>the player completed a dialogue</li>
-     *     <li>the player completed a delivery</li>
+     * <li>the player accepted a quest</li>
+     * <li>the player completed a dialogue</li>
+     * <li>the player completed a delivery</li>
      * </ul>
      *
      * @param player whose quest state are we operating off
-     * @param npc the npc we are currently engaging with
+     * @param npc    the npc we are currently engaging with
      * @return whether we performed a quick transition
      */
     public boolean attemptQuickTransition(CorePlayer player, CoreNPC npc) {
@@ -302,6 +302,11 @@ public class CoreQuest {
         if (player.getActiveQuestIds().contains(this.id)) {
             return false;
         }
+        // make sure we haven't completed this quest
+        if (player.getCompletedQuests().contains(this.id)) {
+            return false;
+        }
+
         // make sure we do not have a blacklisted quest
         for (String id : this.forbidden_quests) {
             if (player.getActiveQuestIds().contains(id)) {

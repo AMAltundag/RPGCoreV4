@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.mob.ai;
 
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobLogic;
 import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.nms.api.mob.AbstractEntityRoutine;
@@ -12,6 +11,7 @@ import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CoreMobLogic extends CoreAction {
@@ -23,18 +23,14 @@ public class CoreMobLogic extends CoreAction {
     // priority used for sorting
     private double priority;
     // logic only starts after meeting conditions
-    private List<AbstractCoreSelector> start_when_found = new ArrayList<>();
+    private List<AbstractCoreSelector> start_when_found;
 
     public CoreMobLogic(EditorMobLogic editor) {
         super(editor);
         this.group = editor.group;
         this.cooldown = (int) editor.cooldown;
         this.priority = editor.priority;
-        for (IEditorBundle bundle : editor.start_when_found) {
-            if (bundle instanceof AbstractEditorSelector) {
-                this.start_when_found.add(((AbstractEditorSelector) bundle).build());
-            }
-        }
+        this.start_when_found = AbstractEditorSelector.unwrap(editor.start_when_found);
     }
 
     /**
@@ -99,7 +95,7 @@ public class CoreMobLogic extends CoreAction {
                 return false;
             }
             // initialize an iterator
-            pipeline = pipeline(core_entity);
+            pipeline = pipeline(core_entity, Arrays.asList(core_entity));
             // allow the task to start
             return true;
         }

@@ -22,6 +22,8 @@ public class HintMechanic extends AbstractCoreMechanic {
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
         CoreEntity entity = context.getCoreEntity();
-        entity.giveFocusHint(hint, this.duration.evalAsInt(context));
+        if (entity != null) {
+            entity.giveFocusHint(hint, this.duration.evalAsInt(context));
+        }
     }
 }
