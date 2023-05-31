@@ -40,7 +40,7 @@ public class CoreEffectBlock implements CoreEffect.IEffectPart {
         this.samples = (int) editor.samples;
         particle = editor.particle;
 
-        Bukkit.getLogger().severe("not implemented (block worker)");
+        Bukkit.getLogger().info("not implemented (block worker)");
     }
 
     @Override

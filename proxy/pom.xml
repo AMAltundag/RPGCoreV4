@@ -4,20 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.blutkrone</groupId>
-    <artifactId>rpgproxy</artifactId>
-    <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <parent>
+        <groupId>me.blutkrone</groupId>
+        <artifactId>RPGCoreV4</artifactId>
+        <version>4.0.0</version>
+    </parent>
 
-    <name>RPGProxy</name>
-
-    <description>Proxy component for RPGCore</description>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <artifactId>proxy</artifactId>
 
     <build>
-        <finalName>RPGProxy-${project.version}</finalName>
+        <finalName>RPGProxy</finalName>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
@@ -41,8 +37,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
 
@@ -55,10 +51,8 @@
                         <phase>package</phase>
                         <configuration>
                             <target>
-                                <copy file="target/RPGProxy-1.0.0.jar"
-                                      tofile="D:/_Development/devbox/1.18/plugins/update/rpgcore-bungee.jar"/>
-                                <copy file="target/RPGProxy-1.0.0.jar"
-                                      tofile="D:/_Development/devbox/1.19/plugins/update/rpgcore-bungee.jar"/>
+                                <copy file="target/RPGProxy.jar"
+                                      tofile="F:/minecraft/1.19.4/plugins/update/rpgcore-bungee.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -75,13 +69,6 @@
             </resource>
         </resources>
     </build>
-
-    <repositories>
-        <repository>
-            <id>sonatype-oss-repo</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>

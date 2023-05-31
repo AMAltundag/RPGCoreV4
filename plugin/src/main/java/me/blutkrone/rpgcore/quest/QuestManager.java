@@ -24,7 +24,7 @@ public class QuestManager implements Listener {
         this.index_quest = new EditorIndex<>("quest", EditorQuest.class, EditorQuest::new);
         this.index_dialogue = new EditorIndex<>("dialogue", EditorDialogue.class, EditorDialogue::new);
 
-        Bukkit.getLogger().severe("not implemented (quests as api)");
+        Bukkit.getLogger().info("not implemented (quests as api)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {

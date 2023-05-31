@@ -15,7 +15,7 @@ public class CoreTalkTrait extends AbstractCoreTrait {
     public CoreTalkTrait(EditorTalkTrait editor) {
         super(editor);
 
-        Bukkit.getLogger().severe("not implemented (talk trait)");
+        Bukkit.getLogger().info("not implemented (talk trait)");
     }
 
     @Override

@@ -55,7 +55,7 @@ public class CoreInitializationEvent<K> extends Event {
         if (this.custom == null) {
             this.custom = custom;
         } else {
-            Bukkit.getLogger().severe("Another plugin already injected '" + this.clazz.getSimpleName() + "' before you!");
+            Bukkit.getLogger().warning("Another plugin already injected '" + this.clazz.getSimpleName() + "' before you!");
         }
     }
 

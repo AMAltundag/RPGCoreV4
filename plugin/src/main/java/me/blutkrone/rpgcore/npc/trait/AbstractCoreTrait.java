@@ -39,7 +39,7 @@ public abstract class AbstractCoreTrait {
             return true;
         }
         // non-default trait should check player tags
-        if (player.getPersistentTags().contains(getUnlock())) {
+        if (player.checkForTag(getUnlock())) {
             return true;
         }
         // not available otherwise

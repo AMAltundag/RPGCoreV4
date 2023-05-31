@@ -5,7 +5,6 @@ import me.blutkrone.rpgcore.menu.AbstractYesNoMenu;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface IGroupHandler {
@@ -33,16 +32,6 @@ public interface IGroupHandler {
      * @param kicked Who is being kicked out of the party
      */
     void kickParty(Player asking, String kicked);
-
-    /**
-     * Create a party with all the players, if they are in a party that
-     * party will be dissolved. The first player will become the leader
-     * of the party.
-     *
-     * @param identifier A unique identifier for this party.
-     * @param players    Members of the party to be created.
-     */
-    void createParty(String identifier, List<UUID> players);
 
     /**
      * Make the player quit their current party.
@@ -104,6 +93,17 @@ public interface IGroupHandler {
     void queueForContent(Player player, String... contents);
 
     /**
+     * Check if a player is queued, do note that there is only
+     * one uniform queue that players may access.
+     * <p>
+     * This is a best effort and may not be accurate.
+     *
+     * @param player Who to check
+     * @return Whether player is queued up
+     */
+    boolean isQueued(Player player);
+
+    /**
      * A common ancestor for a match prompt, this will close the
      * prompt should anyone reject it
      */
@@ -115,5 +115,10 @@ public interface IGroupHandler {
          * @return identifier for the offer
          */
         public abstract UUID getOfferId();
+
+        @Override
+        public boolean isTrivial() {
+            return true;
+        }
     }
 }

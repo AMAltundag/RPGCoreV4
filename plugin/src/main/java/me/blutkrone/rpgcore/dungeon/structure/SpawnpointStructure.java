@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.dungeon.structure;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonSpawnpoint;
@@ -14,11 +13,6 @@ public class SpawnpointStructure extends AbstractDungeonStructure<Object> {
 
     public SpawnpointStructure(EditorDungeonSpawnpoint editor) {
         super(editor);
-    }
-
-    @Override
-    public void clean(IDungeonInstance instance) {
-
     }
 
     @Override

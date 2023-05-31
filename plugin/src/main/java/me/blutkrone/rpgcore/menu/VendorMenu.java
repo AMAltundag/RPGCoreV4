@@ -279,4 +279,9 @@ public class VendorMenu extends AbstractCoreMenu {
             }
         }
     }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
 }

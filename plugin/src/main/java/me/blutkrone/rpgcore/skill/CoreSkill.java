@@ -11,7 +11,7 @@ import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.item.CoreItem;
-import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
+import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
 import me.blutkrone.rpgcore.skill.behaviour.CoreBehaviour;
@@ -154,7 +154,7 @@ public class CoreSkill {
      *
      * @return the itemized equivalent of the skill.
      */
-    public ItemStack getItem(IDescriptorReference player) {
+    public ItemStack getItem(IDescriptionRequester player) {
         return RPGCore.inst().getItemManager().getItemIndex()
                 .get("skill_" + getId())
                 .acquire(player, 0.0d);

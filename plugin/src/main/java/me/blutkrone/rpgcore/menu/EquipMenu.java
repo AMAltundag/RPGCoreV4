@@ -119,4 +119,9 @@ public class EquipMenu extends AbstractCoreMenu {
         // apply the changes that were made
         RPGCore.inst().getHUDManager().getEquipMenu().applyEquipChange(core_player);
     }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
 }

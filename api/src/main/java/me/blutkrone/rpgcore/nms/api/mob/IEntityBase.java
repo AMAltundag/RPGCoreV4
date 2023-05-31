@@ -33,6 +33,14 @@ public interface IEntityBase {
     void enrage(LivingEntity source, double amount, double maximum, double focus, boolean forced);
 
     /**
+     * Retain the current rage, but focus it on another player.
+     *
+     * @param target Who to shift to
+     * @param focus What focus to apply on the rage
+     */
+    void rageTransfer(LivingEntity target, double focus);
+
+    /**
      * Who is the current entity we hold rage against.
      *
      * @return current rage holder.

@@ -25,7 +25,7 @@ public class VolatileEntityCollider extends EntitySlime implements IEntityCollid
         super.d(true); // silent
         super.persistentInvisibility = true; // invisible
         super.b(5, true); // invisible
-        super.a(2); // size
+        super.a(2f); // size
         super.persist = false; // persist
     }
 

@@ -17,4 +17,9 @@ public class PartyMenu extends AbstractCoreMenu {
     public void click(InventoryClickEvent event) {
 
     }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
 }

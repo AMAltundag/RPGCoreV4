@@ -54,7 +54,7 @@ public class ToolConfigPushCommand extends AbstractCommand {
                     return;
                 }
 
-                Bukkit.getLogger().severe("Configuration synced from " + version_have + " to " + version_want);
+                Bukkit.getLogger().info("Configuration synced from " + version_have + " to " + version_want);
 
                 // wipe configuration and rebuild from database
                 FileUtils.deleteDirectory(RPGCore.inst().getDataFolder());
@@ -77,7 +77,7 @@ public class ToolConfigPushCommand extends AbstractCommand {
                     }
                 }
                 // inform about synchronization completion
-                Bukkit.getLogger().severe("Synchronized with pushed configurations, total " + collection.countDocuments() + " files!");
+                Bukkit.getLogger().info("Synchronized with pushed configurations, total " + collection.countDocuments() + " files!");
             }
         } catch (Exception e) {
             e.printStackTrace();

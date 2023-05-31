@@ -7,6 +7,7 @@ import me.blutkrone.rpgcore.nms.api.menu.IMenuWrapper;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 
 public abstract class AbstractCoreMenu implements IMenuWrapper {
 
@@ -15,6 +16,34 @@ public abstract class AbstractCoreMenu implements IMenuWrapper {
 
     public AbstractCoreMenu(int size) {
         this.size = size;
+    }
+
+    /**
+     * A trivial menu refers to a menu which can be closed without
+     * worry about follow-up issues arising from it.
+     *
+     * @param player Whose open menu to check against.
+     * @return Whether menu is trivial or not.
+     */
+    public static boolean isUsingTrivialMenu(Player player) {
+        Inventory inventory = player.getOpenInventory().getTopInventory();
+        // no menu open is trivial
+        if (inventory.getType() == InventoryType.CRAFTING) {
+            return true;
+        }
+        // trivial flagged menu is also trivial
+        Object handle = ((IChestMenu) inventory).getLinkedHandle();
+        return handle instanceof AbstractCoreMenu && ((AbstractCoreMenu) handle).isTrivial();
+    }
+
+    /**
+     * A trivial menu refers to a menu which can be closed without
+     * worry about follow-up issues arising from it.
+     *
+     * @return Whether menu is trivial or not.
+     */
+    public boolean isTrivial() {
+        return false;
     }
 
     @Override

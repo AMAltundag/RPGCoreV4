@@ -33,6 +33,8 @@ public class ReloadCommand extends AbstractCommand {
         getIndexes().forEach((id, index) -> index.reload());
         // reload the node manager
         RPGCore.inst().getNodeManager().reload();
+        // reload the hologram manager
+        RPGCore.inst().getHologramManager().reload();
 
         sender.sendMessage("§fReloaded RPGCore in: §c%.2f§f seconds!".formatted((System.currentTimeMillis() - stamp) / 1000d));
     }

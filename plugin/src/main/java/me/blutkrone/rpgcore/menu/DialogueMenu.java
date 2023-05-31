@@ -225,4 +225,9 @@ public class DialogueMenu extends AbstractCoreMenu {
         output.replaceAll(String::trim);
         return output;
     }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
 }

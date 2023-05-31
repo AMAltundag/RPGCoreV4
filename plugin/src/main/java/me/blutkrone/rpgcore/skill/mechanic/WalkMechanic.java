@@ -23,7 +23,7 @@ public class WalkMechanic extends AbstractCoreMechanic {
         this.selector = AbstractEditorSelector.unwrap(editor.selectors);
         this.speed = editor.speed.build();
 
-        Bukkit.getLogger().severe("not implemented (do not re-path unnecessarily)");
+        Bukkit.getLogger().info("not implemented (do not re-path unnecessarily)");
     }
 
     @Override

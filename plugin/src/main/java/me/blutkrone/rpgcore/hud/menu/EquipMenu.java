@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * A menu where the user can update their actual equipment, do note
@@ -106,22 +107,30 @@ public class EquipMenu implements Listener {
         if (item == null || item.getType().isAir()) {
             return ItemBuilder.of(Material.BARRIER).name("CANNOT REFLECT ITEM").build();
         }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
+        ItemMeta original_meta = item.getItemMeta();
+        if (original_meta == null) {
             return ItemBuilder.of(Material.BARRIER).name("CANNOT REFLECT ITEM").build();
         }
 
         // exact copy, but without backing data
-        ItemStack copy = item.clone();
-        ItemMeta dupe = copy.getItemMeta();
-        PersistentDataContainer data = dupe.getPersistentDataContainer();
-        Set<NamespacedKey> keys = new HashSet<>(data.getKeys());
-        keys.forEach(data::remove);
-        data.set(new NamespacedKey(RPGCore.inst(), "reflected-item"), PersistentDataType.INTEGER, 1);
-        dupe.setUnbreakable(true);
-        copy.setItemMeta(dupe);
+        ItemStack dupe = item.clone();
+        ItemMeta dupe_meta = dupe.getItemMeta();
+        PersistentDataContainer dupe_data = dupe_meta.getPersistentDataContainer();
+        Set<NamespacedKey> keys = new HashSet<>(dupe_data.getKeys());
+        keys.forEach(dupe_data::remove);
+        // reflected items shouldn't have durability
+        dupe_meta.setUnbreakable(true);
+        // mark the item as being reflected
+        dupe_data.set(new NamespacedKey(RPGCore.inst(), "reflected-item"), PersistentDataType.INTEGER, 1);
+        // keep track of internal item name
+        PersistentDataContainer original_data = original_meta.getPersistentDataContainer();
+        String name = original_data.get(new NamespacedKey(RPGCore.inst(), "rpgcore-name"), PersistentDataType.STRING);
+        if (name != null) {
+            dupe_data.set(new NamespacedKey(RPGCore.inst(), "rpgcore-name"), PersistentDataType.STRING, name);
+        }
+        dupe.setItemMeta(dupe_meta);
 
-        return copy;
+        return dupe;
     }
 
     /**
@@ -277,7 +286,7 @@ public class EquipMenu implements Listener {
             this.empty = RPGCore.inst().getLanguageManager().getAsItem(config.getString("empty")).build();
             this.slot = config.getInt("slot");
             this.target = BukkitSlot.valueOf(config.getString("target", "NONE").toUpperCase());
-            this.accept = new HashSet<>(config.getStringList("accept"));
+            this.accept = config.getStringList("accept").stream().map(String::toLowerCase).collect(Collectors.toSet());
         }
 
         /**
@@ -299,7 +308,7 @@ public class EquipMenu implements Listener {
             }
             // make sure the equipment slot is compatible
             for (String slot : item_data.getItem().getEquipmentSlot()) {
-                if (this.accept.contains(slot)) {
+                if (this.accept.contains(slot.toLowerCase())) {
                     return true;
                 }
             }

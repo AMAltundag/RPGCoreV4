@@ -25,6 +25,9 @@ public class EditorDungeonScoreSelector extends AbstractEditorSelector {
     @EditorNumber(name = "Maximum")
     @EditorTooltip(tooltip = "Maximum score threshold")
     public double maximum = 9999.0;
+    @EditorList(name = "Exact", constraint = StringConstraint.class)
+    @EditorTooltip(tooltip = {"Score can be any of these numbers", "Will override minimum/maximum if defined", "Can use ranges like x~y", "Rounded to integers"})
+    public List<String> exact = new ArrayList<>();
     @EditorBoolean(name = "Party")
     @EditorTooltip(tooltip = "Check party or player score")
     public boolean party = true;

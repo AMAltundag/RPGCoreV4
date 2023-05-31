@@ -7,6 +7,7 @@ import me.blutkrone.rpgcore.dungeon.CoreDungeon;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.language.LanguageManager;
+import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
 import me.blutkrone.rpgcore.menu.AbstractYesNoMenu;
 import me.blutkrone.rpgcore.social.SocialManager;
 import org.bukkit.Bukkit;
@@ -16,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.*;
@@ -27,28 +27,54 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
     private static int RANDOM_PARTY_ID = 0;
     private final SocialManager social_manager;
 
+    // party id mapped to party
     private Map<String, PartySnapshot> party_by_id = new HashMap<>();
+    // player uuid mapped to party
     private Map<UUID, PartySnapshot> party_by_player = new HashMap<>();
+    // interest mapped to players
     private Map<String, Set<UUID>> matchmaker_interests = new HashMap<>();
+    // actively on-going matching process
     private Map<UUID, MatchProcess> matchmaker_active = new HashMap<>();
 
     public ServerGroupHandler(SocialManager social_manager) {
         this.social_manager = social_manager;
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+
+        Bukkit.getLogger().severe("copy the implementation approach from bungee");
     }
 
-    private boolean verify(UUID who) {
-        // must be online and registered
-        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(who);
-        if (core_player == null) {
-            return false;
+    /*
+     * Create a party with all the players, if they are in a party that
+     * party will be dissolved. The first player will become the leader
+     * of the party.
+     *
+     * @param identifier A unique identifier for this party.
+     * @param players    Members of the party to be created.
+     */
+    public void createParty(String identifier, List<UUID> players) {
+        Set<UUID> interested = new HashSet<>();
+        for (UUID player : players) {
+            Player online = Bukkit.getPlayer(player);
+            if (online != null && getPartySnapshot(online) == null) {
+                interested.add(player);
+            }
         }
-        // cannot have a menu open
-        if (core_player.getEntity().getOpenInventory().getType() != InventoryType.CRAFTING) {
-            return false;
+
+        if (!interested.isEmpty()) {
+            PartySnapshot party = new PartySnapshot(identifier);
+            party.leader = interested.iterator().next();
+            party.members.addAll(interested);
+            this.party_by_id.put(identifier, party);
+            for (UUID uuid : interested) {
+                this.party_by_player.put(uuid, party);
+            }
+
+            for (Player player : party.getOnlineBukkitPlayers()) {
+                for (Player other : party.getOnlineBukkitPlayers()) {
+                    RPGCore.inst().getLanguageManager().sendMessage(player, "group_member_join", other.getName());
+                }
+            }
         }
-        // cannot have a party already
-        return getPartySnapshot(core_player) == null;
     }
 
     /**
@@ -64,7 +90,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
         // give negative feedback to matchmaker
         MatchProcess phase = this.matchmaker_active.remove(player.getUniqueId());
         if (phase != null) {
-            phase.decline(player);
+            phase.decline();
             for (UUID uuid : phase.accepted) {
                 this.matchmaker_active.remove(uuid);
             }
@@ -109,7 +135,6 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 process.interested.add(candidate);
             }
             // register process and deploy prompt
-            matchmaker_active.put(process.id, process);
             for (UUID uuid : process.interested) {
                 this.matchmaker_active.put(uuid, process);
             }
@@ -143,12 +168,12 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 // must be online and registered
                 CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(uuid);
                 if (core_player == null) {
-                    RPGCore.inst().getLanguageManager().sendMessage(player, "group_internal_error");
+                    RPGCore.inst().getLanguageManager().sendMessage(player, "unexpected_error", "MEMBER_NOT_READY");
                     return;
                 }
                 // cannot have a menu open
-                if (core_player.getEntity().getOpenInventory().getType() != InventoryType.CRAFTING) {
-                    RPGCore.inst().getLanguageManager().sendMessage(player, "group_internal_error");
+                if (!AbstractCoreMenu.isUsingTrivialMenu(core_player.getEntity())) {
+                    RPGCore.inst().getLanguageManager().sendMessage(player, "unexpected_error", "MEMBER_NOT_READY");
                     return;
                 }
             }
@@ -163,24 +188,37 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
             IDungeonInstance instance = RPGCore.inst().getDungeonManager().createInstance(contents[0]);
             instance.invite(party.getAllMembers().stream().map(OfflinePlayer::getName).collect(Collectors.toList()));
         } else {
-            RPGCore.inst().getLanguageManager().sendMessage(player, "group_internal_error");
+            RPGCore.inst().getLanguageManager().sendMessage(player, "unexpected_error", "UNAUTHORIZED");
         }
     }
 
     @Override
-    public void joinParty(Player asking, String target) {
-        if (getPartySnapshot(asking) == null) {
-            Player leader = Bukkit.getPlayer(target);
-            if (leader != null && leader.getOpenInventory().getType() == InventoryType.CRAFTING) {
-                PartySnapshot party = getPartySnapshot(leader);
-                if (party != null && party.getAllOnlineMembers().size() < 6 && party.isLeader(leader)) {
-                    new PromptAskLeader(asking.getName(), party.getId()).finish(leader);
-                    return;
-                }
+    public boolean isQueued(Player player) {
+        for (Set<UUID> uuids : this.matchmaker_interests.values()) {
+            if (uuids.contains(player.getUniqueId())) {
+                return true;
             }
         }
+        return false;
+    }
 
-        RPGCore.inst().getLanguageManager().sendMessage(asking, "group_internal_error");
+    @Override
+    public void joinParty(Player asking, String target) {
+        if (getPartySnapshot(asking) != null) {
+            RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "ALREADY_HAVE_PARTY");
+            return;
+        }
+        Player leader = Bukkit.getPlayer(target);
+        if (leader == null || !AbstractCoreMenu.isUsingTrivialMenu(leader)) {
+            RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "LEADER_NOT_READY");
+            return;
+        }
+        PartySnapshot party = getPartySnapshot(leader);
+        if (party == null || party.getMembers().size() > 6 || !party.isLeader(leader)) {
+            RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "UNAUTHORIZED_OR_FULL");
+            return;
+        }
+        new PromptAskLeader(asking.getName(), party.getId()).finish(leader);
     }
 
     @Override
@@ -188,7 +226,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
         PartySnapshot party = getPartySnapshot(asking);
         if (party == null) {
             Player stranger = Bukkit.getPlayer(target);
-            if (stranger != null && getPartySnapshot(stranger) == null && stranger.getOpenInventory().getType() == InventoryType.CRAFTING) {
+            if (stranger != null && getPartySnapshot(stranger) == null && AbstractCoreMenu.isUsingTrivialMenu(stranger)) {
                 party = new PartySnapshot("auto_generated_" + RANDOM_PARTY_ID++);
                 party.leader = asking.getUniqueId();
                 party.members.add(asking.getUniqueId());
@@ -196,17 +234,20 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 this.party_by_player.put(asking.getUniqueId(), party);
 
                 new PromptAskStranger(asking.getName(), party.getId()).finish(stranger);
-                return;
+            } else {
+                RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "STRANGER_TAKEN_OR_BUSY");
             }
         } else if (party.getAllOnlineMembers().size() < 6 && party.isLeader(asking)) {
             Player stranger = Bukkit.getPlayer(target);
-            if (stranger != null && getPartySnapshot(stranger) == null && stranger.getOpenInventory().getType() == InventoryType.CRAFTING) {
+            if (stranger != null && getPartySnapshot(stranger) == null && AbstractCoreMenu.isUsingTrivialMenu(stranger)) {
                 new PromptAskStranger(asking.getName(), party.getId()).finish(stranger);
-                return;
+            } else {
+                RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "FULL_OR_BUSY");
             }
+        } else {
+            RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "UNAUTHORIZED_OR_FULL");
         }
 
-        RPGCore.inst().getLanguageManager().sendMessage(asking, "group_internal_error");
     }
 
     @Override
@@ -228,36 +269,11 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 }
 
                 return;
+            } else {
+                RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "NON_MEMBER_OR_LEADER");
             }
-        }
-
-        RPGCore.inst().getLanguageManager().sendMessage(asking, "group_internal_error");
-    }
-
-    @Override
-    public void createParty(String identifier, List<UUID> players) {
-        Set<UUID> interested = new HashSet<>();
-        for (UUID player : players) {
-            Player online = Bukkit.getPlayer(player);
-            if (online != null && getPartySnapshot(online) == null) {
-                interested.add(player);
-            }
-        }
-
-        if (!interested.isEmpty()) {
-            PartySnapshot party = new PartySnapshot(identifier);
-            party.leader = interested.iterator().next();
-            party.members.addAll(interested);
-            this.party_by_id.put(identifier, party);
-            for (UUID uuid : interested) {
-                this.party_by_player.put(uuid, party);
-            }
-
-            for (Player player : party.getOnlineBukkitPlayers()) {
-                for (Player other : party.getOnlineBukkitPlayers()) {
-                    RPGCore.inst().getLanguageManager().sendMessage(player, "group_member_join", other.getName());
-                }
-            }
+        } else {
+            RPGCore.inst().getLanguageManager().sendMessage(asking, "unexpected_error", "UNAUTHORIZED");
         }
     }
 
@@ -277,10 +293,9 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
             for (Player party_player : party.getOnlineBukkitPlayers()) {
                 RPGCore.inst().getLanguageManager().sendMessage(party_player, "group_member_quit", player.getName());
             }
-            return;
+        } else {
+            RPGCore.inst().getLanguageManager().sendMessage(player, "unexpected_error", "HAVE_NO_PARTY");
         }
-
-        RPGCore.inst().getLanguageManager().sendMessage(player, "group_internal_error");
     }
 
     @Override
@@ -300,9 +315,9 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 RPGCore.inst().getLanguageManager().sendMessage(party_player, "group_member_quit", player.getName());
             }
             return;
+        } else {
+            RPGCore.inst().getLanguageManager().sendMessage(player.getEntity(), "unexpected_error", "HAVE_NO_PARTY");
         }
-
-        RPGCore.inst().getLanguageManager().sendMessage(player.getEntity(), "group_internal_error");
     }
 
     @Override
@@ -354,7 +369,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
                 if (response) {
                     process.accept(player);
                 } else {
-                    process.decline(player);
+                    process.decline();
                 }
             }
         }
@@ -365,15 +380,29 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
         }
     }
 
-    private class MatchProcess {
+    class MatchProcess {
         private final UUID id;
         private final String content;
         private final Set<UUID> interested = new HashSet<>();
         private Set<UUID> accepted = new HashSet<>();
 
-        private MatchProcess(String content) {
+        MatchProcess(String content) {
             this.id = UUID.randomUUID();
             this.content = content;
+        }
+
+        private boolean verify(UUID who) {
+            // must be online and registered
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(who);
+            if (core_player == null) {
+                return false;
+            }
+            // cannot have a menu open
+            if (!AbstractCoreMenu.isUsingTrivialMenu(core_player.getEntity())) {
+                return false;
+            }
+            // cannot have a party already
+            return getPartySnapshot(core_player) == null;
         }
 
         public void accept(Player player) {
@@ -414,7 +443,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
             }
         }
 
-        public void decline(Player player) {
+        public void decline() {
             // decline the offer
             for (UUID uuid : interested) {
                 matchmaker_active.remove(uuid);
@@ -433,7 +462,12 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
             // offer prompts
             for (UUID uuid : this.interested) {
                 Player player = Bukkit.getPlayer(uuid);
-                new PromptAskMatch(id, content, new ArrayList<>(this.interested)).finish(player);
+                if (player != null && AbstractCoreMenu.isUsingTrivialMenu(player)) {
+                    player.closeInventory();
+                    new PromptAskMatch(id, content, new ArrayList<>(this.interested)).finish(player);
+                } else {
+                    this.decline();
+                }
             }
         }
     }
@@ -441,7 +475,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
     /*
      * Prompt shown to stranger, if leader invited them.
      */
-    private class PromptAskLeader extends AbstractYesNoMenu {
+    class PromptAskLeader extends AbstractYesNoMenu {
 
         private final String party;
         private final String who_asked;
@@ -482,7 +516,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
     /*
      * Prompt shown to leader, if a stranger requested to join.
      */
-    private class PromptAskStranger extends AbstractYesNoMenu {
+    class PromptAskStranger extends AbstractYesNoMenu {
 
         private final String party;
         private final String who_asked;
@@ -522,7 +556,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
      * Active instance of a party, despite being called a snapshot
      * the backing implementation is mutable.
      */
-    private class PartySnapshot implements IPartySnapshot {
+    class PartySnapshot implements IPartySnapshot {
 
         private String id;
         private UUID leader;

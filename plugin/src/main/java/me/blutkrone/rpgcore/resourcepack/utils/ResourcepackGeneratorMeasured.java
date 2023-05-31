@@ -165,7 +165,7 @@ public class ResourcepackGeneratorMeasured {
         Map<String, Integer> duped = new HashMap<>(this.text_offset);
         duped.forEach((font, offset) -> {
             text_offset.put(font + "_shadow", offset - 1);
-            text_opacity.put(font + "_shadow", text_opacity.get(font));
+            text_opacity.put(font + "_shadow", text_opacity.get(font) * 0.8);
         });
     }
 

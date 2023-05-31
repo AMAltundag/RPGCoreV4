@@ -51,6 +51,7 @@ public class MechanicConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("instant", EditorInstantMechanic::new);
         id_to_constructor.put("trigger", EditorTriggerMechanic::new);
         id_to_constructor.put("score", EditorDungeonScoreMechanic::new);
+        id_to_constructor.put("revive", EditorReviveMechanic::new);
 
         class_to_id.put(EditorLogicBranchMechanic.class, "branch");
         class_to_id.put(EditorLogicMultiMechanic.class, "multi");
@@ -87,6 +88,7 @@ public class MechanicConstraint extends AbstractMultiConstraint {
         class_to_id.put(EditorInstantMechanic.class, "instant");
         class_to_id.put(EditorTriggerMechanic.class, "trigger");
         class_to_id.put(EditorDungeonScoreMechanic.class, "score");
+        class_to_id.put(EditorReviveMechanic.class, "revive");
 
     }
 

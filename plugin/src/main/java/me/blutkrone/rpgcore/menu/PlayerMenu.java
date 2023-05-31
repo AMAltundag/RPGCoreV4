@@ -18,13 +18,16 @@ import java.util.Map;
 
 public class PlayerMenu extends AbstractCoreMenu {
 
+    private int escape_cooldown;
     private TreeGraph.TreeNode<String> current;
     private Map<String, List<String>> custom_options;
 
-    public PlayerMenu(TreeGraph<String> structure, Map<String, List<String>> custom_options) {
+    public PlayerMenu(TreeGraph<String> structure, Map<String, List<String>> custom_options, int escape_cooldown) {
         super(6);
         this.current = structure.getRoot();
         this.custom_options = custom_options;
+        this.escape_cooldown = escape_cooldown;
+
     }
 
     @Override
@@ -90,7 +93,16 @@ public class PlayerMenu extends AbstractCoreMenu {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), string);
                 }
             }
-        } else if ("job".equalsIgnoreCase(action)) {
+        } else if ("escape".equalsIgnoreCase(action)) {
+            // recall to your last spawnpoint
+            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+            if (core_player.getCooldown("rpgcore_escape_via_menu") <= 0) {
+                core_player.getEntity().teleport(core_player.getRespawnPosition());
+                core_player.setCooldown("rpgcore_escape_via_menu", this.escape_cooldown);
+            } else {
+                language().sendMessage(core_player.getEntity(), "escape_cooldown", language().formatShortTicks(this.escape_cooldown));
+            }
+        }  else if ("job".equalsIgnoreCase(action)) {
             // passive trees provided by your job
             CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
             if (core_player.getJob() != null) {
@@ -356,5 +368,10 @@ public class PlayerMenu extends AbstractCoreMenu {
                 .forEach(i -> this.getMenu().setItemAt(i, itemize(menu6)));
 
         this.getMenu().setTitle(msb.compile());
+    }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
     }
 }

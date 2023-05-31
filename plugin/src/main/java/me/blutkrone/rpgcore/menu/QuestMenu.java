@@ -216,6 +216,11 @@ public class QuestMenu {
                 }
             }
         }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
+        }
     }
 
     /**
@@ -350,9 +355,16 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.interact(getMenu().getViewer(), false);
+                    if (npc.getAvailableTraits(getMenu().getViewer()).size() >= 2) {
+                        npc.interact(getMenu().getViewer(), false);
+                    }
                 }
             });
+        }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
         }
     }
 
@@ -448,7 +460,9 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.interact(getMenu().getViewer(), false);
+                    if (npc.getAvailableTraits(getMenu().getViewer()).size() >= 2) {
+                        npc.interact(getMenu().getViewer(), false);
+                    }
                 }
             });
         }
@@ -513,9 +527,13 @@ public class QuestMenu {
         public void close(InventoryCloseEvent event) {
             getMenu().stalled(() -> {
                 if (getMenu().getViewer().getOpenInventory().getType() == InventoryType.CRAFTING) {
-                    npc.interact(getMenu().getViewer(), false);
+                    if (npc.getAvailableTraits(getMenu().getViewer()).size() >= 2) {
+                        npc.interact(getMenu().getViewer(), false);
+                    }
                 }
             });
         }
+
+
     }
 }

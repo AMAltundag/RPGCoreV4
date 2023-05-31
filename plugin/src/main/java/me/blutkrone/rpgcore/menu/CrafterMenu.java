@@ -163,6 +163,11 @@ public class CrafterMenu extends AbstractCoreMenu {
         }
     }
 
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
+
     /*
      * A sub-menu to confirm the crafting, also shows
      * ingredients used to craft the item.

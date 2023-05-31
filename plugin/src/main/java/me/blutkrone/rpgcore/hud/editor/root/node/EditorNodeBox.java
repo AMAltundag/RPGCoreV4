@@ -28,6 +28,7 @@ import java.util.List;
  */
 public class EditorNodeBox implements IEditorRoot<CoreNodeBox> {
 
+    @EditorCategory(icon = Material.CHEST, info = "Box")
     @EditorNumber(name = "Radius", minimum = 0, maximum = 48)
     @EditorTooltip(tooltip = {"Radius which the node can trigger at."})
     public double radius = 16;

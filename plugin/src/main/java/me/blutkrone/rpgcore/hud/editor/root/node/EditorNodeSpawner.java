@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.root.node;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
@@ -24,6 +25,7 @@ import java.util.List;
  */
 public class EditorNodeSpawner implements IEditorRoot<CoreNodeSpawner> {
 
+    @EditorCategory(icon = Material.SPAWNER, info = "Spawner")
     @EditorNumber(name = "Radius", minimum = 0, maximum = 48)
     @EditorTooltip(tooltip = {"Radius which the node can trigger at."})
     public double radius = 16d;
@@ -74,6 +76,12 @@ public class EditorNodeSpawner implements IEditorRoot<CoreNodeSpawner> {
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.BOOKSHELF)
                 .name("§aSpawner Node")
+                .appendLore("§fRadius: " + radius)
+                .appendLore("§fCount: " + count)
+                .appendLore("§fCooldown: " + cooldown)
+                .appendLore("§fLevel: " + level)
+                .appendLore("§fLeash: " + leash)
+                .appendLore("§fMobs: " + mobs)
                 .build();
     }
 

@@ -40,6 +40,8 @@ public class HologramManager {
     private Map<Player, Map<UUID, StationaryHologram>> tracked = new WeakHashMap<>();
     // thread locker
     private boolean working = false;
+    // force a flush of tracked holograms
+    private boolean reload = false;
 
     public HologramManager() {
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
@@ -78,6 +80,8 @@ public class HologramManager {
                 this.working = true;
             }
 
+            boolean want_reload = this.reload;
+
             // snapshot relevant player data
             Map<Player, Location> snapshot = new HashMap<>();
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -93,7 +97,7 @@ public class HologramManager {
                         server_hologram = this.holograms.get(where.getWorld().getName());
                     }
 
-                    if (server_hologram != null) {
+                    if (server_hologram != null && !want_reload) {
                         // re-compute visible holograms
                         Map<UUID, StationaryHologram> viewport = new HashMap<>();
                         Vector v1 = player.getLocation().toVector();
@@ -115,11 +119,7 @@ public class HologramManager {
                         });
                         // add all newly acquired holograms
                         viewport.forEach((uuid, hologram) -> {
-                            if (viewing.containsKey(uuid)) {
-                                if (Math.random() <= 0.01d) {
-                                    Bukkit.getLogger().severe("update hologram contents");
-                                }
-                            } else {
+                            if (!viewing.containsKey(uuid)) {
                                 // create hologram for the player
                                 hologram.update(player);
                                 // track hologram for the player
@@ -138,9 +138,17 @@ public class HologramManager {
 
                 Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
                     this.working = false;
+                    this.reload = false;
                 });
             });
         }, 1, 10);
+    }
+
+    /**
+     * Reload hologram related logic.
+     */
+    public void reload() {
+        this.reload = true;
     }
 
     /**

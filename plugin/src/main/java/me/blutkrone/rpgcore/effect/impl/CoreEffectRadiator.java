@@ -33,7 +33,7 @@ public class CoreEffectRadiator implements CoreEffect.IEffectPart {
         this.sample = editor.sample;
         this.scatter = editor.scatter;
 
-        Bukkit.getLogger().severe("not implemented (radiator looks off?)");
+        Bukkit.getLogger().info("not implemented (radiator looks off?)");
     }
 
     @Override

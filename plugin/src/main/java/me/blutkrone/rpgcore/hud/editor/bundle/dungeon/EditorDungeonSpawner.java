@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
 import me.blutkrone.rpgcore.dungeon.structure.SpawnerStructure;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.MobConstraint;
@@ -25,14 +24,20 @@ public class EditorDungeonSpawner extends AbstractEditorDungeonStructure {
     @EditorTooltip(tooltip = {"The level of the mob that will spawn."})
     public double level = 1d;
     @EditorNumber(name = "Leash", minimum = 0)
-    @EditorTooltip(tooltip = {"Leash range, measured in chunks.", "Leash extends by 50% while in combat."})
+    @EditorTooltip(tooltip = {"Leash range, measured in chunks.", "Leash extends by 50% while in combat.", "Leash of 0 to deactivate."})
     public double leash = 0d;
-    @EditorNumber(name = "Count", minimum = 1, maximum = 8)
+    @EditorNumber(name = "Count", minimum = 1)
     @EditorTooltip(tooltip = {"How many mobs will be spawned here."})
     public double count = 1d;
-    @EditorBoolean(name = "Important")
-    @EditorTooltip(tooltip = {"Will respawn if mob de-spawned, use for bosses.", "Fixes count to be 1"})
-    public boolean important = false;
+    @EditorNumber(name = "Concurrent", minimum = 1, maximum = 8)
+    @EditorTooltip(tooltip = {"How many mobs to spawn at once."})
+    public double concurrent = 1d;
+    @EditorNumber(name = "Cooldown", minimum = 0)
+    @EditorTooltip(tooltip = {"Cooldown after a bunch of monsters."})
+    public double cooldown = 100;
+    @EditorNumber(name = "Destroy", minimum = 0, maximum = 128)
+    @EditorTooltip(tooltip = {"De-spawn mob, relative to spawn-point"})
+    public double despawn = 24d;
 
     @Override
     public AbstractDungeonStructure build() {
@@ -51,7 +56,6 @@ public class EditorDungeonSpawner extends AbstractEditorDungeonStructure {
                 .appendLore("§fLevel: " + this.level)
                 .appendLore("§fLeash: " + this.leash)
                 .appendLore("§fCount: " + this.count)
-                .appendLore("§fImportant: " + this.important)
                 .build();
     }
 

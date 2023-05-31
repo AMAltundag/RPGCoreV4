@@ -337,7 +337,7 @@ public class NavigationMenu {
                                         }
                                         // place an itemized marker on the location
                                         ItemStack item = itemize(marker);
-                                        ItemBuilder.of(item).inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build());
+                                        ItemBuilder.of(item).inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build()).build();
                                         IChestMenu.setBrand(item, RPGCore.inst(), "marker", String.valueOf(k));
                                         getMenu().setItemAt((where.y * 9) + where.x, item);
                                     }
@@ -393,6 +393,11 @@ public class NavigationMenu {
 
                 Bukkit.getScheduler().runTask(RPGCore.inst(), this::rebuild);
             }
+        }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
         }
     }
 

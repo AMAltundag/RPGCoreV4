@@ -1,12 +1,11 @@
 package me.blutkrone.rpgcore;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.social.IGuildHandler;
 import me.blutkrone.rpgcore.attribute.AttributeManager;
+import me.blutkrone.rpgcore.chat.ChatManager;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.command.CommandArgumentException;
 import me.blutkrone.rpgcore.command.impl.*;
@@ -38,7 +37,6 @@ import me.blutkrone.rpgcore.quest.QuestManager;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.skin.SkinPool;
-import me.blutkrone.rpgcore.social.BungeeTable;
 import me.blutkrone.rpgcore.social.SocialManager;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.apache.commons.io.FileUtils;
@@ -47,7 +45,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -60,7 +57,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class RPGCore extends JavaPlugin implements PluginMessageListener {
+public final class RPGCore extends JavaPlugin {
 
     static {
         Logger.getLogger("org.mongodb.driver").setLevel(Level.WARNING);
@@ -112,6 +109,7 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
     private PassiveManager passive_manager;
     private SocialManager social_manager;
     private WorldIntegrationManager world_integration_manager;
+    private ChatManager chat_manager;
 
     // Managers providing high-level functionality for the server
     private MountManager mount_manager;
@@ -143,7 +141,6 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
                     .type(WorldType.FLAT)
                     .generateStructures(false)
                     .createWorld();
-
             if (demo != null) {
                 demo.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
                 demo.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
@@ -192,12 +189,12 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
             throw new InitializationException("Could not create 'Volatile Manager' for this version!");
 
         // modules which make up the core
-        this.data_manager = new DataManager();
+        this.attribute_manager = new AttributeManager();
+         this.data_manager = new DataManager();
         this.entity_manager = new EntityManager();
         this.language_manager = new LanguageManager();
         this.damage_manager = new DamageManager();
         this.resourcepack_manager = new ResourcePackManager();
-        this.attribute_manager = new AttributeManager();
         this.job_manager = new JobManager();
         this.minimap_manager = new MinimapManager();
         this.item_manager = new ItemManager();
@@ -215,6 +212,7 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
         this.hud_manager = new HUDManager();
         this.hologram_manager = new HologramManager();
         this.world_integration_manager = new WorldIntegrationManager();
+        this.chat_manager = new ChatManager();
 
         // initialize relevant commands
         this.commands.put("mob", new SpawnMobCommand());
@@ -236,13 +234,10 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
         this.commands.put("exp", new ExpCommand());
         this.commands.put("social", new SocialCommand());
         this.commands.put("dexit", new DungeonExitCommand());
+        this.commands.put("internal", new InternalCommand());
 
         this.commands.put("migrate", new ToolPlayerMigrateCommand());
         this.commands.put("push", new ToolConfigPushCommand());
-
-        // hook into bungeecord for RPGCore protocol
-        getServer().getMessenger().registerOutgoingPluginChannel(this, BungeeTable.CHANNEL_RPGCORE);
-        getServer().getMessenger().registerIncomingPluginChannel(this, BungeeTable.CHANNEL_RPGCORE, this);
 
         // task to update the timestamp
         Bukkit.getScheduler().runTaskTimer(this, () -> this.timestamp += 1, 1, 1);
@@ -260,7 +255,7 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
         for (Player player : Bukkit.getOnlinePlayers()) {
             CorePlayer core_player = getEntityManager().getPlayer(player);
             if (core_player != null) {
-                core_player.remove();
+                RPGCore.inst().getEntityManager().unregister(core_player.getUniqueId());
             }
         }
         // make sure the data adapter finished
@@ -365,30 +360,6 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
         return true;
     }
 
-    @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        if (BungeeTable.CHANNEL_RPGCORE.equals(channel)) {
-            ByteArrayDataInput in = ByteStreams.newDataInput(message);
-            channel = in.readUTF();
-            if (channel.equalsIgnoreCase(BungeeTable.PROXY_BASIC_MESSAGE)) {
-                // proxy wants to deploy message
-                String proxy_message = in.readUTF();
-                // grab LC information
-                LanguageManager language = RPGCore.inst().getLanguageManager();
-                String translation = language.getTranslation(proxy_message);
-                int size = in.readInt();
-                for (int i = 0; i < size; i++) {
-                    String arg = in.readUTF();
-                    translation = translation.replace("{" + i + "}", arg);
-                }
-                // send message to player
-                player.sendMessage(translation);
-            } else {
-                getSocialManager().onBungeeMessage(player, channel, in);
-            }
-        }
-    }
-
     public AbstractVolatileManager getVolatileManager() {
         return volatile_manager;
     }
@@ -483,5 +454,9 @@ public final class RPGCore extends JavaPlugin implements PluginMessageListener {
 
     public WorldIntegrationManager getWorldIntegrationManager() {
         return world_integration_manager;
+    }
+
+    public ChatManager getChatManager() {
+        return chat_manager;
     }
 }

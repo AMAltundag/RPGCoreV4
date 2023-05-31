@@ -2,10 +2,10 @@ package com.blutkrone.rpgproxy.group;
 
 import com.blutkrone.rpgproxy.util.BungeeTable;
 import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BungeeParty {
 
@@ -13,11 +13,44 @@ public class BungeeParty {
 
     private String id;
     private UUID leader;
-    private Set<UUID> members = new HashSet<>();
+    private Set<UUID> members = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private int lonely_counter;
 
-    BungeeParty(BungeeGroupHandler handler, String id) {
+    BungeeParty(BungeeGroupHandler handler, String id, List<ProxiedPlayer> players) {
         this.handler = handler;
         this.id = id;
+        this.lonely_counter = 0;
+        for (ProxiedPlayer player : players) {
+            this.members.add(player.getUniqueId());
+            if (this.leader == null) {
+                this.leader = player.getUniqueId();
+            }
+        }
+    }
+
+    BungeeParty(BungeeGroupHandler handler, String id, ProxiedPlayer player) {
+        this.handler = handler;
+        this.id = id;
+
+        this.members.add(player.getUniqueId());
+        if (this.leader == null) {
+            this.leader = player.getUniqueId();
+        }
+    }
+
+    /**
+     * A party is considered lonely if it has less-equal one member, this
+     * should only happen if someone wanted to party up but the other side
+     * didn't accept the invitation
+     *
+     * @return How many consecutive times the party is considered lonely.
+     */
+    public int getLonelyCounter() {
+        if (this.size() > 1) {
+            this.lonely_counter = 0;
+        }
+
+        return ++this.lonely_counter;
     }
 
     /**
@@ -25,12 +58,11 @@ public class BungeeParty {
      * has players active.
      */
     public void broadcast() {
-        ByteArrayDataOutput update = ByteStreams.newDataOutput();
-        update.writeUTF(BungeeTable.PROXY_PARTY_UPDATE_ONE);
-        dump(update);
-        byte[] data = update.toByteArray();
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.SERVER_BOUND_PARTY_UPDATE_ONE);
+        dump(composed);
+        byte[] data = composed.toByteArray();
         this.handler.getPlugin().getProxy().getServers().forEach((id, server) -> {
-            server.sendData(BungeeTable.CHANNEL_RPGCORE, data, false);
+            server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
         });
     }
 
@@ -113,6 +145,40 @@ public class BungeeParty {
      */
     public String getId() {
         return this.id;
+    }
+
+    /**
+     * Count how many members are in this party.
+     *
+     * @return How many members we have
+     */
+    public int size() {
+        return this.members.size();
+    }
+
+    /**
+     * Add a member to the party.
+     *
+     * @param player Who to add
+     */
+    public void addPlayer(ProxiedPlayer player) {
+        this.members.add(player.getUniqueId());
+    }
+
+    /**
+     * Remove a player from the party, do note that if the party
+     * has only one player left it should dissolve.
+     * <p>
+     * Should it be the leader who is leaving, the oldest player
+     * in the party is to be promoted.
+     *
+     * @param player Who to remove
+     */
+    public void removePlayer(UUID player) {
+        this.members.remove(player);
+        if (this.leader.equals(player) && !this.members.isEmpty()) {
+            this.leader = this.members.iterator().next();
+        }
     }
 
     /**

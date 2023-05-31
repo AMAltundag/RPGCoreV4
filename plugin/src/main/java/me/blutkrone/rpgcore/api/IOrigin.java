@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.api;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -74,6 +75,7 @@ public interface IOrigin {
      * @return all entities found
      */
     default List<CoreEntity> getNearby(double radius) {
+        Bukkit.getLogger().info("not implemented (nearby must be filtered for untargetable properly)");
         List<CoreEntity> output = new ArrayList<>();
         // ensure the location can be searched
         Location where = getLocation();

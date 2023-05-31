@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono;
 
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueBundle;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.AbstractMonoConstraint;
 
 import java.util.ArrayList;
@@ -9,12 +10,12 @@ import java.util.List;
 public class DialogueAsBundleConstraint extends AbstractMonoConstraint {
     @Override
     public void setElementAt(List container, int index, String value) {
-        container.set(index, new EditorDialogue());
+        container.set(index, new EditorDialogueBundle());
     }
 
     @Override
     public void addElement(List container, String value) {
-        container.add(new EditorDialogue());
+        container.add(new EditorDialogueBundle());
     }
 
     @Override

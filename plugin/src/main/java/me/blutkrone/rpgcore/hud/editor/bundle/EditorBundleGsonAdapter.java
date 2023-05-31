@@ -12,6 +12,8 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
     private static Map<String, String> LEGACY_MAPPING = new HashMap<>();
 
     static {
+        Bukkit.getLogger().info("not implemented (replace mappings with migration)!");
+
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixChance", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixChance");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorAffixLimit", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixLimit");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorLoot", "me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot");
@@ -53,6 +55,8 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorRadiator", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRadiator");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorRotor", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRotor");
         LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.EditorWait", "me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectWait");
+
+        LEGACY_MAPPING.put("me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonBlockSwapper", "me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonBlock");
     }
 
     @Override
@@ -85,7 +89,6 @@ public class EditorBundleGsonAdapter<T> implements JsonSerializer<T>, JsonDeseri
             Class clazz = Class.forName(safe_class);
             return context.deserialize(data, clazz);
         } catch (ClassNotFoundException e) {
-            Bukkit.getLogger().severe("SERIALIZE:" + type.getAsString());
             throw new JsonParseException(e);
         }
     }

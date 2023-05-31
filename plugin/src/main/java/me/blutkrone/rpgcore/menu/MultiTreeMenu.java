@@ -24,6 +24,8 @@ public abstract class MultiTreeMenu extends AbstractCoreMenu {
         super(5);
     }
 
+
+
     /**
      * Get a list of all passive trees we do care about
      *
@@ -31,6 +33,11 @@ public abstract class MultiTreeMenu extends AbstractCoreMenu {
      * @return
      */
     public abstract List<CorePassiveTree> getTrees(CorePlayer player);
+
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
 
     @Override
     public void rebuild() {

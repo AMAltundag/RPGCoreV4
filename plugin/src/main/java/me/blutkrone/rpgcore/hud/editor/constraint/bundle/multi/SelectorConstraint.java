@@ -29,6 +29,9 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("looking", EditorLookingSelector::new);
         id_to_constructor.put("level", EditorLevelSelector::new);
         id_to_constructor.put("score", EditorDungeonScoreSelector::new);
+        id_to_constructor.put("and", EditorAndSelector::new);
+        id_to_constructor.put("or", EditorOrSelector::new);
+        id_to_constructor.put("self", EditorSelfSelector::new);
 
         class_to_id.put(EditorAlliesSelector.class, "allies");
         class_to_id.put(EditorEnemiesSelector.class, "enemies");
@@ -43,6 +46,9 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         class_to_id.put(EditorLookingSelector.class, "looking");
         class_to_id.put(EditorLevelSelector.class, "level");
         class_to_id.put(EditorDungeonScoreSelector.class, "score");
+        class_to_id.put(EditorAndSelector.class, "and");
+        class_to_id.put(EditorOrSelector.class, "or");
+        class_to_id.put(EditorSelfSelector.class, "self");
     }
 
     @Override

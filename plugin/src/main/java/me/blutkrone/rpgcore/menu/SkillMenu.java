@@ -82,6 +82,11 @@ public class SkillMenu extends AbstractCoreMenu {
         }
     }
 
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
+
     private class Rebind extends AbstractCoreMenu {
 
         private IChestMenu parent;
@@ -183,6 +188,11 @@ public class SkillMenu extends AbstractCoreMenu {
         @Override
         public void close(InventoryCloseEvent event) {
             suggestOpen(parent);
+        }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
         }
     }
 }

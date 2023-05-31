@@ -26,15 +26,14 @@ public class CoreDungeon {
     private List<AbstractCoreSelector> blacklist;
     private List<AbstractCoreSelector> whitelist;
     private String lc_icon;
-    private List<String> key_items;
     private Map<String, Double> player_attributes;
     private Map<String, Double> spawns_attributes;
     private Map<String, AbstractDungeonStructure> structures;
+    private boolean hardcore;
 
     public CoreDungeon(String id, EditorDungeon editor) {
         this.id = id;
 
-        this.key_items = new ArrayList<>(editor.key_items);
         this.lc_icon = editor.lc_icon;
         this.player_limit = ((int) editor.player_limit);
         this.minimum_level = ((int) editor.minimum_level);
@@ -43,15 +42,35 @@ public class CoreDungeon {
         this.whitelist = AbstractEditorSelector.unwrap(editor.whitelist);
         this.player_attributes = EditorAttributeAndFactor.unwrap(editor.player_attributes);
         this.spawns_attributes = EditorAttributeAndFactor.unwrap(editor.spawns_attributes);
+        this.hardcore = editor.hardcore;
         this.structures = new HashMap<>();
         for (IEditorBundle structure : editor.structures) {
             AbstractEditorDungeonStructure dungeon_structure = (AbstractEditorDungeonStructure) structure;
             AbstractDungeonStructure built = dungeon_structure.build();
             AbstractDungeonStructure override = this.structures.put(built.getSyncId(), built);
             if (override != null) {
-                Bukkit.getLogger().severe(String.format("Dungeon '%s' structure '%s' overlaps!", id, built.getSyncId()));
+                Bukkit.getLogger().warning(String.format("Dungeon '%s' structure '%s' overlaps!", id, built.getSyncId()));
             }
         }
+    }
+
+    /**
+     * The LC icon for this specific dungeon.
+     *
+     * @return LC Identifier for dungeon item.
+     */
+    public String getLcIcon() {
+        return lc_icon;
+    }
+
+    /**
+     * If not resurrected in time will be kicked out of the
+     * dungeon instance.
+     *
+     * @return Hardcore dungeon
+     */
+    public boolean isHardcore() {
+        return hardcore;
     }
 
     public Map<String, Double> getPlayerAttributes() {

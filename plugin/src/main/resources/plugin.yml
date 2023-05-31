@@ -14,6 +14,7 @@ libraries:
 - "org.jsoup:jsoup:1.15.2"
 - "com.github.depsypher:pngtastic:1.7"
 - "com.ezylang:EvalEx:3.0.1"
+- "com.konghq:unirest-java:3.14.1"
 softdepend: [ProtocolLib, WorldGuard, ModelEngine]
 
 commands:

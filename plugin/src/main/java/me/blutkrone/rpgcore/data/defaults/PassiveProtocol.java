@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.BukkitSerialization;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -140,7 +141,8 @@ public class PassiveProtocol implements DataProtocol {
             }
         }
 
-        player.updatePassiveTree();
+        // force an update on the passive tree
+        Bukkit.getScheduler().runTask(RPGCore.inst(), player::updatePassiveTree);
     }
 }
 

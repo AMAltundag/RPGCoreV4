@@ -71,7 +71,7 @@ public class WorldIntegrationManager implements Listener {
     private static ItemStack CREATE_GATE = ItemBuilder
             .of(Material.END_PORTAL_FRAME)
             .flag(ItemFlag.values())
-            .name("§fCreate NPC")
+            .name("§fCreate Dungeon Gate")
             .appendLore("§fCreate an entrance for dungeons")
             .build();
     private static ItemStack RPGCORE_INTEGRATION_TOOL = ItemBuilder.of(Material.BLAZE_ROD)
@@ -83,7 +83,7 @@ public class WorldIntegrationManager implements Listener {
             .build();
 
     public WorldIntegrationManager() {
-        Bukkit.getLogger().severe("not implemented (node creation needs proper structure)");
+        Bukkit.getLogger().info("not implemented (node creation needs proper structure)");
 
         // handle highlighting as deemed necessary
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
@@ -283,7 +283,7 @@ public class WorldIntegrationManager implements Listener {
                         // append location to the relevant structure
                         for (EditorDungeonInstance.ActiveStructure structure : editing.getStructures()) {
                             if (structure.structure.getSyncId().equalsIgnoreCase(choice)) {
-                                structure.data.add(new AbstractDungeonStructure.StructureData(where));
+                                structure.data.add(new AbstractDungeonStructure.StructureData(structure.structure, where));
                             }
                         }
                         // close menu afterward

@@ -138,4 +138,6 @@ public class JobAdvancementMenu extends AbstractCoreMenu {
         // rebuild after interaction
         this.getMenu().queryRebuild();
     }
+
+
 }

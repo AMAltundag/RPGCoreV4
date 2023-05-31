@@ -69,6 +69,21 @@ public final class DamageManager implements IDamageManager, Listener {
             ex.printStackTrace();
         }
 
+        // dispatch warning on nulled maximum resistance
+        for (DamageElement element : this.damage_elements.values()) {
+            String attribute = element.getMaxReductionAttribute();
+            try {
+                RPGCore.inst().getAttributeManager().getIndex().create(attribute, (attr -> {
+                    attr.defaults = 0.75d;
+                }));
+            } catch (Exception e) {
+                double defaults = RPGCore.inst().getAttributeManager().getIndex().get(attribute).getDefaults();
+                if (defaults <= 0d) {
+                    Bukkit.getLogger().warning("Attribute '%s' defaults to zero (This prevents resistances from applying!)".formatted(attribute));
+                }
+            }
+        }
+
         // load secondary ailments which can be inflicted
         try {
             ConfigWrapper damage_config = FileUtil.asConfigYML(FileUtil.file("ailment.yml"));
@@ -80,14 +95,14 @@ public final class DamageManager implements IDamageManager, Listener {
                 } else if (ailment_type.equalsIgnoreCase("ATTRIBUTE")) {
                     ailments.add(new AttributeAilment(path, root.getSection(path)));
                 } else {
-                    Bukkit.getLogger().severe(String.format("Unable to create ailment of type '%s'", ailment_type));
+                    Bukkit.getLogger().warning(String.format("Unable to create ailment of type '%s'", ailment_type));
                 }
             }));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        Bukkit.getLogger().severe("not implemented (vanilla migration)");
+        Bukkit.getLogger().info("not implemented (vanilla migration)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
@@ -100,8 +115,12 @@ public final class DamageManager implements IDamageManager, Listener {
             }
         }
 
-        // do not process damage if we cannot be target
+        // no damage taken while target is untargetable
         if (!interaction.getDefender().isAllowTarget()) {
+            return;
+        }
+        // no damage dealt while source is untargetable
+        if (interaction.getAttacker() != null && !interaction.getAttacker().isAllowTarget()) {
             return;
         }
 
@@ -189,7 +208,7 @@ public final class DamageManager implements IDamageManager, Listener {
             // tank damage with ward first
             for (DamageElement element : getElements()) {
                 double remaining = interaction.getDamage(element);
-                if (remaining > 0d) continue;
+                if (remaining < 0d) continue;
                 interaction.setDamage(element, ward.damageBy(remaining));
             }
             // if ward broke, fire a trigger about that
@@ -259,19 +278,19 @@ public final class DamageManager implements IDamageManager, Listener {
                         interaction.getDefender().die(interaction);
                         Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
 
-                        Bukkit.getLogger().severe("not implemented (kill trigger)");
-                        Bukkit.getLogger().severe("not implemented (died trigger)");
+                        Bukkit.getLogger().info("not implemented (kill trigger)");
+                        Bukkit.getLogger().info("not implemented (died trigger)");
                     });
                 }
             } else if (interaction.getDefender() instanceof CorePlayer) {
                 ((CorePlayer) interaction.getDefender()).setAsGrave(interaction);
-                Bukkit.getLogger().severe("not implemented (kill trigger)");
-                Bukkit.getLogger().severe("not implemented (died trigger)");
+                Bukkit.getLogger().info("not implemented (kill trigger)");
+                Bukkit.getLogger().info("not implemented (died trigger)");
             } else {
                 interaction.getDefender().die(interaction);
                 Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
-                Bukkit.getLogger().severe("not implemented (kill trigger)");
-                Bukkit.getLogger().severe("not implemented (died trigger)");
+                Bukkit.getLogger().info("not implemented (kill trigger)");
+                Bukkit.getLogger().info("not implemented (died trigger)");
             }
         }
 
@@ -279,8 +298,8 @@ public final class DamageManager implements IDamageManager, Listener {
         interaction.getDefender().getEntity().damage(0d);
         // inform skills about the damage inflicted
 
-        Bukkit.getLogger().severe("not implemented (dealt damage trigger)");
-        Bukkit.getLogger().severe("not implemented (took damage trigger)");
+        Bukkit.getLogger().info("not implemented (dealt damage trigger)");
+        Bukkit.getLogger().info("not implemented (took damage trigger)");
     }
 
     @Override

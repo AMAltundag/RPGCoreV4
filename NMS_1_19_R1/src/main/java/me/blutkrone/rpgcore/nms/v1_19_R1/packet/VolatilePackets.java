@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.nms.v1_19_R1.packet;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.datafixers.util.Pair;
 import me.blutkrone.rpgcore.nms.api.packet.IDispatchPacket;
 import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IBlockMutator;
@@ -17,6 +18,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.entity.monster.EntityMagmaCube;
 import net.minecraft.world.level.EnumGamemode;
@@ -27,6 +29,7 @@ import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -281,11 +284,21 @@ public class VolatilePackets implements IVolatilePackets {
 
         @Override
         public void equip(Player player, EquipmentSlot slot, ItemStack item) {
-            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
-            serializer.writeVarInt(this.id); // id
-            serializer.writeByte(slot.ordinal() | -128); // position | endofarray
-            serializer.writeItem(item); // item
-            sendPacket(player, new PacketPlayOutEntityEquipment(serializer));
+            List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> items = new ArrayList<>();
+            if (slot == EquipmentSlot.HAND) {
+                items.add(Pair.of(EnumItemSlot.a, CraftItemStack.asNMSCopy(item)));
+            } else if (slot == EquipmentSlot.OFF_HAND) {
+                items.add(Pair.of(EnumItemSlot.b, CraftItemStack.asNMSCopy(item)));
+            } else if (slot == EquipmentSlot.FEET) {
+                items.add(Pair.of(EnumItemSlot.c, CraftItemStack.asNMSCopy(item)));
+            } else if (slot == EquipmentSlot.LEGS) {
+                items.add(Pair.of(EnumItemSlot.d, CraftItemStack.asNMSCopy(item)));
+            } else if (slot == EquipmentSlot.CHEST) {
+                items.add(Pair.of(EnumItemSlot.e, CraftItemStack.asNMSCopy(item)));
+            } else if (slot == EquipmentSlot.HEAD) {
+                items.add(Pair.of(EnumItemSlot.f, CraftItemStack.asNMSCopy(item)));
+            }
+            sendPacket(player, new PacketPlayOutEntityEquipment(this.id, items));
         }
 
         @Override

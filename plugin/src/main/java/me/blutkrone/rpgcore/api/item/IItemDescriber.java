@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.api.item;
 
-import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
+import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import org.bukkit.inventory.ItemStack;
 
 public interface IItemDescriber {
@@ -12,5 +12,5 @@ public interface IItemDescriber {
      * @param item   the item to describe.
      * @param player Player to describe relative to.
      */
-    void describe(ItemStack item, IDescriptorReference player);
+    void describe(ItemStack item, IDescriptionRequester player);
 }

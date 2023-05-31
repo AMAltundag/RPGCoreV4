@@ -41,6 +41,7 @@ public abstract class AbstractPlayerNPC {
      * @param location The location of the npc.
      */
     public AbstractPlayerNPC(NPCPool pool, Location location, VolatileGameProfile profile) {
+        Bukkit.getLogger().info("not implemented (merge NPCs into native pipeline)");
         this.pool = pool;
         this.location = location;
         this.profile = profile;

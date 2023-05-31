@@ -61,6 +61,19 @@ public class StatusMechanic extends AbstractCoreMechanic {
         private List<AttributeModifier> expired;
         private int last_stack;
 
+        public StatusEffect(CoreEntity entity, Map<String, Double> attribute, int duration, boolean debuff) {
+            this.entity = entity;
+            this.stack = 1;
+            this.duration = duration;
+            this.icon = "none";
+            this.timestamp = System.currentTimeMillis();
+            this.debuff = debuff;
+            this.attribute = new HashMap<>(attribute);
+            this.expired = new ArrayList<>();
+            this.last_stack = -1;
+            this.scaling = new ArrayList<>();
+        }
+
         StatusEffect(CoreEntity entity, StatusMechanic mechanic, IContext context) {
             this.entity = entity;
             this.stack = 1;

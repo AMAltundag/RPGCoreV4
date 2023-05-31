@@ -59,7 +59,7 @@ public class DataManager implements Listener {
     private Map<UUID, Long> suppress_time = new HashMap<>();
 
     public DataManager() {
-        Bukkit.getLogger().severe("not implemented (data manager needs better threading!");
+        Bukkit.getLogger().info("not implemented (data manager needs better threading!");
 
         try {
             this.data_adapter = CoreInitializationEvent.find(IDataAdapter.class);
@@ -88,13 +88,6 @@ public class DataManager implements Listener {
             HUDManager hudm = RPGCore.inst().getHUDManager();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                // suppression of login menu
-                long suppressed = this.suppress_time.getOrDefault(player.getUniqueId(), 0L);
-                if (suppressed > System.currentTimeMillis()) {
-                    continue;
-                }
-                this.suppress_time.remove(player.getUniqueId());
-
                 // kick if a misconfiguration applies
                 if (pre_login_position.getWorld() == null) {
                     player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
@@ -108,6 +101,23 @@ public class DataManager implements Listener {
                     block.setType(Material.BEDROCK);
                 }
 
+                // suppression of login menu
+                long suppressed = this.suppress_time.getOrDefault(player.getUniqueId(), 0L);
+                if (suppressed > System.currentTimeMillis()) {
+                    if (Utility.distanceSqOrWorld(player, pre_login_position) > 1d) {
+                        try {
+                            if (player.getGameMode() != GameMode.ADVENTURE) {
+                                player.setGameMode(GameMode.ADVENTURE);
+                            }
+                            player.teleport(pre_login_position);
+                        } catch (Exception e) {
+                            player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                        }
+                    }
+                    return;
+                }
+                this.suppress_time.remove(player.getUniqueId());
+
                 if (!rpm.hasLoaded(player)) {
                     // re-teleport while waiting for resourcepack to load
                     try {
@@ -119,18 +129,6 @@ public class DataManager implements Listener {
                         player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
                     }
                 } else if (em.getPlayer(player) == null) {
-                    // re-teleport if moved before picking a character
-                    if (Utility.distanceSqOrWorld(player, pre_login_position) > 1d) {
-                        try {
-                            if (player.getGameMode() != GameMode.ADVENTURE) {
-                                player.setGameMode(GameMode.ADVENTURE);
-                            }
-                            player.teleport(pre_login_position);
-                        } catch (Exception e) {
-                            player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
-                        }
-                    }
-
                     // present roster menu again if it was closed
                     if (player.getOpenInventory().getTopInventory().getType() == InventoryType.CRAFTING) {
                         // check if we can just perform a quick-join
@@ -150,6 +148,18 @@ public class DataManager implements Listener {
                         }
 
                         hudm.getRosterMenu().open(player);
+                    }
+
+                    // re-teleport if moved before picking a character
+                    if (Utility.distanceSqOrWorld(player, pre_login_position) > 1d) {
+                        try {
+                            if (player.getGameMode() != GameMode.ADVENTURE) {
+                                player.setGameMode(GameMode.ADVENTURE);
+                            }
+                            player.teleport(pre_login_position);
+                        } catch (Exception e) {
+                            player.kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'pre-login-position'");
+                        }
                     }
                 } else if (!hudm.getRosterMenu().hasInitiated(em.getPlayer(player))) {
                     // re-teleport if moved before picking a character
@@ -195,6 +205,7 @@ public class DataManager implements Listener {
         data_protocol.put("roster_storage", new RosterStorageProtocol());
         data_protocol.put("roster_refinement", new RosterRefinementProtocol());
         data_protocol.put("roster_quick_slot", new RosterQuickJoinProtocol());
+        data_protocol.put("roster_chat", new RosterChatProtocol());
     }
 
     /**

@@ -2,9 +2,13 @@ package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.data.IDataIdentity;
+import me.blutkrone.rpgcore.chat.PlayerSnapshot;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.item.styling.StylingRule;
+import me.blutkrone.rpgcore.item.styling.descriptor.PlayerDescriptor;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
+import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -57,14 +61,19 @@ public class RosterMenu extends AbstractCoreMenu {
                 Map<String, DataBundle> raw_data = RPGCore.inst().getDataManager().getRawData(IDataIdentity.of(getMenu().getViewer().getUniqueId(), current_page * 3 + i));
 
                 if (!raw_data.isEmpty()) {
-                    String alias = raw_data.get("display").getString(1);
-                    portrait = raw_data.get("display").getString(2);
-
-                    itemized = RPGCore.inst().getLanguageManager().getAsItem("invisible")
-                            .name("§fSlot #" + current_page * 3 + i)
-                            .appendLore("§fAlias: '" + alias + "'")
-                            .appendLore("§fPortrait: '" + portrait + "'")
-                            .build();
+                    // wrap information on player
+                    PlayerSnapshot wrapped = new PlayerSnapshot(getMenu().getViewer().getUniqueId(), raw_data);
+                    // identify what style to build tooltip with
+                    StylingRule styling = RPGCore.inst().getItemManager().getStylingRule("chat_" + wrapped.portrait);
+                    if (styling == null) {
+                        styling = RPGCore.inst().getItemManager().getStylingRule("chat_nothing");
+                    }
+                    // itemize the description
+                    ItemStack describe = PlayerDescriptor.describe(wrapped, styling);
+                    // use invisible base item
+                    itemized = ItemBuilder.of(describe).inheritIcon(RPGCore.inst().getLanguageManager().getAsItem("invisible").build()).build();
+                    // track portrait ID
+                    portrait = wrapped.portrait;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -122,4 +131,6 @@ public class RosterMenu extends AbstractCoreMenu {
             e.printStackTrace();
         }
     }
+
+
 }

@@ -33,7 +33,7 @@ public class JobManager {
                     continue;
                 }
                 // ensure we want to advance
-                if (core_player.getPersistentTags().contains("job_advancement_waiting")) {
+                if (core_player.checkForTag("job_advancement_waiting")) {
                     continue;
                 }
                 // ensure that we have advancement options

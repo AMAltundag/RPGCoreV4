@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.entity.entities;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.data.IDataIdentity;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
-import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.damage.DamageMetric;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
@@ -18,10 +17,11 @@ import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
-import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
+import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.passive.CorePassiveNode;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
 import me.blutkrone.rpgcore.passive.node.*;
@@ -39,18 +39,13 @@ import org.bukkit.util.RayTraceResult;
 import java.io.IOException;
 import java.util.*;
 
-public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataIdentity, IDescriptorReference {
+public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataIdentity, IDescriptionRequester {
 
     // character of the roster we represent
     private final int character;
 
     // a tracker for the focus ux component
     private FocusTracker focus_tracker = new FocusTracker();
-
-    // how many ticks before player actually dies
-    private int grave_counter = -1;
-    // interaction to blame for the player death
-    private DamageInteraction grave_interaction;
 
     // settings customizable by player
     private SettingsMenu.Settings settings = new SettingsMenu.Settings();
@@ -139,8 +134,17 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // cooldown for auto-save
     private int auto_save_cooldown;
 
-    public CorePlayer(LivingEntity entity, EntityProvider provider, int character) {
-        super(entity, provider);
+    // task handling grave logic
+    private PlayerGraveTask grave_task;
+
+    // last chat channel utilised
+    private String last_chat_channel = "global";
+
+    // snapshot of known display name
+    private String snapshot_displayname;
+
+    public CorePlayer(Player player, EntityProvider provider, int character) {
+        super(player, provider);
         this.getMyTags().add("PLAYER");
 
         // initialize the relevant skillbar
@@ -148,21 +152,105 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         // task to invalidate the tracking when appropriate
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // task to handle death in grave
-        this.bukkit_tasks.add(new PlayerGraveTask(this).runTaskTimer(RPGCore.inst(), 1, 1));
+        this.bukkit_tasks.add((this.grave_task = new PlayerGraveTask(this)).runTaskTimer(RPGCore.inst(), 1, 1));
         // the character which we represent
         this.character = character;
+        // snapshot name of player
+        this.snapshot_displayname = player.getDisplayName();
     }
 
     /**
-     * Process the grave logic
+     * Snapshot of displayname taken, may not be accurate.
+     *
+     * @return Instantiated displayname.
      */
-    public void processGraveTimer() {
-        // process grave timer until we can die again
-        if (this.grave_interaction != null && this.grave_counter-- <= 0) {
+    public String getSnapshotDisplayName() {
+        return this.snapshot_displayname;
+    }
 
-            super.die(this.grave_interaction);
-            Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(this.grave_interaction));
+    /**
+     * The last rpgcore chat channel utilised, if we switch the
+     * channel it will remain the channel until we change it.
+     *
+     * @return Last chat channel utilised
+     */
+    public String getLastChatChannel() {
+        return last_chat_channel;
+    }
+
+    /**
+     * The last rpgcore chat channel utilised, if we switch the
+     * channel it will remain the channel until we change it.
+     *
+     * @param channel What channel to remember
+     */
+    public void setLastChatChannel(String channel) {
+        this.last_chat_channel = channel;
+    }
+
+    /**
+     * If dying, will allow the player to resurrect instead.
+     *
+     * @param health Percentage to revive with
+     * @param mana Percentage to revive with
+     * @param stamina Percentage to revive with
+     */
+    public void offerToRevive(double health, double mana, double stamina, Map<String, Double> attributes, int duration) {
+        this.grave_task.offerToRevive(health, mana, stamina, attributes, duration);
+    }
+
+    /**
+     * Should the player be in their grave, they will be
+     * revived.
+     */
+    public void revive() {
+        if (this.grave_task.isReviveAllowed()) {
+            this.grave_task.revive();
         }
+    }
+
+    @Override
+    public void die(DamageInteraction interaction) {
+        // player death allows for quick login
+        this.quickJoinNextTime();
+
+        // if we hold the target rage, reset it
+        if (interaction.getAttacker() instanceof CoreMob) {
+            CoreMob attacker = (CoreMob) interaction.getAttacker();
+            IEntityBase attacker_base = attacker.getBase();
+            if (attacker_base != null) {
+                LivingEntity rage_entity = attacker_base.getRageEntity();
+                if (rage_entity != null && this.getUniqueId().equals(rage_entity.getUniqueId())) {
+                    // find someone to shift the rage to
+                    List<CoreEntity> candidates = attacker.getNearby(32d);
+                    candidates.remove(attacker);
+                    candidates.remove(this);
+                    candidates.removeIf(e -> e.distance(attacker) > 32d || e.isFriendly(attacker) || !e.hasLineOfSight(attacker));
+                    CoreEntity picked = null;
+                    double closest = Double.MAX_VALUE;
+                    for (CoreEntity candidate : candidates) {
+                        double dist = candidate.distance(attacker);
+                        if (dist < closest || picked == null) {
+                            picked = candidate;
+                            closest = dist;
+                        }
+                    }
+                    if (picked != null) {
+                        double focus = picked.evaluateAttribute("RAGE_FOCUS");
+                        attacker_base.rageTransfer(picked.getEntity(), focus);
+                    } else {
+                        attacker_base.resetRage();
+                    }
+                }
+            }
+        }
+
+        // track this as the last damage cause
+        super.cause_of_death = interaction;
+        // mark entity for being unloaded
+        RPGCore.inst().getEntityManager().unregister(this.getUniqueId());
+
+        // skip natural death, handle by teleporting.
     }
 
     @Override
@@ -255,7 +343,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         }
         // cannot gain exp if missing a tag required to level up
         for (String tag : manager.getRequiredTags(getCurrentLevel())) {
-            if (!getPersistentTags().contains(tag)) {
+            if (!checkForTag(tag)) {
                 this.current_exp = 0d;
                 return;
             }
@@ -274,7 +362,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         }
         // check if we have appropriate tags
         for (String tag : manager.getRequiredTags(getCurrentLevel() + 1)) {
-            if (!getPersistentTags().contains(tag)) {
+            if (!checkForTag(tag)) {
                 this.current_exp = exp_to_level_up - 1;
                 return;
             }
@@ -301,8 +389,11 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      */
     public void updatePassiveTree() {
         List<IExpiringModifier> passive_cache_attribute = getExpiringModifiers("passive");
-        // reset the caching structure we have
+        for (IExpiringModifier modifier : passive_cache_attribute) {
+            modifier.setExpired();
+        }
         passive_cache_attribute.clear();
+        // reset the caching structure we have
         passive_cache_skill_attribute.clear();
         passive_cache_skill_reference.clear();
         passive_cache_skill_tag.clear();
@@ -785,8 +876,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * @param interaction The interaction causing death
      */
     public void setAsGrave(DamageInteraction interaction) {
-        this.grave_counter = 100;
-        this.grave_interaction = interaction;
+        this.grave_task.setAsGrave(RPGCore.inst().getEntityManager().getGraveTimer(), interaction);
     }
 
     /**
@@ -829,7 +919,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
             // verify respawn handling
             if (this.force_respawn) {
                 IDungeonInstance instance = RPGCore.inst().getDungeonManager().getInstance(this.login_position);
-                if (instance != null) {
+                if (instance != null && !instance.getTemplate().isHardcore()) {
                     // move to dungeon checkpoint
                     getEntity().teleport(instance.getCheckpoint(getEntity()));
                 } else {
@@ -948,7 +1038,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * @return Player will be dying after a bit
      */
     public boolean isDying() {
-        return this.grave_interaction != null;
+        return this.grave_task.getGraveInteraction() != null;
     }
 
     /**
@@ -958,7 +1048,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * @return the ticks before entity perishes, or -1 if inactive.
      */
     public int getGraveCounter() {
-        return grave_counter;
+        return this.grave_task.getGraveTimeLeft();
     }
 
     /**
@@ -1037,15 +1127,20 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         if (player_handle != null) {
             player_handle.closeInventory();
         }
+
         // basic entity handling
         super.remove();
+
         // request the data-handler to drop our data
         try {
             RPGCore.inst().getDataManager().savePlayer(this);
-            Bukkit.getLogger().severe("not implemented (async data handling)");
+            Bukkit.getLogger().info("not implemented (async data handling)");
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // if we have a grave, abandon it
+        this.grave_task.clear();
     }
 
     @Override
@@ -1056,7 +1151,9 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     @Override
     public boolean isAllowTarget() {
         Player player = getEntity();
-        if (player == null) {
+        if (super.isInvalid()) {
+            return false;
+        } else if (player == null) {
             return false;
         } else if (player.isDead()) {
             return false;
@@ -1118,4 +1215,8 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         return context;
     }
 
+    @Override
+    public boolean checkForTag(String tag) {
+        return getPersistentTags().contains(tag.toLowerCase()) || super.checkForTag(tag);
+    }
 }

@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.quest.dialogue;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueChoice;
 
 /**
@@ -18,7 +18,7 @@ public class CoreDialogueChoice {
     public CoreDialogueChoice(EditorDialogueChoice editor) {
         this.lc_choice_text = editor.lc_text;
         if (!editor.dialogue.isEmpty()) {
-            this.dialogue_next = new CoreDialogue(((EditorDialogue) editor.dialogue.get(0)));
+            this.dialogue_next = new CoreDialogue(((EditorDialogueBundle) editor.dialogue.get(0)));
         }
         this.correct = editor.correct;
     }

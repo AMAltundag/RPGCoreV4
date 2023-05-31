@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -72,6 +73,22 @@ public abstract class AbstractVolatileManager {
     public JavaPlugin getPlugin() {
         return plugin;
     }
+
+    /**
+     * Deploy a chat message to the given players.
+     *
+     * @param message What message to deploy
+     * @param target Who should receive message
+     */
+    public abstract void sendMessage(BaseComponent[] message, Collection<Player> target);
+
+    /**
+     * Retrieve major server version, in a format of <code>1.19.4</code> this would
+     * be <code>19</code>
+     *
+     * @return Major server version
+     */
+    public abstract int getMajorVersion();
 
     /**
      * Packet handling we are utilizing.
@@ -190,4 +207,12 @@ public abstract class AbstractVolatileManager {
      * @return the entity that we've spawned.
      */
     public abstract IEntityBase getEntity(LivingEntity entity);
+
+    /**
+     * Transform the backing NBT tag into a JSON structure.
+     *
+     * @param item Item to transform
+     * @return JSON equivalent of item
+     */
+    public abstract String getItemTagAsJSON(ItemStack item);
 }

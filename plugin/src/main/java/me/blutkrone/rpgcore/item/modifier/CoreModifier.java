@@ -56,7 +56,6 @@ public class CoreModifier {
         this.lc_category = editor.lc_category;
     }
 
-
     /**
      * Translate all placeholders and offers the modifier.
      *

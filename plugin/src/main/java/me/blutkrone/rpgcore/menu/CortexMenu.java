@@ -59,6 +59,11 @@ public abstract class CortexMenu extends AbstractCoreMenu {
         return null;
     }
 
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
+
     public static class Cortex2 extends CortexMenu {
 
         public Cortex2(List<AbstractCoreTrait> traits, CoreNPC npc) {

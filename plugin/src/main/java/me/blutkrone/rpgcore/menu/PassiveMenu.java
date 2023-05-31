@@ -346,6 +346,11 @@ public class PassiveMenu extends AbstractCoreMenu {
         return false;
     }
 
+    @Override
+    public boolean isTrivial() {
+        return true;
+    }
+
     /*
      * Wrapper to assist with node selection, we use this instead
      * of an isolated menu for smoother editing.
@@ -506,7 +511,7 @@ public class PassiveMenu extends AbstractCoreMenu {
             // save changes made to disk
             try {
                 // todo keep a version control of our changes
-                Bukkit.getLogger().severe("not implemented (backup before save)");
+                Bukkit.getLogger().info("not implemented (backup before save)");
                 // apply the actual saving
                 editor.save();
                 // inform about having saved

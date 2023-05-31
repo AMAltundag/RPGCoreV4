@@ -13,10 +13,9 @@ import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
 import me.blutkrone.rpgcore.item.data.*;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
-import me.blutkrone.rpgcore.item.styling.DefaultItemDescriptor;
-import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
-import me.blutkrone.rpgcore.item.styling.ItemStylingRule;
-import me.blutkrone.rpgcore.item.styling.SkillItemDescriptor;
+import me.blutkrone.rpgcore.item.styling.*;
+import me.blutkrone.rpgcore.item.styling.descriptor.ItemDescriptor;
+import me.blutkrone.rpgcore.item.styling.descriptor.SkillDescriptor;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
@@ -63,7 +62,7 @@ public class ItemManager implements Listener {
     private Map<Class, Transformer<AbstractItemData>> data_factory = new HashMap<>();
 
     // rules which process item design
-    private Map<String, ItemStylingRule> styling_rules = new HashMap<>();
+    private Map<String, StylingRule> styling_rules = new HashMap<>();
     private Map<String, IItemDescriber> describers = new HashMap<>();
 
     // previews of items used by core
@@ -83,14 +82,14 @@ public class ItemManager implements Listener {
         try {
             ConfigWrapper configs = FileUtil.asConfigYML(FileUtil.file("item.yml"));
             configs.forEachUnder("style", (path, root) -> {
-                this.styling_rules.put(path.toLowerCase(), new ItemStylingRule(root.getSection(path)));
+                this.styling_rules.put(path.toLowerCase(), new StylingRule(root.getSection(path)));
             });
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        this.describers.put("default", new DefaultItemDescriptor());
-        this.describers.put("skill", new SkillItemDescriptor());
+        this.describers.put("default", new ItemDescriptor());
+        this.describers.put("skill", new SkillDescriptor());
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
@@ -129,7 +128,7 @@ public class ItemManager implements Listener {
      *
      * @return all styling rules
      */
-    public Map<String, ItemStylingRule> getStylingRules() {
+    public Map<String, StylingRule> getStylingRules() {
         return styling_rules;
     }
 
@@ -140,7 +139,7 @@ public class ItemManager implements Listener {
      * @param id which rule to look up
      * @return the rule that was found
      */
-    public ItemStylingRule getStylingRule(String id) {
+    public StylingRule getStylingRule(String id) {
         return this.styling_rules.get(id);
     }
 
@@ -256,7 +255,7 @@ public class ItemManager implements Listener {
      * @param item   the item we are to describe.
      * @param player who will see the item.
      */
-    public void describe(ItemStack item, IDescriptorReference player) {
+    public void describe(ItemStack item, IDescriptionRequester player) {
         if (item == null) {
             return;
         }
@@ -272,7 +271,7 @@ public class ItemManager implements Listener {
             if (data != null) {
                 // check what describer we want to utilize
                 IItemDescriber describer = null;
-                ItemStylingRule rule = getStylingRule(data.getItem().getStyling());
+                StylingRule rule = getStylingRule(data.getItem().getStyling());
                 if (rule != null) {
                     describer = getDescribers().get(rule.getRender());
                 }
@@ -284,6 +283,7 @@ public class ItemManager implements Listener {
                 } else {
                     describer.describe(item, player);
                 }
+
                 // apply flags to hide unwanted details
                 ItemMeta meta = item.getItemMeta();
                 meta.addItemFlags(ItemFlag.values());

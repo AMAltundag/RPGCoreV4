@@ -62,7 +62,6 @@ public class DebugCommand extends AbstractCommand {
             for (int i = 0; i < 50; i++) {
                 String advance = FontMagicConstant.advance(i);
                 Bukkit.getLogger().severe("DEPTH " + i + " WITH " + StringEscapeUtils.escapeJava(advance));
-
             }
 
             for (int i = 0; i < 50; i++) {
@@ -78,6 +77,11 @@ public class DebugCommand extends AbstractCommand {
 
         @Override
         public void click(InventoryClickEvent event) {
+        }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
         }
     }
 }

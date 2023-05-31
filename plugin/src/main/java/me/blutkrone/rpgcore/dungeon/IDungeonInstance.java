@@ -1,9 +1,12 @@
 package me.blutkrone.rpgcore.dungeon;
 
+import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface IDungeonInstance {
@@ -30,6 +33,24 @@ public interface IDungeonInstance {
      * @return World backing the instance
      */
     World getWorld();
+
+    /**
+     * Retrieve players in the dungeon.
+     *
+     * @param active Filter down to only target-able players
+     * @return Players in dungeon
+     */
+    default List<Player> getPlayers(boolean active) {
+        List<Player> players = getWorld().getPlayers();
+        if (active) {
+            players = new ArrayList<>(players);
+            players.removeIf(player -> {
+                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+                return core_player == null || !core_player.isAllowTarget();
+            });
+        }
+        return players;
+    }
 
     /**
      * Handle the tick loop of the instance.

@@ -45,7 +45,7 @@ public class DesignWrite implements IDesignFieldEditor {
             throw new RuntimeException(e);
         }
 
-        Bukkit.getLogger().severe("not implemented (constraint as pick-list)");
+        Bukkit.getLogger().info("not implemented (constraint as pick-list)");
     }
 
     @Override

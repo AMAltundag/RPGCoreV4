@@ -22,6 +22,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.server.level.BossBattleServer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.EntityTypes;
@@ -33,6 +34,7 @@ import org.bukkit.block.Block;
 import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.boss.CraftBossBar;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.EntityType;
@@ -49,6 +51,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,6 +92,19 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
                 }
             }
         }, 1, 1);
+    }
+
+    @Override
+    public void sendMessage(BaseComponent[] message, Collection<Player> target) {
+        ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
+        for (Player player : target) {
+            ((CraftPlayer) player).getHandle().b.a(packet);
+        }
+    }
+
+    @Override
+    public int getMajorVersion() {
+        return 19;
     }
 
     @Override
@@ -189,6 +205,19 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
         // transform back into a craft item and mirror the changes
         CraftItemStack craftStack = CraftItemStack.asCraftMirror(nmsStack);
         item.setItemMeta(craftStack.getItemMeta());
+    }
+
+    @Override
+    public String getItemTagAsJSON(ItemStack item) {
+        try {
+            net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(item);
+            NBTTagCompound compound = new NBTTagCompound();
+            compound = nmsStack.b(compound);
+            return compound.toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "{}";
+        }
     }
 
     @Override
@@ -390,6 +419,7 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
         if (entity == null) {
             throw new IllegalStateException("Bad factorized entity type " + type);
         }
+
 
         // move to an appropriate position
         entity.a(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());

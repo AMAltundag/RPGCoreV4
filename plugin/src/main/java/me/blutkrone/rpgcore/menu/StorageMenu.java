@@ -83,7 +83,12 @@ public class StorageMenu extends AbstractCoreMenu {
         msb.append(resourcepack().texture("menu_storage"), ChatColor.WHITE);
         this.getMenu().setTitle(msb.compile());
 
-        Bukkit.getLogger().severe("not implemented (scroller storage.)");
+        Bukkit.getLogger().info("not implemented (scroller storage.)");
+    }
+
+    @Override
+    public boolean isTrivial() {
+        return true;
     }
 
     /*
@@ -176,5 +181,7 @@ public class StorageMenu extends AbstractCoreMenu {
             // open the storage list when closing
             suggestOpen(parent);
         }
+
+
     }
 }

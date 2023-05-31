@@ -2,19 +2,31 @@ package me.blutkrone.rpgcore.hud.editor.constraint.reference.other;
 
 import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SoundConstraint implements IEditorConstraint {
+
+    private Set<String> sounds = new HashSet<>();
+
+    public SoundConstraint() {
+        for (Sound sound : Sound.values()) {
+            sounds.add(sound.getKey().getKey());
+            sounds.add("minecraft:" + sound.getKey().getKey());
+        }
+    }
 
     @Override
     public List<String> getHint(String value) {
         value = value.toLowerCase();
         List<String> matched = new ArrayList<>();
-        for (Sound sound : Sound.values()) {
-            if (sound.name().toLowerCase().startsWith(value)) {
-                matched.add(sound.name().toLowerCase());
+        for (String sound : sounds) {
+            if (sound.startsWith(value.toLowerCase())) {
+                matched.add(sound);
             }
         }
         return matched;
@@ -23,7 +35,7 @@ public class SoundConstraint implements IEditorConstraint {
     @Override
     public boolean isDefined(String value) {
         try {
-            return Sound.valueOf(value.toUpperCase()) != null;
+            return sounds.contains(value.toLowerCase());
         } catch (Exception e) {
             return false;
         }

@@ -34,6 +34,26 @@ public class SidebarComponent implements IUXComponent<List<String>> {
             @Override
             public List<String> getContent(CorePlayer player) {
                 List<String> output = new ArrayList<>();
+                if (RPGCore.inst().getSocialManager().getGroupHandler().isQueued(player.getEntity())) {
+                    String msg = RPGCore.inst().getLanguageManager().getTranslation("warn_when_queued");
+                    if ((RPGCore.inst().getTimestamp() / 30) % 2 == 0) {
+                        output.add("§f" + msg);
+                    } else {
+                        output.add("§a" + msg);
+                    }
+                }
+                return output;
+            }
+        });
+        addProvider(new ISidebarProvider() {
+            @Override
+            public int getPriority() {
+                return 1;
+            }
+
+            @Override
+            public List<String> getContent(CorePlayer player) {
+                List<String> output = new ArrayList<>();
 
                 List<String> quests = player.getActiveQuestIds();
                 for (int i = 0; i < quests.size() && i < 3; i++) {

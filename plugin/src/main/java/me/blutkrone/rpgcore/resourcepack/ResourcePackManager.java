@@ -8,7 +8,8 @@ import me.blutkrone.rpgcore.resourcepack.bbmodel.BBExporter;
 import me.blutkrone.rpgcore.resourcepack.component.ResourcePackFont;
 import me.blutkrone.rpgcore.resourcepack.component.ResourcePackItem;
 import me.blutkrone.rpgcore.resourcepack.generated.*;
-import me.blutkrone.rpgcore.resourcepack.upload.TSHUploader;
+import me.blutkrone.rpgcore.resourcepack.upload.TempUploader;
+import me.blutkrone.rpgcore.resourcepack.upload.TransferUploader;
 import me.blutkrone.rpgcore.resourcepack.utils.CompileClock;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.resourcepack.utils.ResourceUtil;
@@ -755,16 +756,21 @@ public class ResourcePackManager implements Listener {
                     continue;
                 }
                 // transform the blockbench file into an acceptable workspace
-                BBExporter.Exported bb_export = BBExporter.export(file_bb_model);
-                // export the textures we got buffered to the resourcepack
-                bb_export.saveTextureToDirectory(OUTPUT_TEXTURE, file_bb_model);
-                // json export the working model we picked
-                bb_export.saveModelToFile(FileUtil.file(OUTPUT_MODEL, model_name + ".json"), do_compression);
-                // make the model we created accessible
-                Material material = Material.valueOf(model_name.substring(0, split_point).toUpperCase());
-                int model_data = Integer.parseInt(model_name.substring(split_point + 1));
-                items.computeIfAbsent(material, (k -> ResourceUtil.createItemCompound(material)))
-                        .overrides.add(new ResourcePackItem.ItemOverride(model_data, "minecraft:generated/" + model_name));
+                try {
+                    BBExporter.Exported bb_export = BBExporter.export(file_bb_model);
+                    // export the textures we got buffered to the resourcepack
+                    bb_export.saveTextureToDirectory(OUTPUT_TEXTURE, file_bb_model);
+                    // json export the working model we picked
+                    bb_export.saveModelToFile(FileUtil.file(OUTPUT_MODEL, model_name + ".json"), do_compression);
+                    // make the model we created accessible
+                    Material material = Material.valueOf(model_name.substring(0, split_point).toUpperCase());
+                    int model_data = Integer.parseInt(model_name.substring(split_point + 1));
+                    items.computeIfAbsent(material, (k -> ResourceUtil.createItemCompound(material)))
+                            .overrides.add(new ResourcePackItem.ItemOverride(model_data, "minecraft:generated/" + model_name));
+                } catch (Exception ex) {
+                    Bukkit.getLogger().severe("BBModel could not parse: " + file_bb_model.getPath());
+                    ex.printStackTrace();
+                }
             }
             // Notify about what've done
             Bukkit.getLogger().info(String.format("Generating bbmodel based items in %sms", clock.loop()));
@@ -928,10 +934,19 @@ public class ResourcePackManager implements Listener {
         worker.add(true, () -> {
             // reset the clock used to measure time
             clock.loop();
-            // upload and track the url
-            String url = TSHUploader.upload(OUTPUT_RESULT);
-            if ("error".equals(url)) {
-                Bukkit.getLogger().severe("The upload service failed, try again later or upload './resourcepack/output/result.zip' manually.");
+            // upload to transfer.sh
+            String url = TransferUploader.upload(OUTPUT_RESULT);
+            // upload to uguu.se
+            if (url.equals("error")) {
+                // url = UguuUploader.upload(OUTPUT_RESULT);
+            }
+            // upload to temp.sh
+            if (url.equals("error")) {
+                url = TempUploader.upload(OUTPUT_RESULT);
+            }
+            // warn if no upload succeed
+            if (url.equals("error")) {
+                Bukkit.getLogger().severe("The upload services failed, try again later or upload './resourcepack/output/result.zip' manually.");
             }
             this.setUrl(url);
             // Notify about what we've done

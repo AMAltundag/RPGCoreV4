@@ -25,6 +25,8 @@ public abstract class AbstractPickListMenu extends AbstractCoreMenu {
         super(6);
     }
 
+
+
     /**
      * Add a choice to the picklist.
      *

@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.dungeon.structure;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonSkillInvoker;
@@ -12,9 +11,6 @@ import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -26,7 +22,6 @@ import java.util.List;
 public class SkillStructure extends AbstractDungeonStructure<Boolean> {
 
     private final List<AbstractCoreSelector> activation;
-    private final double range;
     private final boolean permanent;
     private final int interval;
     private final MultiMechanic logic;
@@ -36,14 +31,9 @@ public class SkillStructure extends AbstractDungeonStructure<Boolean> {
         super(editor);
         this.activation = AbstractEditorSelector.unwrap(editor.activation);
         this.important = editor.important;
-        this.range = editor.range * editor.range;
         this.permanent = editor.permanent;
         this.interval = ((int) editor.interval);
         this.logic = editor.logic.build();
-    }
-
-    @Override
-    public void clean(IDungeonInstance instance) {
     }
 
     @Override
@@ -61,19 +51,15 @@ public class SkillStructure extends AbstractDungeonStructure<Boolean> {
                 return datum.context.getProxies().isEmpty() && datum.context.getPipelines().isEmpty();
             }
 
-            if (!important) {
-                // ensure there are players within range (only if non-important.)
-                List<Player> watching = RPGCore.inst().getEntityManager().getObserving(datum.where);
-                watching.removeIf(player -> player.getLocation().distanceSquared(datum.where) > this.range);
-                if (watching.isEmpty()) {
-                    return false;
-                }
+            if (!important && !datum.activated) {
+                return false;
             }
 
             // ensure condition has been archived
             if (AbstractCoreSelector.doSelect(activation, datum.context, Collections.singletonList(new IOrigin.SnapshotOrigin(datum.where))).isEmpty()) {
                 return false;
             }
+
             // invoke the logic at the position
             this.logic.doMechanic(datum.context, Collections.singletonList(new IOrigin.SnapshotOrigin(datum.where)));
             // if permanent, we are done now

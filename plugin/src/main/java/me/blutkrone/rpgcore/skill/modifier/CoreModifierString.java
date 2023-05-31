@@ -11,7 +11,7 @@ public class CoreModifierString {
     public CoreModifierString(EditorModifierString editor) {
         this.string = editor.base_value;
 
-        Bukkit.getLogger().severe("not implemented (more complex string modifiers)");
+        Bukkit.getLogger().info("not implemented (more complex string modifiers)");
     }
 
     public CoreModifierString(String string) {

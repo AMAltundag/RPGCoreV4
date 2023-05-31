@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -19,7 +20,7 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
     // directory prefix to index from
     private final String directory;
     // an index of everything we keep loaded
-    private final Map<String, K> indexed = new HashMap<>();
+    private final Map<String, K> indexed = new ConcurrentHashMap<>();
     // classifier of the editor instance
     private final Class<Q> editor_class;
     // a factory accepting a new ID

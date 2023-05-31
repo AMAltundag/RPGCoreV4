@@ -5,26 +5,48 @@ import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.entities.CoreTotem;
+import me.blutkrone.rpgcore.util.ItemBuilder;
+import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import me.blutkrone.rpgcore.util.io.FileUtil;
 import me.blutkrone.rpgcore.util.world.ChunkIdentifier;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityManager implements Listener {
 
     // snapshots of observable players in a range
     private Map<ChunkIdentifier, List<Player>> observation = new HashMap<>();
     // entities which are registered in the core
-    private Map<UUID, CoreEntity> entity = new HashMap<>();
+    private Map<UUID, CoreEntity> entity = new ConcurrentHashMap<>();
+    // death related handling
+    private int grave_timer;
+    private ItemStack default_grave;
+    private boolean free_resurrect;
 
     public EntityManager() {
+        try {
+            ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("grave.yml"));
+            this.grave_timer = config.getInt("grave-duration", 100);
+            this.default_grave = ItemBuilder.of(config.getString("default-grave", "NETHERRACK")).build();
+            this.free_resurrect = config.getBoolean("allow-free-resurrect", false);
+        } catch (IOException e) {
+            this.grave_timer = 100;
+            this.default_grave = new ItemStack(Material.NETHERRACK);
+            this.free_resurrect = true;
+        }
+
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
             if (!RPGCore.inst().isEnabled()) {
                 return;
@@ -62,6 +84,35 @@ public class EntityManager implements Listener {
         }, 1, 1);
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+    }
+
+    /**
+     * How many ticks the allies of a dead player have to resurrect them
+     * from their grave.
+     *
+     * @return Grave duration
+     */
+    public int getGraveTimer() {
+        return grave_timer;
+    }
+
+    /**
+     * The icon to use for the grave of a player.
+     *
+     * @return The default grave.
+     */
+    public ItemStack getGraveDefault() {
+        return default_grave;
+    }
+
+    /**
+     * Whether allies can resurrect with just a right click, otherwise
+     * a resurrection skill is required.
+     *
+     * @return Resurrect at no cost.
+     */
+    public boolean isGraveFreeResurrect() {
+        return free_resurrect;
     }
 
     /**

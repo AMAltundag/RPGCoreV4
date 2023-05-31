@@ -36,6 +36,7 @@ public class EntityWard implements IEntityEffect {
         this.duration = duration;
         this.last_updated = System.currentTimeMillis();
         this.current_amount = 1;
+        this.current_restoration_delay = 0;
     }
 
     /**
@@ -150,7 +151,7 @@ public class EntityWard implements IEntityEffect {
         // restoration applies can kick in at non-maxed ward
         if (this.current_amount > 0d && this.current_amount < this.maximum_amount && this.current_restoration_delay <= 0) {
             this.current_amount = this.maximum_amount;
-            this.current_restoration_delay = restoration_delay;
+            this.current_restoration_delay = this.restoration_delay;
         }
     }
 
@@ -210,5 +211,4 @@ public class EntityWard implements IEntityEffect {
 
         this.last_updated = System.currentTimeMillis();
     }
-
 }

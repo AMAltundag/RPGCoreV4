@@ -35,7 +35,6 @@ public class VolatileEntityBase implements IEntityBase {
         this.bukkit_entity = bukkit_entity;
     }
 
-
     @Override
     public void setAggressive(boolean aggressive) {
         EntityInsentient insentient = getInsentient();
@@ -255,6 +254,12 @@ public class VolatileEntityBase implements IEntityBase {
 
     @Override
     public LivingEntity getRageEntity() {
+        // wipe the rage if we lost the holder
+        LivingEntity rage_entity = getAI().rage_entity;
+        if (rage_entity != null && !rage_entity.isValid()) {
+            resetRage();
+        }
+
         return getAI().rage_entity;
     }
 
@@ -271,6 +276,16 @@ public class VolatileEntityBase implements IEntityBase {
             barrier = barrier || routine.doBarrierDamageSoak(damage);
         }
         return barrier;
+    }
+
+    @Override
+    public void rageTransfer(LivingEntity target, double focus) {
+        // apply as the new rage holder, rage overflow is maintained
+        getAI().rage_entity = target;
+        getAI().rage_focus = focus;
+        getAI().rage_value = Math.max(1d, getAI().rage_value);
+        // 3 second cooldown before allowing to pull
+        getAI().rage_cooldown = System.currentTimeMillis() + 5000L;
     }
 
     /**

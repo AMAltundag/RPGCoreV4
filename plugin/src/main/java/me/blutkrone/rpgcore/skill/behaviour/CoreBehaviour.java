@@ -56,7 +56,7 @@ public class CoreBehaviour {
             this.actions.add(((EditorAction) bundle).build());
         }
 
-        Bukkit.getLogger().severe("Not implemented (usage of behaviours & triggers)");
+        Bukkit.getLogger().info("not implemented (usage of behaviours & triggers)");
     }
 
     /**

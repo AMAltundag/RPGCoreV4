@@ -17,6 +17,8 @@ public class PlayerMenu {
     final TreeGraph<String> structure;
     // custom configurations of the menu
     final Map<String, List<String>> custom_options;
+    // cooldown for the escape recall
+    final int escape_cooldown;
 
     /**
      * A menu serving as a collective for any sort of menu
@@ -24,6 +26,9 @@ public class PlayerMenu {
      */
     public PlayerMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "player.yml"));
+
+        // cooldown for using escape again
+        this.escape_cooldown = config.getInt("escape-cooldown", 12000);
 
         // prepare the graph structure we're working with
         this.structure = new TreeGraph<>(null);
@@ -65,6 +70,6 @@ public class PlayerMenu {
     }
 
     public void present(Player viewer) {
-        new me.blutkrone.rpgcore.menu.PlayerMenu(structure, custom_options).finish(viewer);
+        new me.blutkrone.rpgcore.menu.PlayerMenu(structure, custom_options, escape_cooldown).finish(viewer);
     }
 }

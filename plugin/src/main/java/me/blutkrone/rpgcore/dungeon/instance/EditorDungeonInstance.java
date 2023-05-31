@@ -4,22 +4,27 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.dungeon.CoreDungeon;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
+import me.blutkrone.rpgcore.dungeon.structure.BlockStructure;
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.AbstractEditorDungeonStructure;
+import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonBlock;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.root.dungeon.EditorDungeon;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BlockVector;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class EditorDungeonInstance implements IDungeonInstance {
+
+    private static BlockFace[] DIRECTION = new BlockFace[] { BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.UP, BlockFace.DOWN};
 
     private IndexAttachment<?, CoreDungeon> template;
     private String world;
@@ -65,7 +70,7 @@ public class EditorDungeonInstance implements IDungeonInstance {
         for (AbstractDungeonStructure<?> structure : template.get().getStructures().values()) {
             List<AbstractDungeonStructure.StructureData> data = new ArrayList<>();
             for (BlockVector vector : structure.getWhere()) {
-                data.add(new AbstractDungeonStructure.StructureData(vector.toLocation(getWorld())));
+                data.add(new AbstractDungeonStructure.StructureData(structure, vector.toLocation(getWorld())));
             }
             this.structures.add(new ActiveStructure(structure, data));
         }
@@ -99,6 +104,38 @@ public class EditorDungeonInstance implements IDungeonInstance {
 
         // world can be saved
         if (getWorld().getPlayers().isEmpty()) {
+            // recompute our proliferation
+            for (ActiveStructure structure : getStructures()) {
+                if (structure.structure instanceof BlockStructure) {
+                    BlockStructure block_structure = (BlockStructure) structure.structure;
+                    block_structure.getProliferated().clear();
+
+                    int distance = block_structure.getProliferateRadius();
+                    for (BlockVector vector : block_structure.getWhere()) {
+                        Queue<Location> stack = new LinkedList<>();
+                        stack.add(vector.toLocation(this.getWorld()));
+                        Set<Location> visited = new HashSet<>();
+                        stack.add(vector.toLocation(this.getWorld()));
+
+                        Material wanted = stack.peek().getBlock().getType();
+                        while (!stack.isEmpty() && visited.size() < distance) {
+                            Location header = stack.poll();
+                            for (BlockFace face : DIRECTION) {
+                                Block adjacent = header.getBlock().getRelative(face);
+                                if (adjacent.getType() == wanted && visited.add(adjacent.getLocation())) {
+                                    stack.add(adjacent.getLocation());
+                                }
+                            }
+                        }
+
+                        List<BlockVector> vectors = new ArrayList<>();
+                        visited.forEach(location -> vectors.add(location.toVector().toBlockVector()));
+                        block_structure.getProliferated().put(vector, vectors);
+                    }
+                }
+            }
+
+            // sync only if we could properly save
             if (Bukkit.unloadWorld(this.world, true)) {
                 String editor_id = this.template.get().getId();
                 // sync location related information back
@@ -109,11 +146,21 @@ public class EditorDungeonInstance implements IDungeonInstance {
                     AbstractEditorDungeonStructure editor_structure = (AbstractEditorDungeonStructure) editor_bundle;
                     for (ActiveStructure active : getStructures()) {
                         if (active.structure.getSyncId().equals(editor_structure.sync_id)) {
+                            // collect original locations
                             List<BlockVector> vectors = new ArrayList<>();
                             for (AbstractDungeonStructure.StructureData location : active.data) {
                                 vectors.add(location.where.toVector().toBlockVector());
                             }
                             editor_structure.where = vectors;
+                            // sync against proliferation
+                            if (editor_structure instanceof EditorDungeonBlock) {
+                                BlockStructure source = ((BlockStructure) active.structure);
+                                ((EditorDungeonBlock) editor_structure).proliferations.clear();
+                                for (Map.Entry<BlockVector, List<BlockVector>> entry : source.getProliferated().entrySet()) {
+                                    ((EditorDungeonBlock) editor_structure).proliferations
+                                            .add(new EditorDungeonBlock.Proliferation(entry.getKey(), entry.getValue()));
+                                }
+                            }
                         }
                     }
                 }

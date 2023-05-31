@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.entity.resource;
 
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,8 @@ public class EntityResource {
         this.entity = entity;
         this.nullable = nullable;
         this.minimum = minimum;
+
+        Bukkit.getLogger().info("not implemented (refactoring broke the naming, everything is ward in here)");
     }
 
     /**
@@ -58,7 +61,7 @@ public class EntityResource {
         }
 
         // compute attributes that matter for resource
-        double recharge_delay = this.entity.evaluateAttribute(this.id + "_RECHARGE_DELAY");
+        double recharge_delay = this.entity.evaluateAttribute(this.id + "_RECHARGE_FASTER");
         double recoup_rate = this.entity.evaluateAttribute(id + "_RECOUP_RATE");
 
         // apply a delay on when we can recharge again
@@ -152,6 +155,8 @@ public class EntityResource {
      * @param delta rate at which we are ticking.
      */
     public void tickRecovery(int delta) {
+        // always count down recharge delay
+        this.current_recharge_delay -= delta;
         // compute our updated maximum amount
         double maximum_amount = this.attribute("MAXIMUM");
         maximum_amount *= 1d + this.attribute("MAXIMUM_PERCENT");

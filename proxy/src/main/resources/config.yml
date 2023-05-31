@@ -1,11 +1,11 @@
 matchmaker-configuration:
-  example_dungeon:
+  # example dungeon in rpgcore configs
+  tanjeen:
     # How many players to play content (will bypass local server config)
-    players: 6
-    # Use server with least players online
+    players: 2
+    # Use server with the least players online
     servers:
-    - "server-1"
-    - "server-2"
-    - "server-3"
-    # Limited player count (queued + server)
+    - "shard-01"
+    - "shard-02"
+    # Player limit of the servers
     maximum-players: 50

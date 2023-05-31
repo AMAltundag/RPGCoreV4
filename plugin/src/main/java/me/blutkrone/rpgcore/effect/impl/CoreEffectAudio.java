@@ -20,7 +20,7 @@ public class CoreEffectAudio implements CoreEffect.IEffectPart {
     private float volume;
 
     public CoreEffectAudio(EditorEffectAudio editor) {
-        this.sound = editor.sound.replace("_", ".");
+        this.sound = editor.sound;
         this.pitch = (float) editor.pitch;
         this.volume = (float) editor.volume;
     }

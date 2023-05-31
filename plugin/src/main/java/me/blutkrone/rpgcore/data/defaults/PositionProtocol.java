@@ -3,12 +3,13 @@ package me.blutkrone.rpgcore.data.defaults;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.hud.ux.MainPlateComponent;
 
 public class PositionProtocol implements DataProtocol {
 
     @Override
     public int getDataVersion() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -36,6 +37,10 @@ public class PositionProtocol implements DataProtocol {
             player.setLoginPosition(bundle.getLocation(0));
             player.setRespawnPosition(bundle.getLocation(1));
         } else if (version == 1) {
+            player.setLoginPosition(bundle.getLocation(0));
+            player.setRespawnPosition(bundle.getLocation(1));
+            player.setForceRespawn(bundle.getBoolean(2));
+        } else if (version == 2) {
             player.setLoginPosition(bundle.getLocation(0));
             player.setRespawnPosition(bundle.getLocation(1));
             player.setForceRespawn(bundle.getBoolean(2));

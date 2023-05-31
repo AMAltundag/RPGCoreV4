@@ -108,7 +108,7 @@ public class TotemProxy extends AbstractSkillProxy {
         if (totem == null || totem.isInvalid() || this.cycle > this.duration) {
             this.logic_on_finish.doMechanic(getContext(), Collections.singletonList(this.last_anchor));
             if (totem != null) {
-                totem.remove();
+                RPGCore.inst().getEntityManager().unregister(totem.getUniqueId());
             }
             return true;
         }
@@ -148,7 +148,7 @@ public class TotemProxy extends AbstractSkillProxy {
     public void pleaseCancelThis() {
         CoreTotem totem = RPGCore.inst().getEntityManager().getTotem(this.anchor);
         if (totem != null) {
-            totem.remove();
+            RPGCore.inst().getEntityManager().unregister(totem.getUniqueId());
         }
     }
 }

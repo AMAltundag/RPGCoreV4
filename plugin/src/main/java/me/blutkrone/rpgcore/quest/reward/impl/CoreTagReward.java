@@ -12,7 +12,7 @@ public class CoreTagReward extends AbstractQuestReward {
     private final String tag;
 
     public CoreTagReward(EditorQuestRewardTag editor) {
-        this.tag = "quest" + editor.tag.toLowerCase();
+        this.tag = "quest_" + editor.tag.toLowerCase();
     }
 
     @Override

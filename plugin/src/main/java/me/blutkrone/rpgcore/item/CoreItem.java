@@ -9,7 +9,7 @@ import me.blutkrone.rpgcore.item.data.ItemDataDurability;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
-import me.blutkrone.rpgcore.item.styling.IDescriptorReference;
+import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.NamespacedKey;
@@ -153,7 +153,7 @@ public class CoreItem {
      * @param quality the quality affects random modifiers
      * @return the item to acquire
      */
-    public ItemStack acquire(IDescriptorReference player, double quality) {
+    public ItemStack acquire(IDescriptionRequester player, double quality) {
         ItemManager manager = RPGCore.inst().getItemManager();
 
         // create a copy of our base template
@@ -234,8 +234,9 @@ public class CoreItem {
         PersistentDataContainer data = meta.getPersistentDataContainer();
         NamespacedKey keying = new NamespacedKey(RPGCore.inst(), "core-unidentified");
         data.set(keying, PersistentDataType.STRING, this.getId());
-        item.setItemMeta(meta);
+
         // describe item to use
+        item.setItemMeta(meta);
         manager.describe(item, null);
 
         return item;

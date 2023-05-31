@@ -79,11 +79,33 @@ public class StationaryHologram {
                 msb.append(texture);
             }
         }
-        // reverse and write the hologram contents
+        // write hologram contents in reverse to ascend upward
         Collections.reverse(contents);
+        // first pass writes the shadows
         int j = 0;
         for (int i = 0; i < contents.size() && i < 24; i++) {
             String content = contents.get(i);
+            boolean shadow = content.startsWith("&!") || content.startsWith("§!");
+            if (shadow) {
+                content = content.substring(2);
+            }
+
+            if (!rpm.textures().containsKey("hologram_" + content)) {
+                if (shadow) {
+                    msb.shiftCentered(+1, Utility.measure(content));
+                    msb.shadow(content, "nameplate_" + j);
+                }
+                j += 1;
+            }
+        }
+
+        j = 0;
+        for (int i = 0; i < contents.size() && i < 24; i++) {
+            String content = contents.get(i);
+            boolean shadow = content.startsWith("&!") || content.startsWith("§!");
+            if (shadow) {
+                content = content.substring(2);
+            }
 
             if (!rpm.textures().containsKey("hologram_" + content)) {
                 msb.shiftCentered(0, Utility.measure(content));

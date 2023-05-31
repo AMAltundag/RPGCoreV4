@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.dungeon;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
+import me.blutkrone.rpgcore.dungeon.structure.TreasureStructure;
 import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.hud.editor.root.dungeon.EditorDungeon;
@@ -14,7 +15,9 @@ import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.metadata.MetadataValue;
 
 import java.io.File;
 import java.io.IOException;
@@ -141,11 +144,35 @@ public class DungeonManager implements Listener {
         return instance;
     }
 
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
+    void onOfferTreasure(PlayerInteractAtEntityEvent event) {
+        // ensure we are in a dungeon
+        IDungeonInstance instance = getInstance(event.getPlayer().getWorld());
+        if (!(instance instanceof ActiveDungeonInstance)) {
+            return;
+        }
+        // check if we interacted with a treasure entity
+        List<MetadataValue> rpgcore_treasure = event.getRightClicked().getMetadata("rpgcore_loot");
+        if (rpgcore_treasure.isEmpty()) {
+            return;
+        }
+        // check if player has treasure available
+        UUID uuid = UUID.fromString(rpgcore_treasure.get(0).asString());
+        TreasureStructure.ActiveTreasure treasure = ((ActiveDungeonInstance) instance).getTreasures().get(uuid);
+        if (treasure == null) {
+            return;
+        }
+        // loot entities cannot be really interacted with
+        event.setCancelled(true);
+        // handle the treasure chest
+        treasure.offerTo(event.getPlayer());
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    void on(ChunkLoadEvent event) {
+    void onHideHiddenBlocks(ChunkLoadEvent event) {
         // strip hidden blocks from loaded chunks
         IDungeonInstance instance = getInstance(event.getWorld());
-        if (instance instanceof ActiveDungeonInstance) {
+        if (instance instanceof ActiveDungeonInstance && ((ActiveDungeonInstance) instance).canHideChunk(event.getChunk())) {
             long chunk = (((long)event.getChunk().getX())<<32) | event.getChunk().getZ();
             for (ActiveDungeonInstance.StructureTracker structure : ((ActiveDungeonInstance) instance).getStructures()) {
                 List<Location> hidden = structure.hidden.get(chunk);

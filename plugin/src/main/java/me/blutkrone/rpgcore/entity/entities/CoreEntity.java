@@ -44,44 +44,44 @@ public class CoreEntity implements IContext, IOrigin {
 
     protected final List<BukkitTask> bukkit_tasks;
     // bukkit specific entity logic
-    private final UUID bukkit_uuid;
+    protected final UUID bukkit_uuid;
     // a "provider" which supplied us with the entity
-    private final EntityProvider entity_provider;
+    protected final EntityProvider entity_provider;
     // the modifiers which affect the entity
-    private final Map<String, List<IExpiringModifier>> expiring = new HashMap<>();
-    private final Map<String, AttributeCollection> attributes = new HashMap<>();
-    private final Map<String, List<TagModifier>> tags = new HashMap<>();
+    protected final Map<String, List<IExpiringModifier>> expiring = new HashMap<>();
+    protected final Map<String, AttributeCollection> attributes = new HashMap<>();
+    protected final Map<String, List<TagModifier>> tags = new HashMap<>();
     // effects on the entity
-    private Map<String, IEntityEffect> status_effects = new HashMap<>();
-    private Map<AbstractAilment, AilmentTracker> ailment_tracker = new HashMap<>();
+    protected Map<String, IEntityEffect> status_effects = new HashMap<>();
+    protected Map<AbstractAilment, AilmentTracker> ailment_tracker = new HashMap<>();
     // resources available to the entity
-    private EntityResource health_resource;
-    private EntityResource mana_resource;
-    private EntityResource stamina_resource;
+    protected EntityResource health_resource;
+    protected EntityResource mana_resource;
+    protected EntityResource stamina_resource;
     // damage interaction causing entity death
-    private DamageInteraction cause_of_death;
+    protected DamageInteraction cause_of_death;
     // mark entity as no longer being used by the core
-    private boolean invalid;
+    protected boolean invalid;
     // tracker for cooldowns on the entity
-    private Map<String, Integer> cooldowns = new HashMap<>();
+    protected Map<String, Integer> cooldowns = new HashMap<>();
     // a process which has something at happen at the end of it
-    private IActivity activity = null;
+    protected IActivity activity = null;
     // proxies provided by skills
-    private List<AbstractSkillProxy> proxies = new ArrayList<>();
+    protected List<AbstractSkillProxy> proxies = new ArrayList<>();
     // parent-child logic
-    private List<UUID> children = new ArrayList<>();
-    private UUID parent;
+    protected List<UUID> children = new ArrayList<>();
+    protected UUID parent;
     // tags we are involved with
-    private List<String> tags_self = new ArrayList<>();
-    private List<String> tags_hostile = new ArrayList<>();
-    private List<String> tags_friendly = new ArrayList<>();
+    protected List<String> tags_self = new ArrayList<>();
+    protected List<String> tags_hostile = new ArrayList<>();
+    protected List<String> tags_friendly = new ArrayList<>();
     // a pseudo hint to pull from an activity
-    private String focus_hint = "none";
-    private int focus_hint_until = -1;
+    protected String focus_hint = "none";
+    protected int focus_hint_until = -1;
     // track the pipelines for actions we've requested
-    private List<CoreAction.ActionPipeline> actions = new ArrayList<>();
+    protected List<CoreAction.ActionPipeline> actions = new ArrayList<>();
     // level of this creature
-    private int current_level;
+    protected int current_level;
 
     public CoreEntity(LivingEntity entity, EntityProvider provider) {
         // apply basic bukkit initialization
@@ -626,7 +626,7 @@ public class CoreEntity implements IContext, IOrigin {
      */
     @Override
     public boolean checkForTag(String tag) {
-        List<TagModifier> modifiers = tags.get(tag);
+        List<TagModifier> modifiers = tags.get(tag.toLowerCase());
         if (modifiers == null) return false;
         modifiers.removeIf(TagModifier::isExpired);
         return !modifiers.isEmpty();
@@ -655,7 +655,7 @@ public class CoreEntity implements IContext, IOrigin {
      */
     public TagModifier grantTag(String tag) {
         TagModifier gained = new TagModifier();
-        this.tags.computeIfAbsent(tag, (k -> new ArrayList<>())).add(gained);
+        this.tags.computeIfAbsent(tag.toLowerCase(), (k -> new ArrayList<>())).add(gained);
         return gained;
     }
 
@@ -669,7 +669,7 @@ public class CoreEntity implements IContext, IOrigin {
      */
     public TagModifier grantTag(String tag, int duration) {
         TagModifier gained = new TagModifierTimed(duration);
-        this.tags.computeIfAbsent(tag, (k -> new ArrayList<>())).add(gained);
+        this.tags.computeIfAbsent(tag.toLowerCase(), (k -> new ArrayList<>())).add(gained);
         return gained;
     }
 
@@ -685,7 +685,7 @@ public class CoreEntity implements IContext, IOrigin {
 
     /**
      * Clean-up service when the entity is no longer to be associated
-     * with the core.
+     * with the core. Do <b>NOT</b> call this directly, EVER!
      *
      * @see EntityManager#unregister(UUID) This method is for internal usage only!
      */
@@ -730,6 +730,34 @@ public class CoreEntity implements IContext, IOrigin {
      * @param interaction what killed the entity.
      */
     public void die(DamageInteraction interaction) {
+        // if we hold the target rage, reset it
+        if (interaction.getAttacker() instanceof CoreMob) {
+            CoreMob attacker = (CoreMob) interaction.getAttacker();
+            IEntityBase attacker_base = attacker.getBase();
+            LivingEntity rage_entity = attacker_base.getRageEntity();
+            if (rage_entity != null && this.getUniqueId().equals(rage_entity.getUniqueId())) {
+                // find someone to shift the rage to
+                List<CoreEntity> candidates = attacker.getNearby(32d);
+                candidates.remove(attacker);
+                candidates.remove(this);
+                candidates.removeIf(e -> e.distance(attacker) > 32d || e.isFriendly(attacker) || !e.hasLineOfSight(attacker));
+                CoreEntity picked = null;
+                double closest = Double.MAX_VALUE;
+                for (CoreEntity candidate : candidates) {
+                    double dist = candidate.distance(attacker);
+                    if (dist < closest || picked == null) {
+                        picked = candidate;
+                        closest = dist;
+                    }
+                }
+                if (picked != null) {
+                    double focus = picked.evaluateAttribute("RAGE_FOCUS");
+                    attacker_base.rageTransfer(picked.getEntity(), focus);
+                } else {
+                    attacker_base.resetRage();
+                }
+            }
+        }
         // track this as the last damage cause
         this.cause_of_death = interaction;
         // force kill the entity backing us up

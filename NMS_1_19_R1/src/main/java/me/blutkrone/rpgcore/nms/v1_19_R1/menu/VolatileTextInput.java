@@ -223,6 +223,7 @@ public class VolatileTextInput implements ITextInput {
 
         @Override
         protected void a(EntityHuman player, IInventory container) {
+            super.a(player, container);
         }
     }
 }

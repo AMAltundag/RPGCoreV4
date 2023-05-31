@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.root.node;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
@@ -22,6 +23,7 @@ import java.util.List;
  */
 public class EditorNodeHotspot implements IEditorRoot<CoreNodeHotspot> {
 
+    @EditorCategory(icon = Material.COMPASS, info = "Hotspot")
     @EditorNumber(name = "Radius", minimum = 0, maximum = 48)
     @EditorTooltip(tooltip = {"Radius which the node can trigger at."})
     public double radius = 16;

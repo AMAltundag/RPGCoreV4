@@ -120,4 +120,6 @@ public class JobInitiationMenu extends AbstractCoreMenu {
         // rebuild after interaction
         this.getMenu().queryRebuild();
     }
+
+
 }

@@ -73,7 +73,7 @@ public class CoreCreature {
         this.tags_hostile = new ArrayList<>(editor.hostile_tag);
         this.tags_friendly = new ArrayList<>(editor.friendly_tag);
         this.focus_sigil = editor.focus_sigil;
-        Bukkit.getLogger().severe("Not implemented (loot from mobs)");
+        Bukkit.getLogger().info("not implemented (loot from mobs)");
     }
 
     /**
@@ -110,10 +110,13 @@ public class CoreCreature {
         LivingEntity bukkit_entity = this.mob_factory.create(where);
         bukkit_entity.setCustomName(this.getName().replace("{LEVEL}", String.valueOf(level)));
         bukkit_entity.setCustomNameVisible(false);
+
+        // initialise level of the mob
         bukkit_entity.setPersistent(false);
 
         // initialization within rpgcore space
         CoreMob core_entity = new CoreMob(bukkit_entity, this.mob_factory, this);
+        core_entity.setCurrentLevel(level);
 
         // assign the relevant tags for relationships
         core_entity.getMyTags().addAll(this.tags);

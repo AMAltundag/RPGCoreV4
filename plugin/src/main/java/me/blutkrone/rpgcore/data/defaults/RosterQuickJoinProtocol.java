@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 
 public class RosterQuickJoinProtocol implements DataProtocol {
+
     @Override
     public boolean isRosterData() {
         return true;

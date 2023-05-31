@@ -18,17 +18,19 @@ public class DungeonStructureConstraint extends AbstractMultiConstraint {
 
     static {
         id_to_constructor.put("skill", EditorDungeonSkillInvoker::new);
-        id_to_constructor.put("block", EditorDungeonBlockSwapper::new);
+        id_to_constructor.put("block", EditorDungeonBlock::new);
         id_to_constructor.put("spawner", EditorDungeonSpawner::new);
         id_to_constructor.put("checkpoint", EditorDungeonCheckpoint::new);
         id_to_constructor.put("spawnpoint", EditorDungeonSpawnpoint::new);
+        id_to_constructor.put("treasure", EditorDungeonTreasure::new);
         class_to_id.put(EditorDungeonSkillInvoker.class, "skill");
-        class_to_id.put(EditorDungeonBlockSwapper.class, "block");
+        class_to_id.put(EditorDungeonBlock.class, "block");
         class_to_id.put(EditorDungeonSpawner.class, "spawner");
         class_to_id.put(EditorDungeonCheckpoint.class, "checkpoint");
         class_to_id.put(EditorDungeonSpawnpoint.class, "spawnpoint");
+        class_to_id.put(EditorDungeonTreasure.class, "treasure");
 
-        Bukkit.getLogger().severe("not implemented (treasure structure)");
+        Bukkit.getLogger().info("not implemented (treasure structure)");
     }
 
     @Override

@@ -1,5 +1,11 @@
 package com.blutkrone.rpgproxy.util;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+
+import java.util.UUID;
+
 /**
  * A utility meant to organize BungeeCord sub-channels for RPGCore.
  * <p>
@@ -8,64 +14,71 @@ package com.blutkrone.rpgproxy.util;
  */
 public final class BungeeTable {
 
-    // base channel for RPGCore
-    public static final String CHANNEL_RPGCORE = "blutkrone:rpgcore";
-    // base channel for BungeeCord
+    // general handling
     public static final String CHANNEL_BUNGEE = "BungeeCord";
-
-    // proxy wants to send a translated message
-    public static final String PROXY_BASIC_MESSAGE = "proxy_basic_message";
-
-    // update match seeking status
-    public static final String SERVER_MATCH_UPDATE = "server_match_decline";
-    // accept a match offer
-    public static final String SERVER_MATCH_ACCEPT = "server_match_decline";
-    // reject a match offer
-    public static final String SERVER_MATCH_DECLINE = "server_match_decline";
-    // everything is fine, we can do the match
-    public static final String SERVER_MATCH_VERIFY_PASSED = "server_match_verify_passed";
-    // something went wrong, cancel the match
-    public static final String SERVER_MATCH_VERIFY_FAILED = "server_match_verify_failed";
-    // something went wrong, cancel the match
-    public static final String SERVER_MATCH_TRANSFER_SUCCESS = "server_match_transfer_success";
-    // something went wrong, cancel the match
-    public static final String SERVER_MATCH_TRANSFER_FAILED = "server_match_transfer_failed";
-
-    // proxy found a match and asks about it
-    public static final String PROXY_MATCH_ASK = "proxy_match_ask";
-    // someone rejected to play the match
-    public static final String PROXY_MATCH_REJECT = "proxy_match_reject";
-    // everyone accepted, get ready to transfer
-    public static final String PROXY_MATCH_VERIFY = "proxy_match_verify";
-    // get ready to depart from this server
-    public static final String PROXY_MATCH_TRANSFER_DEPART = "proxy_match_transfer_depart";
-    // party is slowly arriving on server
-    public static final String PROXY_MATCH_TRANSFER_ARRIVE = "proxy_match_transfer_arrive";
-    // unexpected issue when trying to depart
-    public static final String PROXY_MATCH_TRANSFER_ERROR = "proxy_match_transfer_error";
-
-    // update on info of a specific party
-    public static final String PROXY_PARTY_UPDATE_ONE = "proxy_party_update_one_party";
-    // total data update of every party
-    public static final String PROXY_PARTY_UPDATE_ALL = "proxy_party_update_all_party";
-    // ask a party leader if stranger can be added
-    public static final String PROXY_PARTY_ASK_LEADER = "proxy_party_ask_leader";
-    // ask a stranger if they want to join leaders party
-    public static final String PROXY_PARTY_ASK_STRANGER = "proxy_party_ask_stranger";
-
-    // ask a party leader if stranger can be added
-    public static final String SERVER_PARTY_ASK_LEADER = "server_party_ask_leader";
-    // ask a stranger if they want to join leaders party
-    public static final String SERVER_PARTY_ASK_STRANGER = "server_party_ask_stranger";
-    // add someone to a party
-    public static final String SERVER_PARTY_ADD = "server_party_add";
-    // a (possible) leader wants to kick a player
-    public static final String SERVER_PARTY_WANT_KICK = "server_party_want_kick";
-    // someone wants a new party to be created
-    public static final String SERVER_PARTY_WANT_QUIT = "server_party_want_quit";
-    // create a new party
-    public static final String SERVER_PARTY_CREATE = "server_party_create";
+    public static final String CHANNEL_RPGCORE = "blutkrone:rpgcore";
+    // useful utilities
+    public static final String SERVER_BOUND_BASIC_MESSAGE = "server_bound:basic_message";
+    public static final String SERVER_BOUND_LIST_PLAYER = "server_bound:list_player";
+    public static final String PROXY_BOUND_DELIVER_CHAT = "proxy_bound:deliver_chat";
+    // match-maker with cross-server queue (server talking to proxy)
+    public static final String PROXY_BOUND_MATCH_UPDATE = "proxy_bound:match_update";
+    public static final String PROXY_BOUND_MATCH_ACCEPT = "proxy_bound:match_accept";
+    public static final String PROXY_BOUND_MATCH_DECLINE = "proxy_bound:match_decline";
+    public static final String PROXY_BOUND_MATCH_VERIFY_PASSED = "proxy_bound:match_verify_passed";
+    public static final String PROXY_BOUND_MATCH_VERIFY_FAILED = "proxy_bound:match_verify_failed";
+    public static final String PROXY_BOUND_MATCH_DEPART_SUCCESS = "proxy_bound:match_depart_success";
+    public static final String PROXY_BOUND_MATCH_DEPART_FAILED = "proxy_bound:match_depart_failed";
+    // match-maker with cross-server queue (proxy talking to server)
+    public static final String SERVER_BOUND_MATCH_ASK = "server_bound:match_ask";
+    public static final String SERVER_BOUND_MATCH_FAIL = "server_bound:match_fail";
+    public static final String SERVER_BOUND_MATCH_VERIFY = "server_bound:match_verify";
+    public static final String SERVER_BOUND_MATCH_DEPART = "server_bound:match_depart";
+    public static final String SERVER_BOUND_MATCH_FINISH = "server_bound:match_finish";
+    public static final String SERVER_BOUND_MATCH_INFO_ALL = "server_bound:match_info_all";
+    // players grouping up as a party (proxy talking to server)
+    public static final String SERVER_BOUND_PARTY_UPDATE_ONE = "server_bound:party_update_one_party";
+    public static final String SERVER_BOUND_PARTY_UPDATE_ALL = "server_bound:party_update_all_party";
+    public static final String SERVER_BOUND_PARTY_ASK_LEADER = "server_bound:party_ask_leader";
+    public static final String SERVER_BOUND_PARTY_ASK_STRANGER = "server_bound:party_ask_stranger";
+    // players grouping up as a party (server talking to proxy)
+    public static final String PROXY_BOUND_PARTY_ASK_LEADER = "proxy_bound:party_ask_leader";
+    public static final String PROXY_BOUND_PARTY_ASK_STRANGER = "proxy_bound:party_ask_stranger";
+    public static final String PROXY_BOUND_PARTY_ADD = "proxy_bound:party_add";
+    public static final String PROXY_BOUND_PARTY_REFUSE = "proxy_bound:party_refuse";
+    public static final String PROXY_BOUND_PARTY_WANT_KICK = "proxy_bound:party_want_kick";
+    public static final String PROXY_BOUND_PARTY_WANT_QUIT = "proxy_bound:party_want_quit";
 
     BungeeTable() {
+    }
+
+    /**
+     * Prepare a byte array to be deployed to a server running
+     * RPGCore with bungeecord handling.
+     *
+     * @return Prepared output
+     */
+    public static ByteArrayDataOutput compose(String topic) {
+        ByteArrayDataOutput data = ByteStreams.newDataOutput();
+        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
+        data.writeUTF(topic);
+        data.writeUTF(new UUID(0, 0).toString());
+        return data;
+    }
+
+    /**
+     * Prepare a byte array to be deployed to a server running
+     * RPGCore with bungeecord handling.
+     *
+     * @param topic What topic is the message about
+     * @param subject Who is related to the subject
+     * @return Prepared output
+     */
+    public static ByteArrayDataOutput compose(String topic, ProxiedPlayer subject) {
+        ByteArrayDataOutput data = ByteStreams.newDataOutput();
+        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
+        data.writeUTF(topic);
+        data.writeUTF(subject.getUniqueId().toString());
+        return data;
     }
 }

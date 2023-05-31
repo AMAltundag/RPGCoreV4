@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.hud.editor.root.node;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.hud.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
@@ -23,6 +24,7 @@ import java.util.List;
  */
 public class EditorNodeGate implements IEditorRoot<CoreNodeGate> {
 
+    @EditorCategory(icon = Material.END_GATEWAY, info = "Gate")
     @EditorList(name = "Content", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = {"What content is accessible from this gate"})
     public List<String> content = new ArrayList<>();

@@ -32,6 +32,7 @@ import java.util.List;
  */
 public class EditorNodeCollectible implements IEditorRoot<CoreNodeCollectible> {
 
+    @EditorCategory(icon = Material.DIAMOND_PICKAXE, info = "Collectible")
     @EditorNumber(name = "Radius", minimum = 0, maximum = 48)
     @EditorTooltip(tooltip = {"Radius which the node can trigger at."})
     public double radius = 16;

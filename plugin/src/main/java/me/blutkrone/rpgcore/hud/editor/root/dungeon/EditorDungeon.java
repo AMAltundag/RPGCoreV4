@@ -6,6 +6,7 @@ import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.editor.FocusQueue;
 import me.blutkrone.rpgcore.hud.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.hud.editor.annotation.value.EditorWrite;
@@ -13,7 +14,6 @@ import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.mono.AttributeAndFactorConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.DungeonStructureConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.bundle.multi.SelectorConstraint;
-import me.blutkrone.rpgcore.hud.editor.constraint.reference.index.ItemConstraint;
 import me.blutkrone.rpgcore.hud.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.menu.EditorMenu;
@@ -66,9 +66,6 @@ public class EditorDungeon implements IEditorRoot<CoreDungeon> {
     @EditorList(name = "Spawns Attribute", constraint = AttributeAndFactorConstraint.class)
     @EditorTooltip(tooltip = {"Attributes granted to spawned creatures."})
     public List<IEditorBundle> spawns_attributes = new ArrayList<>();
-    @EditorList(name = "Keys", constraint = ItemConstraint.class)
-    @EditorTooltip(tooltip = "All key items to open dungeon")
-    public List<String> key_items = new ArrayList<>();
     @EditorWrite(name = "Icon", constraint = LanguageConstraint.class)
     @EditorTooltip(tooltip = {"Description item for dungeon", "§cThis is a language code, NOT plaintext."})
     public String lc_icon = "NOTHINGNESS";
@@ -87,6 +84,12 @@ public class EditorDungeon implements IEditorRoot<CoreDungeon> {
     @EditorList(name = "Whitelist", constraint = SelectorConstraint.class)
     @EditorTooltip(tooltip = "Condition must be fulfilled to enter.")
     public List<IEditorBundle> whitelist = new ArrayList<>();
+    @EditorBoolean(name = "Hardcore")
+    @EditorTooltip(tooltip = {
+            "If your grave expires in a hardcore dungeon, you will be",
+            "Kicked out rather then sent to your last checkpoint.",
+    })
+    public boolean hardcore = false;
 
     public transient File file;
 

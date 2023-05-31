@@ -5,7 +5,9 @@ import me.blutkrone.rpgcore.nms.api.packet.handle.IHighlight;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.UUID;
 
 public interface IVolatilePackets {

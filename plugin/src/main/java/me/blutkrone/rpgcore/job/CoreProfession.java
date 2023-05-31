@@ -187,7 +187,7 @@ public class CoreProfession {
         }));
         // ensure tags are all present
         for (String tag : required) {
-            if (!player.getPersistentTags().contains(tag)) {
+            if (!player.checkForTag(tag)) {
                 return false;
             }
         }

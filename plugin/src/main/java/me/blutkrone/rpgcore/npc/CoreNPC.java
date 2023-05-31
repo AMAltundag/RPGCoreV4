@@ -176,7 +176,7 @@ public class CoreNPC extends AbstractNode {
             if (fetched != null) {
                 profile.addProperty("textures", fetched.value, fetched.signature);
             } else {
-                Bukkit.getLogger().severe("NPC was requested before skin has finished!");
+                Bukkit.getLogger().warning("NPC was requested before skin has finished!");
             }
         }
         // offer up the profile we built
@@ -262,6 +262,24 @@ public class CoreNPC extends AbstractNode {
         }
         // no delivery job is pending.
         return null;
+    }
+
+    /**
+     * Check what traits are available to the player.
+     *
+     * @param player Whose traits to list up
+     * @return Available traits
+     */
+    public List<AbstractCoreTrait> getAvailableTraits(Player player) {
+        // ensure player is logged-in
+        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+        if (core_player == null) {
+            return new ArrayList<>();
+        }
+        // find the traits we can interact with
+        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
+        traits.removeIf((trait -> !trait.isAvailable(core_player)));
+        return traits;
     }
 
     /**

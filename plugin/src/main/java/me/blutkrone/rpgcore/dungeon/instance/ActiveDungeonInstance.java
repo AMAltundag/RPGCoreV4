@@ -7,14 +7,16 @@ import me.blutkrone.rpgcore.dungeon.CoreDungeon;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
 import me.blutkrone.rpgcore.dungeon.structure.SpawnpointStructure;
+import me.blutkrone.rpgcore.dungeon.structure.BlockStructure;
+import me.blutkrone.rpgcore.dungeon.structure.TreasureStructure;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.util.BlockVector;
 
 import java.io.File;
@@ -30,13 +32,15 @@ public class ActiveDungeonInstance implements IDungeonInstance {
     private Map<String, Double> score;
     private Map<UUID, Location> checkpoints;
     private List<String> invited;
+    private Set<Long> chunk_processed;
     private int empty_ticks;
-
     private List<Location> spawnpoints;
+    private Set<UUID> mob_kills;
+    private Map<UUID, TreasureStructure.ActiveTreasure> treasures;
 
     public ActiveDungeonInstance(String id, CoreDungeon template) {
-        Bukkit.getLogger().severe("not implemented (Dungeon entrance UX)");
-        Bukkit.getLogger().severe("not implemented (Location selection)");
+        Bukkit.getLogger().info("not implemented (Dungeon entrance UX)");
+        Bukkit.getLogger().info("not implemented (Location selection)");
 
         // prepare a dungeon world
         this.world = id;
@@ -70,6 +74,7 @@ public class ActiveDungeonInstance implements IDungeonInstance {
         this.template = template;
         this.structures = new ArrayList<>();
         this.spawnpoints = new ArrayList<>();
+        this.mob_kills = new HashSet<>();
 
         for (AbstractDungeonStructure<?> structure : template.getStructures().values()) {
             if (structure instanceof SpawnpointStructure) {
@@ -85,6 +90,39 @@ public class ActiveDungeonInstance implements IDungeonInstance {
         this.score = new HashMap<>();
         this.checkpoints = new HashMap<>();
         this.invited = new ArrayList<>();
+        this.chunk_processed = new HashSet<>();
+        this.treasures = new HashMap<>();
+    }
+
+    /**
+     * Treasures which have been activated for the
+     * players.
+     *
+     * @return Activated dungeon treasures.
+     */
+    public Map<UUID, TreasureStructure.ActiveTreasure> getTreasures() {
+        return treasures;
+    }
+
+    /**
+     * Count mobs slain in the dungeon, this excludes secondary
+     * spawns.
+     *
+     * @return UUID of slain mobs.
+     */
+    public Set<UUID> getMobKills() {
+        return mob_kills;
+    }
+
+    /**
+     * Check if the given chunk should be given a pass
+     * for hiding blocks
+     *
+     * @param chunk Chunk to check
+     * @return Hidden chunk
+     */
+    public boolean canHideChunk(Chunk chunk) {
+        return this.chunk_processed.add((((long) chunk.getX())<<32) | chunk.getZ());
     }
 
     /**
@@ -142,17 +180,19 @@ public class ActiveDungeonInstance implements IDungeonInstance {
     public boolean update() {
         // re-apply player effects
         if (RPGCore.inst().getTimestamp() % 100 == 0) {
-            for (Player player : getWorld().getPlayers()) {
+            for (Player player : getPlayers(true)) {
                 CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-                if (core_player.getStatusEffects().containsKey("RPG_DUNGEON_EFFECT")) {
-                    core_player.getStatusEffects().put("RPG_DUNGEON_EFFECT", new DungeonEffect(
-                            core_player, getWorld(), template.getPlayerAttributes()));
+                if (core_player != null) {
+                    if (core_player.getStatusEffects().containsKey("RPG_DUNGEON_EFFECT")) {
+                        core_player.getStatusEffects().put("RPG_DUNGEON_EFFECT", new DungeonEffect(
+                                core_player, getWorld(), template.getPlayerAttributes()));
+                    }
                 }
             }
         }
 
-        // every 5 seconds re-count living mobs
-        if (RPGCore.inst().getTimestamp() % 100 == 0) {
+        // once per second re-count living mobs
+        if (RPGCore.inst().getTimestamp() % 20 == 0) {
             this.score.keySet().removeIf(key -> key.endsWith("_alive"));
             Map<String, Integer> totals = new HashMap<>();
             int total = 0;
@@ -169,10 +209,52 @@ public class ActiveDungeonInstance implements IDungeonInstance {
             });
         }
 
+        // asynchronous uniform structure activation evaluation
+        if (RPGCore.inst().getTimestamp() % 10 == 0) {
+            List<Location> players = new ArrayList<>();
+            for (Player player : getPlayers(true)) {
+                players.add(player.getLocation());
+            }
+
+            List<AbstractDungeonStructure.StructureData> snapshot = new ArrayList<>();
+            for (StructureTracker structure : this.structures) {
+                for (AbstractDungeonStructure.StructureData datum : structure.data) {
+                    snapshot.add(datum);
+                }
+            }
+
+            Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
+                List<AbstractDungeonStructure.StructureData> activate = new ArrayList<>();
+                List<AbstractDungeonStructure.StructureData> deactivate = new ArrayList<>();
+
+                for (AbstractDungeonStructure.StructureData data : snapshot) {
+                    double distance = Double.MAX_VALUE;
+                    for (Location player : players) {
+                        distance = Math.min(distance, player.distance(data.where));
+                    }
+
+                    if (distance < data.structure.getRange()) {
+                        activate.add(data);
+                    } else {
+                        deactivate.add(data);
+                    }
+                }
+
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    for (AbstractDungeonStructure.StructureData datum : activate) {
+                        datum.activated = true;
+                    }
+                    for (AbstractDungeonStructure.StructureData datum : deactivate) {
+                        datum.activated = false;
+                    }
+                });
+            });
+        }
+
         // pull in invited players
         this.invited.removeIf(name -> {
             Player player = Bukkit.getPlayer(name);
-            if (player != null && player.getOpenInventory().getType() == InventoryType.CRAFTING) {
+            if (player != null && AbstractCoreMenu.isUsingTrivialMenu(player)) {
                 CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
                 if (core_player != null && core_player.isInitiated()) {
                     player.teleport(getCheckpoint(player));
@@ -190,7 +272,7 @@ public class ActiveDungeonInstance implements IDungeonInstance {
         });
 
         // abandon if empty for more then 10s
-        if (getWorld().getPlayers().isEmpty()) {
+        if (getPlayers(false).isEmpty()) {
             if (++this.empty_ticks >= 200) {
                 Bukkit.unloadWorld(this.getWorld(), false);
                 return true;
@@ -222,17 +304,31 @@ public class ActiveDungeonInstance implements IDungeonInstance {
             this.data = new ArrayList<>();
             for (BlockVector vector : structure.getWhere()) {
                 Location location = vector.toLocation(instance.getWorld());
-                this.data.add(new AbstractDungeonStructure.StructureData(location));
+                this.data.add(new AbstractDungeonStructure.StructureData(structure, location));
             }
 
             this.hidden = new HashMap<>();
             if (this.structure.isHidden()) {
+                // initial pass collects primary locations
                 for (AbstractDungeonStructure.StructureData datum : this.data) {
                     long x = datum.where.getBlockX();
                     long z = datum.where.getBlockZ();
                     long chunk = ((x>>4) << 32) | (z >> 4);
                     this.hidden.computeIfAbsent(chunk, (k -> new ArrayList<>()))
                             .add(datum.where);
+                }
+                // second pass to find proliferation of block structure
+                if (this.structure instanceof BlockStructure) {
+                    Map<BlockVector, List<BlockVector>> proliferated = ((BlockStructure) this.structure).getProliferated();
+                    for (List<BlockVector> vectors : proliferated.values()) {
+                        for (BlockVector vector : vectors) {
+                            long x = vector.getBlockX();
+                            long z = vector.getBlockZ();
+                            long chunk = ((x>>4) << 32) | (z >> 4);
+                            this.hidden.computeIfAbsent(chunk, (k -> new ArrayList<>()))
+                                    .add(vector.toLocation(instance.getWorld()));
+                        }
+                    }
                 }
             }
         }

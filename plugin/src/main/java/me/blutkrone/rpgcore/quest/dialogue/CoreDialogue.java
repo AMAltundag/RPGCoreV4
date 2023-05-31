@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.quest.dialogue;
 
 import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
+import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueBundle;
 import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueChoice;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class CoreDialogue {
     // choices to give to the user (maximum 4)
     public List<CoreDialogueChoice> choices = new ArrayList<>();
 
-    public CoreDialogue(EditorDialogue editor) {
+    public CoreDialogue(EditorDialogueBundle editor) {
         this.lc_dialogue_text = editor.lc_text;
         this.lc_dialogue_question = editor.lc_question;
         for (IEditorBundle bundle : editor.choices) {

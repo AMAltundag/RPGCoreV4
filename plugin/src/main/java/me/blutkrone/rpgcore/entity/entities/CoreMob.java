@@ -3,7 +3,8 @@ package me.blutkrone.rpgcore.entity.entities;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
-import me.blutkrone.rpgcore.dungeon.structure.SpawnerStructure;
+import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
+import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.mob.CoreCreature;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -32,22 +33,10 @@ public class CoreMob extends CoreEntity {
     // prevents strolling outside of leash
     private double leash_range;
     private Location leash_anchor;
-    // in case we are spawned by a dungeon
-    private SpawnerStructure.ImportantData tracked_by_dungeon;
 
     public CoreMob(LivingEntity entity, EntityProvider provider, CoreCreature template) {
         super(entity, provider);
         this.template = template;
-    }
-
-    /**
-     * If spawned by a dungeon, this is used to track important
-     * creatures that are essential to logical progress.
-     *
-     * @param tracked_by_dungeon Data container to track with
-     */
-    public void setAsImportantDungeonSpawn(SpawnerStructure.ImportantData tracked_by_dungeon) {
-        this.tracked_by_dungeon = tracked_by_dungeon;
     }
 
     /**
@@ -128,9 +117,14 @@ public class CoreMob extends CoreEntity {
      * if this creature is summoned by another.
      */
     public void giveDeathReward() {
-        // accredit important dungeon kill
-        if (this.tracked_by_dungeon != null) {
-            this.tracked_by_dungeon.slain = true;
+        // accredit kills performed within the dungeon
+        UUID parent = getParent();
+        if (parent == null) {
+            IDungeonInstance instance = RPGCore.inst().getDungeonManager().getInstance(getWorld());
+            if (instance instanceof ActiveDungeonInstance) {
+                ((ActiveDungeonInstance) instance).getMobKills().add(getUniqueId());
+                ((ActiveDungeonInstance) instance).getScore().merge(template.getId().toLowerCase() + "_kill", 1d, (a,b)->a+b);
+            }
         }
 
         // summons should never give rewards

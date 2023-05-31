@@ -3,14 +3,20 @@
     <words>
       <w>bungeecord</w>
       <w>collider</w>
+      <w>despawn</w>
+      <w>despawned</w>
+      <w>despawns</w>
       <w>elytra</w>
       <w>hotspots</w>
       <w>inviter</w>
+      <w>nulled</w>
       <w>picklist</w>
       <w>readables</w>
       <w>rebuilder</w>
       <w>sigil</w>
       <w>sigils</w>
+      <w>targetable</w>
+      <w>untargetable</w>
       <w>viewscope</w>
       <w>yaml</w>
     </words>

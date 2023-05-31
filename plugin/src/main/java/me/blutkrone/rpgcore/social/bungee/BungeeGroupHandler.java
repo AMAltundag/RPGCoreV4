@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.social.bungee;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.bungee.IBungeeHandling;
 import me.blutkrone.rpgcore.api.social.IGroupHandler;
@@ -10,15 +9,13 @@ import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.language.LanguageManager;
+import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
 import me.blutkrone.rpgcore.menu.AbstractYesNoMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
-import me.blutkrone.rpgcore.social.BungeeTable;
 import me.blutkrone.rpgcore.social.SocialManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
 import java.util.*;
@@ -30,13 +27,23 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
     private final Map<String, PartySnapshot> parties_by_id = new HashMap<>();
     private final Map<UUID, PartySnapshot> parties_by_player = new HashMap<>();
 
+    private final Set<UUID> matchmaker_snapshot = new HashSet<>();
+
     public BungeeGroupHandler(SocialManager social_manager) {
         this.social_manager = social_manager;
     }
 
     @Override
     public void onBungeeMessage(Player recipient, String channel, ByteArrayDataInput data) {
-        if (BungeeTable.PROXY_MATCH_ASK.equals(channel)) {
+        if (BungeeTable.SERVER_BOUND_MATCH_INFO_ALL.equals(channel)) {
+            // received matchmaker info on all players
+            matchmaker_snapshot.clear();
+            int size = data.readInt();
+            for (int i = 0; i < size; i++) {
+                UUID uuid = UUID.fromString(data.readUTF());
+                matchmaker_snapshot.add(uuid);
+            }
+        } else if (BungeeTable.SERVER_BOUND_MATCH_ASK.equals(channel)) {
             // ask player if they want to play the match
             UUID offer = UUID.fromString(data.readUTF());
             String content = data.readUTF();
@@ -52,32 +59,30 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                     CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
                     if (core_player == null) {
                         // auto decline if not logged in
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_DECLINE);
-                        response.writeUTF(offer.toString());
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
-                    } else if (player.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DECLINE);
+                        composed.writeUTF(offer.toString());
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+                    } else if (!AbstractCoreMenu.isUsingTrivialMenu(player)) {
                         // auto decline while in any menu
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_DECLINE);
-                        response.writeUTF(offer.toString());
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DECLINE);
+                        composed.writeUTF(offer.toString());
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
                     } else {
                         // ask if player wants to participate
                         new PromptAskMatch(offer, content, players).finish(player);
                     }
                 }
             });
-        } else if (BungeeTable.PROXY_MATCH_REJECT.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_MATCH_FAIL.equals(channel)) {
             // one of the players asked refused the match
             UUID offer = UUID.fromString(data.readUTF());
+            String reason = data.readUTF();
 
             doSyncTask(() -> {
                 Player player = recipient.getPlayer();
                 if (player != null) {
                     // inform about having been rejected
-                    String warning = RPGCore.inst().getLanguageManager().getTranslation("matchmaker_rejected");
-                    player.sendMessage(ChatColor.RED + warning);
+                    RPGCore.inst().getLanguageManager().sendMessage(player, reason);
                     // attempt to close the menu to accept an invite
                     Inventory inventory = player.getOpenInventory().getTopInventory();
                     if (inventory instanceof IChestMenu) {
@@ -88,9 +93,11 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                             }
                         }
                     }
+                    // release the menu suppression if we had it
+                    RPGCore.inst().getDataManager().suppressMenu(player, -1L);
                 }
             });
-        } else if (BungeeTable.PROXY_MATCH_VERIFY.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_MATCH_VERIFY.equals(channel)) {
             // ensure player can be transferred away
             doSyncTask(() -> {
                 Player player = recipient.getPlayer();
@@ -98,23 +105,20 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                     CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
                     if (core_player == null) {
                         // must be actively logged in
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_VERIFY_FAILED);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
-                    } else if (player.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_VERIFY_FAILED);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+                    } else if (!AbstractCoreMenu.isUsingTrivialMenu(player)) {
                         // must not have a menu open
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_VERIFY_FAILED);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_VERIFY_FAILED);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
                     } else {
                         // verification has been passed
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_VERIFY_PASSED);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_VERIFY_PASSED);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
                     }
                 }
             });
-        } else if (BungeeTable.PROXY_MATCH_TRANSFER_DEPART.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_MATCH_DEPART.equals(channel)) {
             // get ready to depart from the server
             doSyncTask(() -> {
                 Player player = recipient.getPlayer();
@@ -122,29 +126,26 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                     CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
                     if (core_player == null) {
                         // must be actively logged in
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_TRANSFER_FAILED);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
-                    } else if (player.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DEPART_FAILED);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+                    } else if (!AbstractCoreMenu.isUsingTrivialMenu(player)) {
                         // must not have a menu open
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_TRANSFER_FAILED);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DEPART_FAILED);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
                     } else {
                         // make sure we do not re-log into the menu
-                        RPGCore.inst().getDataManager().suppressMenu(player, 60000L);
+                        RPGCore.inst().getDataManager().suppressMenu(player, 30000L);
                         // skip roster menu next time we want to connect
                         core_player.quickJoinNextTime();
                         // save and unregister the player while we wait for a transfer
                         RPGCore.inst().getEntityManager().unregister(player.getUniqueId());
                         // verification has been passed
-                        ByteArrayDataOutput response = ByteStreams.newDataOutput();
-                        response.writeUTF(BungeeTable.SERVER_MATCH_TRANSFER_SUCCESS);
-                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_RPGCORE, response.toByteArray());
+                        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DEPART_SUCCESS);
+                        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
                     }
                 }
             });
-        } else if (BungeeTable.PROXY_MATCH_TRANSFER_ARRIVE.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_MATCH_FINISH.equals(channel)) {
             // a party of players is arriving on this server
             String party = data.readUTF();
             int amount = data.readInt();
@@ -158,16 +159,7 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                 IDungeonInstance instance = RPGCore.inst().getDungeonManager().createInstance(content);
                 instance.invite(players);
             });
-        } else if (BungeeTable.PROXY_MATCH_TRANSFER_ERROR.equals(channel)) {
-            // inform about the unexpected error
-            String warning = RPGCore.inst().getLanguageManager().getTranslation("matchmaker_error");
-            recipient.sendMessage(ChatColor.RED + warning);
-            // unexpected transfer error, allow to log back on
-            doSyncTask(() -> {
-                Player player = recipient.getPlayer();
-                RPGCore.inst().getDataManager().suppressMenu(player, -1L);
-            });
-        } else if (BungeeTable.PROXY_PARTY_UPDATE_ONE.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_PARTY_UPDATE_ONE.equals(channel)) {
             // update of one specific party known to the proxy
             PartySnapshot party = new PartySnapshot(data);
             doSyncTask(() -> {
@@ -183,7 +175,7 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                     this.parties_by_id.put(party.getId(), party);
                 }
             });
-        } else if (BungeeTable.PROXY_PARTY_UPDATE_ALL.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_PARTY_UPDATE_ALL.equals(channel)) {
             // update of every party known to the proxy
             Map<String, PartySnapshot> updated = new HashMap<>();
             int size = data.readInt();
@@ -198,23 +190,23 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
                 this.parties_by_id.clear();
                 this.parties_by_id.putAll(updated);
             });
-        } else if (BungeeTable.PROXY_PARTY_ASK_STRANGER.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_PARTY_ASK_STRANGER.equals(channel)) {
             // a stranger wants to join the party of the leader
             String who_asked = data.readUTF();
             String party = data.readUTF();
             doSyncTask(() -> {
                 Player player = recipient.getPlayer();
-                if (player != null && player.getOpenInventory().getType() == InventoryType.CRAFTING) {
+                if (player != null && AbstractCoreMenu.isUsingTrivialMenu(player)) {
                     new PromptAskStranger(who_asked, party).finish(player);
                 }
             });
-        } else if (BungeeTable.PROXY_PARTY_ASK_LEADER.equals(channel)) {
+        } else if (BungeeTable.SERVER_BOUND_PARTY_ASK_LEADER.equals(channel)) {
             // a leader has invited another player to their party
             String who_asked = data.readUTF();
             String party = data.readUTF();
             doSyncTask(() -> {
                 Player player = recipient.getPlayer();
-                if (player != null && player.getOpenInventory().getType() == InventoryType.CRAFTING) {
+                if (player != null && AbstractCoreMenu.isUsingTrivialMenu(player)) {
                     new PromptAskLeader(who_asked, party).finish(player);
                 }
             });
@@ -224,75 +216,50 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
     @Override
     public void queueForContent(Player player, String... contents) {
         // update proxy information on our interests
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_MATCH_UPDATE);
-        data.writeInt(contents.length);
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_UPDATE);
+        composed.writeInt(contents.length);
         for (String content : contents) {
-            data.writeUTF(content);
+            composed.writeUTF(content);
         }
-        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+    }
+
+    @Override
+    public boolean isQueued(Player player) {
+        return this.matchmaker_snapshot.contains(player.getUniqueId());
     }
 
     @Override
     public void joinParty(Player asking, String target) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_ASK_LEADER);
-        data.writeUTF(target);
-        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_ASK_LEADER);
+        composed.writeUTF(target);
+        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
     }
 
     @Override
     public void inviteParty(Player asking, String target) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_ASK_STRANGER);
-        data.writeUTF(target);
-        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_ASK_STRANGER);
+        composed.writeUTF(target);
+        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
     }
 
     @Override
     public void kickParty(Player asking, String kicked) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_WANT_KICK);
-        data.writeUTF(kicked);
-        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
-    }
-
-    @Override
-    public void createParty(String identifier, List<UUID> players) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_CREATE);
-        data.writeUTF(identifier);
-        data.writeInt(players.size());
-        for (UUID player : players) {
-            data.writeUTF(player.toString());
-        }
-        Iterator<? extends Player> iterator = Bukkit.getOnlinePlayers().iterator();
-        if (iterator.hasNext()) {
-            iterator.next().sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
-        } else {
-            Bukkit.getLogger().severe("Party create request " + identifier + " has failed!");
-        }
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_WANT_KICK);
+        composed.writeUTF(kicked);
+        asking.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
     }
 
     @Override
     public void quitParty(Player player) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_WANT_QUIT);
-        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_WANT_QUIT);
+        player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
     }
 
     @Override
     public void quitParty(CorePlayer player) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.SERVER_PARTY_WANT_QUIT);
-        player.getEntity().sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_WANT_QUIT);
+        player.getEntity().sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
     }
 
     @Override
@@ -366,18 +333,14 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
 
             if (response) {
                 // inform proxy that player accepted a match
-                ByteArrayDataOutput data = ByteStreams.newDataOutput();
-                data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-                data.writeUTF(BungeeTable.SERVER_MATCH_ACCEPT);
-                data.writeUTF(offer.toString());
-                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_ACCEPT);
+                composed.writeUTF(offer.toString());
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
             } else {
                 // inform proxy that player declined a match
-                ByteArrayDataOutput data = ByteStreams.newDataOutput();
-                data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-                data.writeUTF(BungeeTable.SERVER_MATCH_DECLINE);
-                data.writeUTF(offer.toString());
-                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_MATCH_DECLINE);
+                composed.writeUTF(offer.toString());
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
             }
         }
 
@@ -411,15 +374,19 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
 
         @Override
         public void handleResponse(boolean response) {
+            Player player = getMenu().getViewer();
             if (response) {
-                Player player = getMenu().getViewer();
                 // inform proxy about our decision
-                ByteArrayDataOutput data = ByteStreams.newDataOutput();
-                data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-                data.writeUTF(BungeeTable.SERVER_PARTY_ADD);
-                data.writeUTF(party);
-                data.writeUTF(who_asked);
-                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_ADD);
+                composed.writeUTF(party);
+                composed.writeUTF(who_asked);
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+            } else {
+                // inform proxy about our decision
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_REFUSE);
+                composed.writeUTF(party);
+                composed.writeUTF(who_asked);
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
             }
         }
     }
@@ -448,15 +415,19 @@ public class BungeeGroupHandler implements IGroupHandler, IBungeeHandling {
 
         @Override
         public void handleResponse(boolean response) {
+            Player player = getMenu().getViewer();
             if (response) {
-                Player player = getMenu().getViewer();
                 // inform proxy about our decision
-                ByteArrayDataOutput data = ByteStreams.newDataOutput();
-                data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-                data.writeUTF(BungeeTable.SERVER_PARTY_ADD);
-                data.writeUTF(party);
-                data.writeUTF(who_asked);
-                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_ADD);
+                composed.writeUTF(party);
+                composed.writeUTF(player.getUniqueId().toString());
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
+            } else {
+                // inform proxy about our decision
+                ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.PROXY_BOUND_PARTY_REFUSE);
+                composed.writeUTF(party);
+                composed.writeUTF(who_asked);
+                player.sendPluginMessage(RPGCore.inst(), BungeeTable.CHANNEL_BUNGEE, composed.toByteArray());
             }
         }
     }

@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.dungeon.structure;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
@@ -23,12 +22,24 @@ public abstract class AbstractDungeonStructure<K> {
     private final String sync_id;
     private final boolean hidden;
     private final ItemStack icon;
+    private final double range;
 
     public AbstractDungeonStructure(AbstractEditorDungeonStructure editor) {
         this.where = new ArrayList<>(editor.where);
         this.sync_id = editor.sync_id;
         this.hidden = editor.hidden;
         this.icon = editor.getPreview();
+        this.range = editor.range;
+    }
+
+    /**
+     * The range within which this structure should be able to
+     * be activated.
+     *
+     * @return Range to be activated.
+     */
+    public double getRange() {
+        return range;
     }
 
     /**
@@ -69,14 +80,6 @@ public abstract class AbstractDungeonStructure<K> {
     }
 
     /**
-     * This is invoked when a dungeon instance which holds
-     * the structure is to be abandoned.
-     *
-     * @param instance The instance that will be removed
-     */
-    public abstract void clean(IDungeonInstance instance);
-
-    /**
      * Update this dungeon structure for the given active
      * dungeon instance. Currently in play mode.
      *
@@ -97,11 +100,14 @@ public abstract class AbstractDungeonStructure<K> {
     public static class StructureData<T> {
         public final Location where;
         public final IContext context;
-        public T data;
+        public final AbstractDungeonStructure<?> structure;
+        public boolean activated;
+        public T data; // warning: this is NOT thread-safe!
 
         public IHighlight highlight;
 
-        public StructureData(Location where) {
+        public StructureData(AbstractDungeonStructure<?> structure, Location where) {
+            this.structure = structure;
             this.where = where;
             this.context = new StructureContext(where);
         }

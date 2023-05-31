@@ -42,6 +42,9 @@ public class WardMechanic extends AbstractCoreMechanic {
         double maximum_mana = this.maximum_mana.evalAsDouble(context);
         double effectiveness = this.effectiveness.evalAsDouble(context);
         int restoration = this.restoration.evalAsInt(context);
+        if (restoration < 0) {
+            restoration = Integer.MAX_VALUE;
+        }
 
         for (IOrigin target : targets) {
             if (target instanceof CoreEntity) {

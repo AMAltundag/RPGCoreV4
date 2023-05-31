@@ -1,14 +1,15 @@
 package com.blutkrone.rpgproxy;
 
 import com.blutkrone.rpgproxy.group.BungeeGroupHandler;
+import com.blutkrone.rpgproxy.player.BungeePlayerHandler;
 import com.blutkrone.rpgproxy.util.BungeeConfig;
 import com.blutkrone.rpgproxy.util.BungeeTable;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
-import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
@@ -23,17 +24,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public final class RPGProxy extends Plugin implements Listener {
 
     private BungeeConfig bungee_config;
     private BungeeGroupHandler group_handler;
+    private BungeePlayerHandler player_handler;
 
-    private Map<String, UUID> name_to_uuid = new HashMap<>();
+    private Map<String, UUID> name_to_uuid = new ConcurrentHashMap<>();
+    private Map<UUID, String> uuid_to_name = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -42,6 +45,7 @@ public final class RPGProxy extends Plugin implements Listener {
 
         this.bungee_config = createConfig();
         this.group_handler = new BungeeGroupHandler(this);
+        this.player_handler = new BungeePlayerHandler(this);
 
         getProxy().getScheduler().schedule(this, () -> {
             // flush the cache if too much data in it
@@ -51,7 +55,51 @@ public final class RPGProxy extends Plugin implements Listener {
                     name_to_uuid.put(online.getName(), online.getUniqueId());
                 }
             }
+            // flush the cache if too much data in it
+            if (uuid_to_name.size() > getProxy().getConfig().getPlayerLimit() * 10) {
+                uuid_to_name.clear();
+                for (ProxiedPlayer online : getProxy().getPlayers()) {
+                    uuid_to_name.put(online.getUniqueId(), online.getName());
+                }
+            }
         }, 0, 1, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Retrieve the server with the least number of players which
+     * runs fine on the given content.
+     *
+     * @param content What content to check.
+     * @param players How many players want to join.
+     */
+    public ServerInfo getBestServerFor(String content, int players) {
+        // check the configuration for the content
+        final BungeeConfig.MatchMakerInfo content_info = getConfig().matchmaker.get(content);
+        if (content_info == null) {
+            getProxy().getLogger().severe("Could not find matchmaker info for: " + content);
+            return null;
+        }
+        // find lowest population content server to use
+        ServerInfo wanted = null;
+        for (ServerInfo server : this.getProxy().getServers().values()) {
+            if (server.isRestricted()) {
+                getProxy().getLogger().severe("skip: server is restricted");
+                continue;
+            }
+            if (!content_info.servers.contains(server.getName())) {
+                getProxy().getLogger().severe("skip: have %s want %s".formatted(server.getName(), content_info.servers));
+                continue;
+            }
+            if (server.getPlayers().size() + players > content_info.maximum_players) {
+                getProxy().getLogger().severe("skip: server is overpopulated");
+                continue;
+            }
+            if (wanted == null || wanted.getPlayers().size() > server.getPlayers().size()) {
+                wanted = server;
+            }
+        }
+        // offer up the server
+        return wanted;
     }
 
     /**
@@ -66,26 +114,83 @@ public final class RPGProxy extends Plugin implements Listener {
     }
 
     /**
-     * Deploy a RPGCore packet to the target player.
+     * Retrieve the last known UUID in this session, this is NOT tracked
+     * permanently and may lose reference at any point in time.
      *
-     * @param target Who to deploy the data to.
-     * @param data   Data to be deployed.
+     * @param name How was the player called
+     * @return The last UUID we know them by
      */
-    public void sendData(UUID target, byte[] data) {
-        ProxiedPlayer player = getProxy().getPlayer(target);
-        if (player != null) {
-            player.sendData(BungeeTable.CHANNEL_BUNGEE, data);
+    public String getLastKnownName(UUID name) {
+        return uuid_to_name.get(name);
+    }
+
+    /**
+     * Send a RPGCore packet to every server
+     *
+     * @param data What data to deploy
+     */
+    public void send(byte[] data) {
+        for (ServerInfo server : this.getProxy().getServers().values()) {
+            server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
         }
     }
 
     /**
-     * Deploy a RPGCore packet to the target player.
+     * Send a RPGCore packet to every server
      *
-     * @param target Who to deploy the data to.
-     * @param data   Data to be deployed.
+     * @param data What data we are sending to the server
+     * @param queue Hold the message for later sending if it cannot be sent immediately.
      */
-    public void sendData(ProxiedPlayer target, byte[] data) {
-        target.sendData(BungeeTable.CHANNEL_BUNGEE, data);
+    public void send(byte[] data, boolean queue) {
+        for (ServerInfo server : this.getProxy().getServers().values()) {
+            server.sendData(BungeeTable.CHANNEL_BUNGEE, data, queue);
+        }
+    }
+
+    /**
+     * Send a RPGCore packet to the target server
+     *
+     * @param server What server to send to
+     * @param data What data to deploy
+     */
+    public void send(Server server, byte[] data) {
+        server.getInfo().sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
+    }
+
+    /**
+     * Send a RPGCore packet to the target server
+     *
+     *
+     *
+     * @param server What server to send to
+     * @param data What data we are sending to the server
+     * @param queue Hold the message for later sending if it cannot be sent immediately.
+     */
+    public void send(Server server, byte[] data, boolean queue) {
+        server.getInfo().sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
+    }
+
+    /**
+     * Send a RPGCore packet to the target server
+     *
+     * @param server What server to send to
+     * @param data What data to deploy
+     */
+    public void send(ServerInfo server, byte[] data) {
+        server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
+    }
+
+    /**
+     * Send a RPGCore packet to the target server
+     *
+     *
+     *
+     * @param server What server to send to
+     * @param data What data we are sending to the server
+     * @param queue Hold the message for later sending if it cannot be sent immediately.
+     */
+    public void send(ServerInfo server, byte[] data, boolean queue) {
+        server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
     }
 
     /**
@@ -96,15 +201,13 @@ public final class RPGProxy extends Plugin implements Listener {
      * @param message Response to the request.
      */
     public void sendTranslatedMessage(ProxiedPlayer player, String message, String... args) {
-        ByteArrayDataOutput data = ByteStreams.newDataOutput();
-        data.writeUTF(BungeeTable.CHANNEL_RPGCORE);
-        data.writeUTF(BungeeTable.PROXY_BASIC_MESSAGE);
-        data.writeUTF(message);
-        data.writeInt(args.length);
+        ByteArrayDataOutput composed = BungeeTable.compose(BungeeTable.SERVER_BOUND_BASIC_MESSAGE, player);
+        composed.writeUTF(message);
+        composed.writeInt(args.length);
         for (String arg : args) {
-            data.writeUTF(arg);
+            composed.writeUTF(arg);
         }
-        player.sendData(BungeeTable.CHANNEL_BUNGEE, data.toByteArray());
+        send(player.getServer(), composed.toByteArray());
     }
 
     /**
@@ -114,6 +217,15 @@ public final class RPGProxy extends Plugin implements Listener {
      */
     public BungeeGroupHandler getMatchHandler() {
         return group_handler;
+    }
+
+    /**
+     * Handler responsible for player processing.
+     *
+     * @return Player handler
+     */
+    public BungeePlayerHandler getPlayerHandler() {
+        return player_handler;
     }
 
     /**
@@ -127,8 +239,13 @@ public final class RPGProxy extends Plugin implements Listener {
 
     @EventHandler
     public void onReceiveMessageFromServer(PluginMessageEvent event) {
-        // only process rpgcore
-        if (!event.getTag().equals(BungeeTable.CHANNEL_RPGCORE)) {
+        // only process if addressed to RPGCore
+        if (!event.getTag().equals(BungeeTable.CHANNEL_BUNGEE)) {
+            return;
+        }
+        ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
+        String sub_channel = in.readUTF();
+        if (!sub_channel.equals(BungeeTable.CHANNEL_RPGCORE)) {
             return;
         }
         // rpgcore has no protocol outgoing for players
@@ -142,21 +259,25 @@ public final class RPGProxy extends Plugin implements Listener {
             return;
         }
         // process our request
-        ProxiedPlayer receiver = (ProxiedPlayer) event.getReceiver();
-        ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
+        ProxiedPlayer whoAsked = (ProxiedPlayer) event.getReceiver();
         String channel = in.readUTF();
         // allow match handler to process message
-        if (getMatchHandler().read(receiver, channel, in)) {
+        if (getMatchHandler().read(whoAsked, channel, in)) {
+            return;
+        }
+        if (getPlayerHandler().read(whoAsked, channel, in)) {
             return;
         }
     }
 
     @EventHandler
-    public void onFixOutOfSyncPartyView(ServerSwitchEvent event) {
+    public void onFixOutOfSync(ServerSwitchEvent event) {
         // if we are the first player, the server may be out-of-sync
         int size = event.getPlayer().getServer().getInfo().getPlayers().size();
         if (size == 1) {
-            event.getPlayer().sendData(BungeeTable.CHANNEL_RPGCORE, getMatchHandler().getDataForFullPartyUpdate());
+            this.send(event.getPlayer().getServer(), getMatchHandler().buildFullPartyInfo());
+            this.send(event.getPlayer().getServer(), getMatchHandler().buildFullMatchInfo());
+            this.send(event.getPlayer().getServer(), getPlayerHandler().getDataForFullUsersUpdate());
         }
     }
 
@@ -164,13 +285,7 @@ public final class RPGProxy extends Plugin implements Listener {
     public void onTrackNameToUUID(PostLoginEvent event) {
         // track name to uuid for expiration
         this.name_to_uuid.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
-    }
-
-    @EventHandler
-    public void onQuitServer(PlayerDisconnectEvent event) {
-        // quit queue and leave party on disconnect
-        this.getMatchHandler().terminateMatching(event.getPlayer());
-        this.getMatchHandler().forceQuitParty(event.getPlayer());
+        this.uuid_to_name.put(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
 
     private BungeeConfig createConfig() {

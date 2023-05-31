@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.dungeon.structure;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonCheckpoint;
@@ -16,41 +15,39 @@ import java.util.List;
 
 public class CheckpointStructure extends AbstractDungeonStructure<Object> {
 
-    private final double range;
+    protected final double range;
     private final List<AbstractCoreSelector> activation;
 
     public CheckpointStructure(EditorDungeonCheckpoint editor) {
         super(editor);
 
-        this.activation = AbstractEditorSelector.unwrap(editor.activation);
         this.range = editor.range * editor.range;
-    }
-
-    @Override
-    public void clean(IDungeonInstance instance) {
-
+        this.activation = AbstractEditorSelector.unwrap(editor.activation);
     }
 
     @Override
     public void update(ActiveDungeonInstance instance, List<StructureData<Object>> where) {
-        if (RPGCore.inst().getTimestamp() % 30 != 0) {
+        if (RPGCore.inst().getTimestamp() % 20 != 0) {
             return;
         }
 
         for (StructureData<Object> datum : where) {
-            List<Player> watching = RPGCore.inst().getEntityManager().getObserving(datum.where);
-            watching.removeIf(player -> player.getLocation().distanceSquared(datum.where) > this.range);
-            // ensure we have players to update
-            if (watching.isEmpty()) {
-                continue;
-            }
-            // ensure we meet the condition
-            if (AbstractCoreSelector.doSelect(activation, datum.context, Collections.singletonList(new IOrigin.SnapshotOrigin(datum.where))).isEmpty()) {
-                continue;
-            }
-            // apply a temporary dungeon respawn position
-            for (Player player : watching) {
-                instance.setCheckpoint(player, datum.where);
+            if (datum.activated) {
+                // grab players within range
+                List<Player> watching = RPGCore.inst().getEntityManager().getObserving(datum.where);
+                watching.removeIf(player -> player.getLocation().distanceSquared(datum.where) > this.range);
+                // ensure we have any players
+                if (watching.isEmpty()) {
+                    continue;
+                }
+                // ensure checkpoint can be activated
+                if (AbstractCoreSelector.doSelect(activation, datum.context, Collections.singletonList(new IOrigin.SnapshotOrigin(datum.where))).isEmpty()) {
+                    continue;
+                }
+                // apply a temporary dungeon respawn position
+                for (Player player : watching) {
+                    instance.setCheckpoint(player, datum.where);
+                }
             }
         }
     }

@@ -7,7 +7,6 @@ import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.util.MenuAnimator;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -90,7 +89,6 @@ public class JewelMenu extends AbstractCoreMenu {
         if (shatter_chance > 0d) {
             shatter = working_data.shatter(shatter_chance);
         }
-        Bukkit.getLogger().severe("SHATTER CHANCE: " + shatter_chance + " BROKE " + shatter.size());
         // update the original item
         int slot = slots.get(ThreadLocalRandom.current().nextInt(slots.size()));
         working_data.socket(slot, single);
@@ -201,4 +199,6 @@ public class JewelMenu extends AbstractCoreMenu {
         // supply the title to the player
         getMenu().setTitle(msb.compile());
     }
+
+
 }

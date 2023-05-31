@@ -107,7 +107,6 @@ public class EditorMenu extends AbstractCoreMenu {
         msb.shiftToExact(-208);
         msb.append(resourcepack().texture("menu_editor_selection"), ChatColor.WHITE);
         // offer basic navigation elements
-        this.getMenu().setItemAt(0, this.icon_open);
         this.getMenu().setItemAt(26, this.scroll_up);
         this.getMenu().setItemAt(53, this.scroll_down);
         this.getMenu().setItemAt(8, this.icon_back);
@@ -117,6 +116,7 @@ public class EditorMenu extends AbstractCoreMenu {
         if (focused instanceof FocusQueue.NullFocus) {
             EditorIndex<?, ?> index = focused.getIndex();
 
+            this.getMenu().setItemAt(0, this.icon_open);
             // since nothing is opened, offer from history.
             List<String> filtered_history = new ArrayList<>(core_player.getEditorHistory());
             filtered_history.removeIf(history -> !index.has(history));
@@ -517,7 +517,7 @@ public class EditorMenu extends AbstractCoreMenu {
         // save changes to disk
         try {
             // todo keep a version control of our changes
-            Bukkit.getLogger().severe("not implemented (backup before save)");
+            Bukkit.getLogger().info("not implemented (backup before save)");
             // apply the actual saving
             root.save();
             // inform about having saved
@@ -925,23 +925,6 @@ public class EditorMenu extends AbstractCoreMenu {
 
             msb.shiftToExact(-45).append("Clone Element", "text_menu_title");
             getMenu().setTitle(msb.compile());
-        }
-    }
-
-    private class ExitSave extends AbstractCoreMenu {
-
-        public ExitSave(int size) {
-            super(size);
-        }
-
-        @Override
-        public void rebuild() {
-
-        }
-
-        @Override
-        public void click(InventoryClickEvent event) {
-
         }
     }
 }

@@ -181,6 +181,11 @@ public class BankerMenu extends AbstractCoreMenu {
         return valuable;
     }
 
+    @Override
+    public boolean isTrivial() {
+        return true; // trivial due to visualized items having no dupe risk
+    }
+
     class Withdrawal extends AbstractCoreMenu {
 
         private IChestMenu parent;
@@ -264,6 +269,11 @@ public class BankerMenu extends AbstractCoreMenu {
         @Override
         public void close(InventoryCloseEvent event) {
             suggestOpen(parent);
+        }
+
+        @Override
+        public boolean isTrivial() {
+            return true;
         }
     }
 }
