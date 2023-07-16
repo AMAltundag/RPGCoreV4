@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.skill.cost;
 
 import me.blutkrone.rpgcore.api.IContext;
+import me.blutkrone.rpgcore.editor.bundle.cost.EditorResourceCost;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.resource.EntityResource;
-import me.blutkrone.rpgcore.hud.editor.bundle.cost.EditorResourceCost;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 

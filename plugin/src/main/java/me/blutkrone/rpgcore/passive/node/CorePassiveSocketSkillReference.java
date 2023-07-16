@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.passive.node;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.passive.EditorPassiveSocketSkillReference;
+import me.blutkrone.rpgcore.editor.bundle.passive.EditorPassiveSocketSkillReference;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 

@@ -1,17 +1,20 @@
 package me.blutkrone.rpgcore.dungeon;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.dungeon.AbstractEditorDungeonStructure;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.root.dungeon.EditorDungeon;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.AbstractEditorDungeonStructure;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
-import me.blutkrone.rpgcore.hud.editor.root.dungeon.EditorDungeon;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
-import org.bukkit.Bukkit;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This a template for a dungeon.
@@ -49,7 +52,7 @@ public class CoreDungeon {
             AbstractDungeonStructure built = dungeon_structure.build();
             AbstractDungeonStructure override = this.structures.put(built.getSyncId(), built);
             if (override != null) {
-                Bukkit.getLogger().warning(String.format("Dungeon '%s' structure '%s' overlaps!", id, built.getSyncId()));
+                RPGCore.inst().getLogger().warning(String.format("Dungeon '%s' structure '%s' overlaps!", id, built.getSyncId()));
             }
         }
     }

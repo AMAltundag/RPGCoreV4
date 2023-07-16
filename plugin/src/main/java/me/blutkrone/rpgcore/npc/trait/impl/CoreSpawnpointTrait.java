@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorSpawnpointTrait;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorSpawnpointTrait;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;

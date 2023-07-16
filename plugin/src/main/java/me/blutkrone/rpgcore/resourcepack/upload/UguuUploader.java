@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.resourcepack.upload;
 
+import me.blutkrone.rpgcore.RPGCore;
 import org.apache.commons.io.IOUtils;
-import org.bukkit.Bukkit;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class UguuUploader {
             Process exec = Runtime.getRuntime().exec("curl -i -F files[]=@" + file.getAbsolutePath() + " https://uguu.se/upload.php");
             String response = IOUtils.toString(exec.getInputStream(), StandardCharsets.UTF_8);
             exec.destroy();
-            Bukkit.getLogger().severe(response);
+            RPGCore.inst().getLogger().severe(response);
             return "error";
         } catch (Exception ex) {
             ex.printStackTrace();

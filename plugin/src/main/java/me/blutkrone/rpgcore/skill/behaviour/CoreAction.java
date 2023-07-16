@@ -2,11 +2,11 @@ package me.blutkrone.rpgcore.skill.behaviour;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.AbstractEditorMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobLogic;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.AbstractEditorMechanic;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorMobLogic;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.mechanic.*;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 

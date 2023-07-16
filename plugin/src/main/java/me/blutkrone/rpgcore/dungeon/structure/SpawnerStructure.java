@@ -4,9 +4,9 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
+import me.blutkrone.rpgcore.editor.bundle.dungeon.EditorDungeonSpawner;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
-import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonSpawner;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.node.impl.CoreNodeSpawner;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 import org.bukkit.Bukkit;
@@ -42,7 +42,7 @@ public class SpawnerStructure extends AbstractDungeonStructure<SpawnerStructure.
         this.cooldown = (int) editor.cooldown;
         this.concurrent = (int) editor.concurrent;
         this.despawn = (int) (editor.despawn * editor.despawn);
-        this.despawn = (int) Math.max(this.despawn, super.getRange()*super.getRange());
+        this.despawn = (int) Math.max(this.despawn, super.getRange() * super.getRange());
     }
 
     public class DungeonSpawn {

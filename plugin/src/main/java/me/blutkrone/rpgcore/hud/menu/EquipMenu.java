@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.hud.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.item.Requirement;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -69,26 +70,29 @@ public class EquipMenu implements Listener {
     /**
      * Reflect the core equipment of the player.
      *
-     * @param player whose items to reflect.
+     * @param player    whose items to reflect.
+     * @param reflected apply items as their reflection
      */
-    public void applyEquipChange(CorePlayer player) {
+    public void applyEquipChange(CorePlayer player, boolean reflected) {
         Player entity = player.getEntity();
         if (entity.getGameMode() == GameMode.CREATIVE) {
             return;
         }
 
         // acquire the item as a vanilla variant
-        for (Slot slot : this.slots) {
-            // retrieve, non-null, item from slot
-            ItemStack equipped = player.getEquipped(slot.id);
-            // prepare the reflected equivalent
-            if (equipped.getType().isAir()) {
-                equipped = this.placeholder;
-            } else {
-                equipped = reflect(equipped);
+        if (reflected) {
+            for (Slot slot : this.slots) {
+                // retrieve, non-null, item from slot
+                ItemStack equipped = player.getEquipped(slot.id);
+                // prepare the reflected equivalent
+                if (equipped.getType().isAir()) {
+                    equipped = this.placeholder;
+                } else {
+                    equipped = reflect(equipped);
+                }
+                // write item to player slots
+                slot.target.setSlotMethod.accept(entity, equipped);
             }
-            // write item to player slots
-            slot.target.setSlotMethod.accept(entity, equipped);
         }
 
         // make the entity recompute their stats
@@ -189,7 +193,7 @@ public class EquipMenu implements Listener {
             // recover reflected items when exiting creative
             GameMode mode = e.getPlayer().getGameMode();
             if (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) {
-                applyEquipChange(core_player);
+                applyEquipChange(core_player, false);
             }
         });
     }
@@ -205,6 +209,11 @@ public class EquipMenu implements Listener {
         // reject interaction with protected HUD items
         ItemStack item = e.getCurrentItem();
         if (placeholder.isSimilar(item) || isReflected(item)) {
+            e.setCancelled(true);
+        }
+        // reject cursor interactions
+        item = e.getCursor();
+        if (item != null && (placeholder.isSimilar(item) || isReflected(item))) {
             e.setCancelled(true);
         }
         // reject number swapping
@@ -305,6 +314,16 @@ public class EquipMenu implements Listener {
             // if we are bound to another player, do not use the item
             if (!item_data.canUseBound(player)) {
                 return false;
+            }
+            // check equipment requirement
+            if (!item_data.getItem().getRequirements().isEmpty()) {
+                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+                for (Requirement requirement : item_data.getItem().getRequirements()) {
+                    if (!requirement.doesArchive(core_player)) {
+                        RPGCore.inst().getLanguageManager().sendMessage(player, "item_prevented_to_equip");
+                        return false;
+                    }
+                }
             }
             // make sure the equipment slot is compatible
             for (String slot : item_data.getItem().getEquipmentSlot()) {

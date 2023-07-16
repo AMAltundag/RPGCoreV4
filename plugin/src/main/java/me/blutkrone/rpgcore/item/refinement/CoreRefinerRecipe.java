@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.item.refinement;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.root.item.EditorRefineRecipe;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorRefineRecipe;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;

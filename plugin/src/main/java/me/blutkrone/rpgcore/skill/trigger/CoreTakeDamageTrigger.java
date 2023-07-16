@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
+import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.EditorTakeDamageTrigger;
+import me.blutkrone.rpgcore.editor.bundle.trigger.EditorTakeDamageTrigger;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
@@ -27,7 +27,7 @@ public class CoreTakeDamageTrigger extends AbstractCoreTrigger {
     public CoreTakeDamageTrigger(EditorTakeDamageTrigger editor) {
         super(editor);
 
-        IDamageManager manager = RPGCore.inst().getDamageManager();
+        DamageManager manager = RPGCore.inst().getDamageManager();
         this.elements = editor.elements.stream().map(manager::getElement).collect(Collectors.toSet());
         this.types = editor.types.stream().map(manager::getType).collect(Collectors.toSet());
         this.damage = editor.damage.build();

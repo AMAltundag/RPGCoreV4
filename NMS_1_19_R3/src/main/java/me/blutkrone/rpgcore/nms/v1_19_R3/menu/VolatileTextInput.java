@@ -30,7 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.function.Consumer;
 
-public class VolatileTextInput  implements ITextInput {
+public class VolatileTextInput implements ITextInput {
 
     private static final Gson gson = new GsonBuilder().
             registerTypeAdapter(BaseComponent.class, new ComponentSerializer()).
@@ -193,7 +193,7 @@ public class VolatileTextInput  implements ITextInput {
             super.checkReachable = false;
             // cap repair cost at zero
             super.maximumRepairCost = 0;
-            Bukkit.getLogger().info("remove cost via injecting cost object");
+            plugin.getLogger().info("remove cost via injecting cost object");
         }
 
         public String getText() {

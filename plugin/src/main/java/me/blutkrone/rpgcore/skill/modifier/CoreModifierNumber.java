@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.skill.modifier;
 
 import me.blutkrone.rpgcore.api.IContext;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierNumber;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 

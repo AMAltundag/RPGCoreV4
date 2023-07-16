@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.api.damage;
 
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * A damage type decides how the damage is to be processed, do

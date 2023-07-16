@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorTrapMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorTrapMechanic;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
 import me.blutkrone.rpgcore.skill.proxy.TrapProxy;

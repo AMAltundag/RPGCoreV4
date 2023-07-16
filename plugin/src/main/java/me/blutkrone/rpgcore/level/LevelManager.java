@@ -3,10 +3,10 @@ package me.blutkrone.rpgcore.level;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.util.*;
@@ -61,7 +61,7 @@ public class LevelManager {
             try {
                 return this.lazy_exp_multiplier.with("difference", diff).evaluate().getNumberValue().doubleValue();
             } catch (Exception e) {
-                Bukkit.getLogger().severe("Failed evaluating " + this.lazy_exp_multiplier.getExpressionString());
+                RPGCore.inst().getLogger().severe("Failed evaluating " + this.lazy_exp_multiplier.getExpressionString());
                 e.printStackTrace();
                 return 1.0d;
             }
@@ -169,7 +169,7 @@ public class LevelManager {
             try {
                 return this.lazy_profession_exp.with("level", level).evaluate().getNumberValue().doubleValue();
             } catch (EvaluationException | ParseException e) {
-                Bukkit.getLogger().severe("Failed evaluating " + this.lazy_profession_exp.getExpressionString());
+                RPGCore.inst().getLogger().severe("Failed evaluating " + this.lazy_profession_exp.getExpressionString());
                 e.printStackTrace();
                 return Double.MAX_VALUE;
             }
@@ -193,7 +193,7 @@ public class LevelManager {
                     try {
                         wanted = segment.exp_formula.with("level", level).evaluate().getNumberValue().doubleValue();
                     } catch (Exception e) {
-                        Bukkit.getLogger().severe("Failed evaluating " + segment.exp_formula.getExpressionString());
+                        RPGCore.inst().getLogger().severe("Failed evaluating " + segment.exp_formula.getExpressionString());
                         e.printStackTrace();
                     }
                     required = Math.max(required, wanted);

@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.quest.task;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.quest.AbstractEditorQuestTask;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestTask;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 
 import java.util.List;

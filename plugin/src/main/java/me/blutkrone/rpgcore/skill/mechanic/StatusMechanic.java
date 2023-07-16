@@ -4,9 +4,9 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.api.entity.IEntityEffect;
 import me.blutkrone.rpgcore.attribute.AttributeModifier;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorStatusMechanic;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorStatusMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndModifier;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
 import java.util.ArrayList;

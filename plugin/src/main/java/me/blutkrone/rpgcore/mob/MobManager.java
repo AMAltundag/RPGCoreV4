@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.mob;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.mob.EditorCreature;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.mob.EditorCreature;
 import org.bukkit.Bukkit;
 
 /**

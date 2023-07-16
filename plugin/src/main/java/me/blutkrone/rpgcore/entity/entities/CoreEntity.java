@@ -28,9 +28,14 @@ import me.blutkrone.rpgcore.skill.mechanic.InstantMechanic;
 import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
 import me.blutkrone.rpgcore.skill.trigger.AbstractCoreTrigger;
 import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -414,18 +419,12 @@ public class CoreEntity implements IContext, IOrigin {
 
     /**
      * Interrupt the current activity, if there is one.
-     *
-     * @param interrupter who interrupted the activity.
-     * @return the interrupted activity, if there is one.
      */
-    public IActivity interruptActivity(CoreEntity interrupter) {
-        // ensure we got an activity to interrupt
-        if (this.activity == null)
-            return null;
-        // interrupt the activity and offer it up
-        IActivity activity = this.activity;
-        activity.interrupt(interrupter);
-        return activity;
+    public void interruptActivity() {
+        if (this.activity != null) {
+            this.activity.interrupt();
+            this.activity = null;
+        }
     }
 
     /**
@@ -731,33 +730,7 @@ public class CoreEntity implements IContext, IOrigin {
      */
     public void die(DamageInteraction interaction) {
         // if we hold the target rage, reset it
-        if (interaction.getAttacker() instanceof CoreMob) {
-            CoreMob attacker = (CoreMob) interaction.getAttacker();
-            IEntityBase attacker_base = attacker.getBase();
-            LivingEntity rage_entity = attacker_base.getRageEntity();
-            if (rage_entity != null && this.getUniqueId().equals(rage_entity.getUniqueId())) {
-                // find someone to shift the rage to
-                List<CoreEntity> candidates = attacker.getNearby(32d);
-                candidates.remove(attacker);
-                candidates.remove(this);
-                candidates.removeIf(e -> e.distance(attacker) > 32d || e.isFriendly(attacker) || !e.hasLineOfSight(attacker));
-                CoreEntity picked = null;
-                double closest = Double.MAX_VALUE;
-                for (CoreEntity candidate : candidates) {
-                    double dist = candidate.distance(attacker);
-                    if (dist < closest || picked == null) {
-                        picked = candidate;
-                        closest = dist;
-                    }
-                }
-                if (picked != null) {
-                    double focus = picked.evaluateAttribute("RAGE_FOCUS");
-                    attacker_base.rageTransfer(picked.getEntity(), focus);
-                } else {
-                    attacker_base.resetRage();
-                }
-            }
-        }
+        interaction.shiftRageBlame();
         // track this as the last damage cause
         this.cause_of_death = interaction;
         // force kill the entity backing us up
@@ -927,6 +900,66 @@ public class CoreEntity implements IContext, IOrigin {
     @Override
     public Location getLocation() {
         return this.getEntity().getLocation();
+    }
+
+    /**
+     * Retrieve location of the head, as defined by who provided
+     * us with the backing mob.
+     *
+     * @return Who provided the head.
+     */
+    public Location getHeadLocation() {
+        return this.getEntityProvider().getHeadLocation(this.getEntity());
+    }
+
+    @Override
+    public List<CoreEntity> rayCastEntities(double distance, double size) {
+        List<CoreEntity> output = new ArrayList<>();
+        Location location = getHeadLocation();
+        org.bukkit.util.Vector direction = location.getDirection();
+        // grabs all entities within casting line
+        List<Entity> entities = new ArrayList<>();
+        getWorld().rayTraceEntities(location, direction, distance, size, entities::add);
+        for (Entity entity : entities) {
+            CoreEntity core_entity = RPGCore.inst().getEntityManager().getEntity(entity.getUniqueId());
+            if (core_entity != null) {
+                output.add(core_entity);
+            }
+        }
+        // offer up our targets
+        return output;
+    }
+
+    @Override
+    public Optional<Block> rayCastBlock(double distance) {
+        Location location = getHeadLocation();
+        org.bukkit.util.Vector direction = location.getDirection();
+        // throw a cast to find a block
+        RayTraceResult result = getWorld().rayTraceBlocks(location, direction, distance, FluidCollisionMode.NEVER, true);
+        // offer block or nothing
+        Block block = null;
+        if (result != null) {
+            block = result.getHitBlock();
+        }
+        // safely wrap the object
+        return Optional.ofNullable(block);
+    }
+
+    @Override
+    public boolean hasLineOfSight(IOrigin other) {
+        Location start = getHeadLocation().clone();
+        Location finish = other instanceof CoreEntity ? ((CoreEntity) other).getHeadLocation().clone() : other.getLocation().clone();
+        Vector direction = finish.clone().subtract(start.clone()).toVector().normalize();
+
+        // throw a cast to find a block
+        RayTraceResult result = getWorld().rayTraceBlocks(start, direction, this.distance(other) + 1, FluidCollisionMode.NEVER, true);
+        // check if we've got a block
+        Block block = null;
+        if (result != null) {
+            block = result.getHitBlock();
+        }
+        // if no block exists or block is air, we got a line-of-sight
+        return block == null || block.getType().isAir();
     }
 
     @Override

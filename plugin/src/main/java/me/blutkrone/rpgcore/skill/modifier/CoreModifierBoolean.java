@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.skill.modifier;
 
 import me.blutkrone.rpgcore.api.IContext;
-import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierBoolean;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierBoolean;
 
 import java.util.HashSet;
 import java.util.Set;

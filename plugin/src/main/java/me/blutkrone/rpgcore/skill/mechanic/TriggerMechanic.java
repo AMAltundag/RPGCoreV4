@@ -3,7 +3,7 @@ package me.blutkrone.rpgcore.skill.mechanic;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorTriggerMechanic;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorTriggerMechanic;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;

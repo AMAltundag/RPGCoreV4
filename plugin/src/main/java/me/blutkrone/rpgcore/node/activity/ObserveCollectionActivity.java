@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.node.activity;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.activity.IActivity;
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.node.impl.CoreNodeCollectible;
 
 /**
@@ -50,7 +49,7 @@ public class ObserveCollectionActivity implements IActivity {
     }
 
     @Override
-    public void interrupt(CoreEntity entity) {
+    public void interrupt() {
 
     }
 }

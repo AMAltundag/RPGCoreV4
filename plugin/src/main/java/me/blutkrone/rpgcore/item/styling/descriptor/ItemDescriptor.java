@@ -2,8 +2,10 @@ package me.blutkrone.rpgcore.item.styling.descriptor;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
+import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
+import me.blutkrone.rpgcore.item.Requirement;
 import me.blutkrone.rpgcore.item.data.ItemDataDurability;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
@@ -326,6 +328,85 @@ public class ItemDescriptor implements IItemDescriber {
         return compiled;
     }
 
+    private List<BaseComponent[]> getRequirement(StylingRule styling, List<Requirement> requirements, IDescriptionRequester entity) {
+        // output collection
+        List<BaseComponent[]> compiled = new ArrayList<>();
+        MagicStringBuilder msb = new MagicStringBuilder();
+        // managers that we may need
+        LanguageManager language_manager = RPGCore.inst().getLanguageManager();
+        ItemManager item_manager = RPGCore.inst().getItemManager();
+        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+
+        // [12] requirement appears after description.
+        if (!requirements.isEmpty()) {
+            // separator above category name
+            msb.shiftToExact(-20);
+            msb.append(styling.texture("body_separator", 0), ChatColor.WHITE);
+            msb.shiftToExact(0);
+            compiled.add(msb.compileAndClean());
+            // backdrop + name of category
+            msb.shiftToExact(-20);
+            msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
+            String translation = language_manager.getTranslation("lore_category_requirement");
+            msb.shiftCentered((this.width_base / 2) - 20, Utility.measure(translation));
+            msb.append(styling.color("category", translation), "default_fixed");
+            msb.shiftToExact(0);
+            compiled.add(msb.compileAndClean());
+            // separator below category name
+            msb.shiftToExact(-20);
+            msb.append(styling.texture("body_separator", 0), ChatColor.WHITE);
+            msb.shiftToExact(0);
+            compiled.add(msb.compileAndClean());
+
+            for (Requirement requirement : requirements) {
+                // check if requirement was met
+                boolean archived = false;
+                if (entity instanceof CoreEntity) {
+                    archived = requirement.doesArchive(((CoreEntity) entity));
+                }
+                // render the text we picked
+                if (archived) {
+                    for (String text : requirement.getDisplayText()) {
+                        // generate the backdrop texture
+                        String[] split = text.split("\\#");
+                        msb.shiftToExact(-20);
+                        msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
+                        // write the primary info of the modifier
+                        msb.shiftToExact(-20 + this.padding);
+                        msb.append(styling.color("alright-left", split[0]), "default_fixed");
+                        // write the secondary info of the modifier
+                        if (split.length == 2) {
+                            msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measure(split[1]));
+                            msb.append(styling.color("alright-right", split[1]), "default_fixed");
+                        }
+                        // append the modifier to our listing
+                        msb.shiftToExact(0);
+                        compiled.add(msb.compileAndClean());
+                    }
+                } else {
+                    for (String text : requirement.getDisplayText()) {
+                        // generate the backdrop texture
+                        String[] split = text.split("\\#");
+                        msb.shiftToExact(-20);
+                        msb.append(styling.texture("body_top", 0), ChatColor.WHITE);
+                        // write the primary info of the modifier
+                        msb.shiftToExact(-20 + this.padding);
+                        msb.append(styling.color("warning-left", split[0]), "default_fixed");
+                        // write the secondary info of the modifier
+                        if (split.length == 2) {
+                            msb.shiftToExact(-20 + this.width_base - this.padding - Utility.measure(split[1]));
+                            msb.append(styling.color("warning-right", split[1]), "default_fixed");
+                        }
+                        // append the modifier to our listing
+                        msb.shiftToExact(0);
+                        compiled.add(msb.compileAndClean());
+                    }
+                }
+            }
+        }
+
+        return compiled;
+    }
     private List<BaseComponent[]> getDescription(StylingRule styling, List<String> lore) {
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
@@ -513,7 +594,7 @@ public class ItemDescriptor implements IItemDescriber {
      * @param item what item are we describing
      * @return true if we were described
      */
-    private boolean describeIdentified(ItemStack item) {
+    private boolean describeIdentified(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
         ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
@@ -542,6 +623,7 @@ public class ItemDescriptor implements IItemDescriber {
         int unlocked_socket = jewel_data.getAvailableSockets();
         int maximum_socket = jewel_data.getMaximumSockets();
         List<CoreModifier> modifiers = modifier_data.getModifiers();
+        List<Requirement> requirements = item_base.getRequirements();
 
         modifiers.sort(Comparator.comparing(CoreModifier::getId));
         modifiers.sort(Comparator.comparing(CoreModifier::isImplicit));
@@ -556,6 +638,7 @@ public class ItemDescriptor implements IItemDescriber {
             compiled.addAll(this.getAttributes(styling, modifiers));
             compiled.addAll(this.getAbilities(styling, modifiers));
             compiled.addAll(this.getDescription(styling, lore));
+            compiled.addAll(this.getRequirement(styling, requirements, player));
             compiled.addAll(this.getJewels(styling, unlocked_socket, maximum_socket, socketed));
             compiled.addAll(this.getFooter(styling, durability));
         } else {
@@ -597,7 +680,7 @@ public class ItemDescriptor implements IItemDescriber {
      * @param item what item are we describing
      * @return true if we were described
      */
-    private boolean describeUnidentified(ItemStack item) {
+    private boolean describeUnidentified(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
         ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
@@ -626,6 +709,7 @@ public class ItemDescriptor implements IItemDescriber {
         String sub_name = lore.isEmpty() ? "sub-name is missing" : lore.remove(0);
         List<String> info = new ArrayList<>(Collections.singletonList(language_manager.getTranslation("item_unidentified")));
         int item_level = item_base.getItemLevel();
+        List<Requirement> requirements = item_base.getRequirements();
 
         // generate the appropriate lore for the item
         List<BaseComponent[]> compiled = new ArrayList<>();
@@ -667,11 +751,11 @@ public class ItemDescriptor implements IItemDescriber {
     @Override
     public void describe(ItemStack item, IDescriptionRequester player) {
         // try to describe as an identified item
-        if (describeIdentified(item)) {
+        if (describeIdentified(item, player)) {
             return;
         }
         // try to describe as an unidentified item
-        if (describeUnidentified(item)) {
+        if (describeUnidentified(item, player)) {
             return;
         }
     }

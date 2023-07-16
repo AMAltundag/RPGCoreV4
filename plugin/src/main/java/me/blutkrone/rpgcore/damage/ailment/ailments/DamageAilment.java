@@ -1,13 +1,11 @@
 package me.blutkrone.rpgcore.damage.ailment.ailments;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
+import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
-import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.AilmentTracker;
-import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -17,21 +15,23 @@ import java.util.*;
 public class DamageAilment extends AbstractAilment {
 
     // maximum concurrent ticking damage instances
-    private List<String> maximum_stack;
+    public List<String> maximum_stack;
     // duration which the ailment will last
-    private List<String> duration_attribute;
+    public List<String> duration_attribute;
     // chance to inflict the ailment
-    private List<String> chance_attribute;
+    public List<String> chance_attribute;
     // % of damage inherited by element
-    private Map<String, List<String>> contribution = new HashMap<>();
+    public Map<String, String> contribution = new HashMap<>();
     // accelerates how quick the ailment damages
-    private List<String> faster_attribute;
+    public List<String> faster_attribute;
     // % chance to fail gaining the ailment
-    private List<String> avoid_attribute;
+    public List<String> avoid_attribute;
     // base duration of inflicted ailment
-    private int base_duration;
+    public int base_duration;
     // tags held while any ailment is active
-    private List<String> tag_list;
+    public List<String> tag_list;
+    // what element to inflict damage as
+    public String element;
 
     /**
      * An ailment is a secondary effect caused by non-DOT damage.
@@ -46,11 +46,12 @@ public class DamageAilment extends AbstractAilment {
         duration_attribute = config.getStringList("percent-duration");
         chance_attribute = config.getStringList("chance");
         config.forEachUnder("contribution", (path, root) -> {
-            contribution.put(path, root.getStringList(path));
+            contribution.put(path, root.getString(path));
         });
         faster_attribute = config.getStringList("faster");
         avoid_attribute = config.getStringList("avoid-chance");
         tag_list = config.getStringList("tags-while-active");
+        element = config.getString("element");
     }
 
     @Override
@@ -74,7 +75,7 @@ public class DamageAilment extends AbstractAilment {
         }
 
         @Override
-        public boolean acquireAilment(DamageInteraction interaction, AilmentSnapshot damage) {
+        public boolean acquireAilment(DamageInteraction interaction) {
             // non-crit damage may fail to inflict the ailment
             if (!interaction.checkForTag("CRITICAL_HIT", interaction.getAttacker())) {
                 double chance = 0d;
@@ -111,22 +112,16 @@ public class DamageAilment extends AbstractAilment {
                 active.remove(active.size() - 1);
 
             // accumulate the damage to inherit
-            Map<DamageElement, Double> flat_damage = new HashMap<>();
-            damage.damage_flat.forEach((element, flat) -> {
-                double inheritance = 0d;
-                for (String attribute : contribution.getOrDefault(element.getId(), new ArrayList<>()))
-                    inheritance += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-                if (inheritance <= 0d)
-                    return;
-                flat_damage.put(element, inheritance * flat);
+            double[] accumulate = new double[1];
+            contribution.forEach((element, attributes) -> {
+                String attribute = contribution.get(element);
+                if (attribute != null) {
+                    double inheritance = interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                    if (inheritance > 0d) {
+                        accumulate[0] += interaction.getDamage(RPGCore.inst().getDamageManager().getElement(element));
+                    }
+                }
             });
-
-            // ensure we got any damage to inflict at all
-            double summed = 0d;
-            for (Double inherited : flat_damage.values())
-                summed += inherited;
-            if (summed <= 0d)
-                return false;
 
             // accelerates rate at which we deal damage
             double faster = 1d;
@@ -139,15 +134,15 @@ public class DamageAilment extends AbstractAilment {
 
             // track a new damage instance
             active.add(new ActiveAilment(interaction.getAttacker(), (int) (base_duration * duration),
-                    Math.max(0.1d, faster), flat_damage, inherited_multi));
+                    Math.max(0.1d, faster), accumulate[0], inherited_multi));
             // re-sort again by strongest ailments
-            active.sort(Comparator.comparingDouble(ailment -> ailment.cumulative));
+            active.sort(Comparator.comparingDouble(ailment -> ailment.damage));
             return true;
         }
 
         @Override
         public boolean tick(int interval) {
-            IDamageManager damage_manager = RPGCore.inst().getDamageManager();
+            DamageManager damage_manager = RPGCore.inst().getDamageManager();
             IDamageType damage_type_DOT = damage_manager.getType("DOT");
 
             // purge all tag instances which we have
@@ -174,8 +169,8 @@ public class DamageAilment extends AbstractAilment {
                 DamageInteraction interaction = damage_type_DOT.create(this.getHolder(), ailment.attacker);
                 // adjust damage inheritance via time ratio
                 double ratio = (interval * ailment.faster) / 20d;
-                // inherit relevant flat damage
-                ailment.flat_damage.forEach((element, damage) -> interaction.setDamage(element, damage * ratio));
+                // append the inherited damage
+                interaction.setDamage(RPGCore.inst().getDamageManager().getElement(element), ailment.damage * ratio);
                 // track inherited multiplier
                 interaction.getAttribute("DOT_MULTIPLIER").create(ailment.multi_inherited);
                 // put blame on a secondary ailment
@@ -199,23 +194,21 @@ public class DamageAilment extends AbstractAilment {
         // ticks the instance will last
         int duration;
         // damage inheritance
-        Map<DamageElement, Double> flat_damage;
+        double damage;
         // generic % damage inherited
         double multi_inherited;
-        // snapshot of cumulative damage
-        double cumulative;
         // accelerated rate of dealing damage
         double faster;
+        // cumulative damage from ailment
+        double cumulative;
 
-        private ActiveAilment(CoreEntity attacker, int duration, double faster, Map<DamageElement, Double> flat_damage, double multi_inherited) {
+        private ActiveAilment(CoreEntity attacker, int duration, double faster, double damage, double multi_inherited) {
             this.attacker = attacker;
             this.duration = duration;
-            this.flat_damage = flat_damage;
+            this.damage = damage;
             this.faster = faster;
             this.multi_inherited = multi_inherited;
-            flat_damage.forEach((element, flat) -> {
-                this.cumulative += flat;
-            });
+            this.cumulative = this.damage * (this.duration * 0.05d);
         }
     }
 }

@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorItemPrice;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorVendorTrait;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorItemPrice;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorVendorTrait;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import org.bukkit.entity.Player;

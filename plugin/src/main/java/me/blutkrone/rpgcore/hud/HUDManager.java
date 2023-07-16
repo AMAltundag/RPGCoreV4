@@ -3,8 +3,8 @@ package me.blutkrone.rpgcore.hud;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.hud.ISidebarProvider;
 import me.blutkrone.rpgcore.api.hud.IUXComponent;
+import me.blutkrone.rpgcore.editor.EditorMenu;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.EditorMenu;
 import me.blutkrone.rpgcore.hud.menu.*;
 import me.blutkrone.rpgcore.hud.ux.*;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
@@ -55,6 +55,7 @@ public class HUDManager implements Listener {
     private QuestMenu quest_menu;
     private PlayerMenu player_menu;
     private SocialMenu social_menu;
+    private StatusMenu status_menu;
 
     public HUDManager() {
         // load the appropriate UX components
@@ -81,6 +82,7 @@ public class HUDManager implements Listener {
             this.quest_menu = new QuestMenu();
             this.player_menu = new PlayerMenu();
             this.social_menu = new SocialMenu();
+            this.status_menu = new StatusMenu();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -136,6 +138,14 @@ public class HUDManager implements Listener {
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
+    public void reload() {
+        try {
+            this.getStatusMenu().reload();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public PlayerMenu getPlayerMenu() {
         return player_menu;
     }
@@ -186,6 +196,10 @@ public class HUDManager implements Listener {
 
     public SocialMenu getSocialMenu() {
         return social_menu;
+    }
+
+    public StatusMenu getStatusMenu() {
+        return status_menu;
     }
 
     /**

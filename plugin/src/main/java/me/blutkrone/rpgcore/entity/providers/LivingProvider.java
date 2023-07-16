@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.entity.providers;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
-import me.blutkrone.rpgcore.hud.editor.bundle.entity.EditorVanillaCreatureProvider;
+import me.blutkrone.rpgcore.editor.bundle.entity.EditorVanillaCreatureProvider;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -11,6 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A provider capable of providing us with a simple
@@ -88,5 +91,15 @@ public class LivingProvider implements EntityProvider {
     @Override
     public BoundingBox getBounds(LivingEntity entity) {
         return entity.getBoundingBox().clone();
+    }
+
+    @Override
+    public Location getHeadLocation(LivingEntity entity) {
+        return entity.getEyeLocation();
+    }
+
+    @Override
+    public List<Location> getSpecialLocations(LivingEntity entity, String location) {
+        return new ArrayList<>();
     }
 }

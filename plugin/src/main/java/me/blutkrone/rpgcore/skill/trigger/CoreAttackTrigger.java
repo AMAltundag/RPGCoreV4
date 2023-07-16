@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.EditorAttackTrigger;
+import me.blutkrone.rpgcore.editor.bundle.trigger.EditorAttackTrigger;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import org.bukkit.inventory.ItemStack;

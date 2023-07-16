@@ -1,13 +1,12 @@
 package me.blutkrone.rpgcore.skill.info;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorSkillInfo;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorSkillInfo;
 import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;

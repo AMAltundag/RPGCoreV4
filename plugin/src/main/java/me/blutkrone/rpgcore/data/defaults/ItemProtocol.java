@@ -47,6 +47,7 @@ public class ItemProtocol implements DataProtocol {
                 entity.getInventory().setContents(new ItemStack[0]);
                 e.printStackTrace();
             }
+
             // retrieve the core equipment
             int length = bundle.getNumber(1).intValue();
             int header = 2;
@@ -68,6 +69,6 @@ public class ItemProtocol implements DataProtocol {
         }
 
         // force an empty reflect call for basic setup
-        RPGCore.inst().getHUDManager().getEquipMenu().applyEquipChange(player);
+        RPGCore.inst().getHUDManager().getEquipMenu().applyEquipChange(player, true);
     }
 }

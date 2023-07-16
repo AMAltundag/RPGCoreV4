@@ -5,12 +5,12 @@ import me.blutkrone.rpgcore.dungeon.CoreDungeon;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
 import me.blutkrone.rpgcore.dungeon.structure.BlockStructure;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.AbstractEditorDungeonStructure;
-import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonBlock;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.dungeon.EditorDungeon;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.dungeon.AbstractEditorDungeonStructure;
+import me.blutkrone.rpgcore.editor.bundle.dungeon.EditorDungeonBlock;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.root.dungeon.EditorDungeon;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -24,7 +24,7 @@ import java.util.*;
 
 public class EditorDungeonInstance implements IDungeonInstance {
 
-    private static BlockFace[] DIRECTION = new BlockFace[] { BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.UP, BlockFace.DOWN};
+    private static BlockFace[] DIRECTION = new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.UP, BlockFace.DOWN};
 
     private IndexAttachment<?, CoreDungeon> template;
     private String world;

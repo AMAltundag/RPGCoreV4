@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.EditorChannelTrigger;
+import me.blutkrone.rpgcore.editor.bundle.trigger.EditorChannelTrigger;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.activities.ChannelSkillActivity;
 

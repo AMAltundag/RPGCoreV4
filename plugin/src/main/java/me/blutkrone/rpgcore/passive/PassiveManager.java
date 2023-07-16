@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.passive;
 
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveNode;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveNode;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 
 public class PassiveManager {
 

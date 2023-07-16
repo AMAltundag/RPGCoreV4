@@ -13,7 +13,7 @@ public class TemporaryAttributeCommand extends AbstractCommand {
 
     @Override
     public boolean canUseCommand(CommandSender sender) {
-        return sender.isOp() && sender instanceof Player;
+        return sender.hasPermission("rpg.admin") && sender instanceof Player;
     }
 
     @Override

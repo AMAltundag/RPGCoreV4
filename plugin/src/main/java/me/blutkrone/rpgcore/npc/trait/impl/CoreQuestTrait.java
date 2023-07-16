@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorQuestTrait;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorQuestTrait;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.quest.CoreQuest;

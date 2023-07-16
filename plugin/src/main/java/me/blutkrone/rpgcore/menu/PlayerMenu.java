@@ -93,6 +93,8 @@ public class PlayerMenu extends AbstractCoreMenu {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), string);
                 }
             }
+        } else if ("status".equalsIgnoreCase(action)) {
+            RPGCore.inst().getHUDManager().getStatusMenu().open(player);
         } else if ("escape".equalsIgnoreCase(action)) {
             // recall to your last spawnpoint
             CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
@@ -102,7 +104,7 @@ public class PlayerMenu extends AbstractCoreMenu {
             } else {
                 language().sendMessage(core_player.getEntity(), "escape_cooldown", language().formatShortTicks(this.escape_cooldown));
             }
-        }  else if ("job".equalsIgnoreCase(action)) {
+        } else if ("job".equalsIgnoreCase(action)) {
             // passive trees provided by your job
             CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
             if (core_player.getJob() != null) {
@@ -113,7 +115,7 @@ public class PlayerMenu extends AbstractCoreMenu {
                     new JobTreeMenu().finish(player);
                 }
             } else {
-                Bukkit.getLogger().severe("Unable to resolve Job: " + core_player.getRawJob());
+                RPGCore.inst().getLogger().severe("Unable to resolve Job: " + core_player.getRawJob());
             }
         } else if ("profession".equalsIgnoreCase(action)) {
             // passive trees provided by your job

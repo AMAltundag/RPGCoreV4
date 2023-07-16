@@ -1,15 +1,15 @@
 package me.blutkrone.rpgcore.skill;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.binding.AbstractEditorSkillBinding;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorBehaviour;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorSkillInfo;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.item.EditorItem;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
+import me.blutkrone.rpgcore.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.binding.AbstractEditorSkillBinding;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorBehaviour;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorSkillInfo;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
-import me.blutkrone.rpgcore.hud.editor.root.skill.EditorSkill;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.type.ItemType;

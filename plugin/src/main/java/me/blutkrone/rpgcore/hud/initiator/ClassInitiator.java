@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.hud.initiator;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.menu.JobInitiationMenu;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;

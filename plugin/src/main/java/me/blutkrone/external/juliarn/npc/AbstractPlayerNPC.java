@@ -4,8 +4,8 @@ import me.blutkrone.external.juliarn.npc.event.PlayerNPCHideEvent;
 import me.blutkrone.external.juliarn.npc.event.PlayerNPCShowEvent;
 import me.blutkrone.external.juliarn.npc.modifier.*;
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
+import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileGameProfile;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileInfoAction;
 import org.bukkit.Bukkit;
@@ -30,7 +30,7 @@ public abstract class AbstractPlayerNPC {
     // spawn location of the npc
     private Location location;
     // hologram for custom names
-    private IHologram hologram;
+    private ITextDisplay hologram;
     // game profile we want to utilize
     private VolatileGameProfile profile;
 
@@ -41,11 +41,11 @@ public abstract class AbstractPlayerNPC {
      * @param location The location of the npc.
      */
     public AbstractPlayerNPC(NPCPool pool, Location location, VolatileGameProfile profile) {
-        Bukkit.getLogger().info("not implemented (merge NPCs into native pipeline)");
+        RPGCore.inst().getLogger().info("not implemented (merge NPCs into native pipeline)");
         this.pool = pool;
         this.location = location;
         this.profile = profile;
-        this.hologram = RPGCore.inst().getVolatileManager().getPackets().hologram();
+        this.hologram = RPGCore.inst().getVolatileManager().getPackets().text();
         this.packet = RPGCore.inst().getVolatileManager().getPackets().npc(profile.getId());
     }
 
@@ -144,7 +144,7 @@ public abstract class AbstractPlayerNPC {
      *
      * @return NPC hologram.
      */
-    public IHologram hologram() {
+    public ITextDisplay hologram() {
         return hologram;
     }
 

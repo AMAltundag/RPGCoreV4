@@ -4,8 +4,8 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.menu.AbstractPickListMenu;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IHighlight;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
@@ -83,7 +83,7 @@ public class WorldIntegrationManager implements Listener {
             .build();
 
     public WorldIntegrationManager() {
-        Bukkit.getLogger().info("not implemented (node creation needs proper structure)");
+        RPGCore.inst().getLogger().info("not implemented (node creation needs proper structure)");
 
         // handle highlighting as deemed necessary
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {

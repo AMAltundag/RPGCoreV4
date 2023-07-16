@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.skill.selector;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.selector.EditorLevelSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.EditorLevelSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ public class LevelSelector extends AbstractCoreSelector {
                 }
             }
         }
+
         return output;
     }
 }

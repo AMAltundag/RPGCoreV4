@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.effect.impl;
 
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.effect.EditorEffectRepeat;
+import me.blutkrone.rpgcore.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.effect.ActiveEffect;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.effect.EffectObservation;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRepeat;
-import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Location;
 

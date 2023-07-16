@@ -2,20 +2,22 @@ package me.blutkrone.rpgcore.item;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.item.IItemDescriber;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.root.item.EditorCraftingRecipe;
+import me.blutkrone.rpgcore.editor.root.item.EditorItem;
+import me.blutkrone.rpgcore.editor.root.item.EditorModifier;
+import me.blutkrone.rpgcore.editor.root.item.EditorRefineRecipe;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorRefineRecipe;
 import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
 import me.blutkrone.rpgcore.item.data.*;
 import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
-import me.blutkrone.rpgcore.item.styling.*;
+import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
+import me.blutkrone.rpgcore.item.styling.StylingRule;
 import me.blutkrone.rpgcore.item.styling.descriptor.ItemDescriptor;
 import me.blutkrone.rpgcore.item.styling.descriptor.SkillDescriptor;
+import me.blutkrone.rpgcore.item.styling.descriptor.StatusDescriptor;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
@@ -90,6 +92,7 @@ public class ItemManager implements Listener {
 
         this.describers.put("default", new ItemDescriptor());
         this.describers.put("skill", new SkillDescriptor());
+        this.describers.put("status", new StatusDescriptor());
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
@@ -293,7 +296,7 @@ public class ItemManager implements Listener {
             ItemMeta meta = item.getItemMeta();
             meta.setLore(Collections.singletonList("Something went wrong!"));
             item.setItemMeta(meta);
-            Bukkit.getLogger().severe("Something went wrong while describing an item ...");
+            RPGCore.inst().getLogger().severe("Something went wrong while describing an item ...");
             e.printStackTrace();
         }
     }

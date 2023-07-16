@@ -18,7 +18,7 @@ public interface IMenuWrapper {
 
     /**
      * Retrieve the backend instance, this should be provided with the
-     * finishing method method.
+     * finishing method.
      *
      * @return the backend instance.
      */

@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.quest.dialogue;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueChoice;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorDialogueBundle;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorDialogueChoice;
 
 import java.util.ArrayList;
 import java.util.List;

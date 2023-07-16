@@ -1,19 +1,19 @@
 package me.blutkrone.rpgcore.skill.behaviour;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.cost.AbstractEditorCost;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorBehaviour;
+import me.blutkrone.rpgcore.editor.bundle.trigger.AbstractEditorTrigger;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.cost.AbstractEditorCost;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorBehaviour;
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.AbstractEditorTrigger;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.cost.AbstractCoreCost;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
 import me.blutkrone.rpgcore.skill.trigger.AbstractCoreTrigger;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +56,7 @@ public class CoreBehaviour {
             this.actions.add(((EditorAction) bundle).build());
         }
 
-        Bukkit.getLogger().info("not implemented (usage of behaviours & triggers)");
+        RPGCore.inst().getLogger().info("not implemented (usage of behaviours & triggers)");
     }
 
     /**

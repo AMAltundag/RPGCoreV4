@@ -5,12 +5,13 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -26,7 +27,7 @@ public class BoltProxy extends AbstractSkillProxy {
 
     // contextual information
     private IOrigin anchor;
-    private IEntityVisual item_entity;
+    private ItemDisplay item_entity;
     // proxy information
     private boolean terminate = false;
     private int cycle;
@@ -37,6 +38,7 @@ public class BoltProxy extends AbstractSkillProxy {
     private int pierce;
     private double speed;
     private double radius;
+    private int duration;
 
     /**
      * Piercing projectile moving in a straight line.
@@ -50,7 +52,7 @@ public class BoltProxy extends AbstractSkillProxy {
      * @param speed   speed measured in blocks per second
      * @param radius  size of the projectile
      */
-    public BoltProxy(IContext context, IOrigin origin, ItemStack item, MultiMechanic impact, List<String> effects, int pierce, double speed, double radius) {
+    public BoltProxy(IContext context, IOrigin origin, ItemStack item, MultiMechanic impact, List<String> effects, int duration, int pierce, double speed, double radius) {
         super(context);
 
         this.blacklist = new HashSet<>();
@@ -60,17 +62,20 @@ public class BoltProxy extends AbstractSkillProxy {
         this.pierce = pierce;
         this.speed = speed / 20d * BoltProxy.BOLT_PROXY_INTERVAL;
         this.radius = radius;
+        this.duration = duration;
 
         if (item != null) {
-            this.item_entity = RPGCore.inst().getVolatileManager().createVisualEntity(origin.getLocation(), true);
-            this.item_entity.setItem(EquipmentSlot.HAND, item);
+            this.item_entity = (ItemDisplay) origin.getWorld().spawnEntity(origin.getLocation(), EntityType.ITEM_DISPLAY);
+            this.item_entity.setItemStack(item);
+            this.item_entity.setBillboard(Display.Billboard.FIXED);
+            this.item_entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
         }
     }
 
     @Override
     public boolean update() {
         // early termination
-        if (this.terminate || this.cycle > 200) {
+        if (this.terminate || this.cycle > this.duration) {
             if (this.item_entity != null) {
                 this.item_entity.remove();
             }
@@ -111,7 +116,7 @@ public class BoltProxy extends AbstractSkillProxy {
         // re-locate projectile entity
         if (this.item_entity != null) {
             Location updated = anchor.getLocation();
-            this.item_entity.move(updated.getX(), updated.getY(), updated.getZ(), updated.getPitch(), updated.getYaw());
+            this.item_entity.teleport(updated);
         }
         // retain projectile
         return false;

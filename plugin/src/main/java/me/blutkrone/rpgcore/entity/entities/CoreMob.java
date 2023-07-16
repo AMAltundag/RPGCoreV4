@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.api.entity.EntityProvider;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
+import me.blutkrone.rpgcore.entity.tasks.SnapshotTask;
 import me.blutkrone.rpgcore.mob.CoreCreature;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -37,6 +38,8 @@ public class CoreMob extends CoreEntity {
     public CoreMob(LivingEntity entity, EntityProvider provider, CoreCreature template) {
         super(entity, provider);
         this.template = template;
+        // snapshot for attributes task
+        this.bukkit_tasks.add(new SnapshotTask(this).runTaskTimer(RPGCore.inst(), 1, 100));
     }
 
     /**
@@ -123,7 +126,7 @@ public class CoreMob extends CoreEntity {
             IDungeonInstance instance = RPGCore.inst().getDungeonManager().getInstance(getWorld());
             if (instance instanceof ActiveDungeonInstance) {
                 ((ActiveDungeonInstance) instance).getMobKills().add(getUniqueId());
-                ((ActiveDungeonInstance) instance).getScore().merge(template.getId().toLowerCase() + "_kill", 1d, (a,b)->a+b);
+                ((ActiveDungeonInstance) instance).getScore().merge(template.getId().toLowerCase() + "_kill", 1d, (a, b) -> a + b);
             }
         }
 

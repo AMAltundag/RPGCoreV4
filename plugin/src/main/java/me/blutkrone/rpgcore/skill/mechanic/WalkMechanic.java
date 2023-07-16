@@ -1,14 +1,14 @@
 package me.blutkrone.rpgcore.skill.mechanic;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorWalkMechanic;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorWalkMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
-import org.bukkit.Bukkit;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +23,7 @@ public class WalkMechanic extends AbstractCoreMechanic {
         this.selector = AbstractEditorSelector.unwrap(editor.selectors);
         this.speed = editor.speed.build();
 
-        Bukkit.getLogger().info("not implemented (do not re-path unnecessarily)");
+        RPGCore.inst().getLogger().info("not implemented (do not re-path unnecessarily)");
     }
 
     @Override

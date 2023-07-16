@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.job;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.job.EditorJob;
+import me.blutkrone.rpgcore.editor.root.job.EditorProfession;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.job.EditorJob;
-import me.blutkrone.rpgcore.hud.editor.root.job.EditorProfession;
 import me.blutkrone.rpgcore.menu.JobAdvancementMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

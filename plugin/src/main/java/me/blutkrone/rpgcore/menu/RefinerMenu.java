@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
@@ -11,7 +11,6 @@ import me.blutkrone.rpgcore.npc.trait.impl.CoreRefinerTrait;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import me.blutkrone.rpgcore.util.io.BukkitSerialization;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -299,7 +298,7 @@ public class RefinerMenu extends AbstractCoreMenu {
             try {
                 input_items.addAll(Arrays.asList(BukkitSerialization.fromBase64(inputs)));
             } catch (IOException e1) {
-                Bukkit.getLogger().severe("§cCorrupted B64 data: " + inputs + " could not be loaded, deleting!");
+                RPGCore.inst().getLogger().severe("§cCorrupted B64 data: " + inputs + " could not be loaded, deleting!");
                 e1.printStackTrace();
             }
         }
@@ -311,7 +310,7 @@ public class RefinerMenu extends AbstractCoreMenu {
             try {
                 output_items.addAll(Arrays.asList(BukkitSerialization.fromBase64(outputs)));
             } catch (IOException e1) {
-                Bukkit.getLogger().severe("§cCorrupted B64 data: " + outputs + " could not be loaded, deleting!");
+                RPGCore.inst().getLogger().severe("§cCorrupted B64 data: " + outputs + " could not be loaded, deleting!");
                 e1.printStackTrace();
             }
         }

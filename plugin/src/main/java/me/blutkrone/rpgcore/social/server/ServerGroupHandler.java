@@ -40,7 +40,7 @@ public class ServerGroupHandler implements IGroupHandler, Listener {
         this.social_manager = social_manager;
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
-        Bukkit.getLogger().severe("copy the implementation approach from bungee");
+        RPGCore.inst().getLogger().severe("copy the implementation approach from bungee");
     }
 
     /*

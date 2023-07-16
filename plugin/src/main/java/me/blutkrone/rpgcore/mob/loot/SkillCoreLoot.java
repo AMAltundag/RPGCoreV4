@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.mob.loot;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.loot.EditorLootSkill;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootSkill;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 

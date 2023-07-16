@@ -146,7 +146,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
                 }
             } else {
                 if (prepared.skill_highlight[i - 1]) {
-                    // Bukkit.getLogger().info("not implemented (highlight via animated frame)");
+                    // RPGCore.inst().getLogger().info("not implemented (highlight via animated frame)");
                     workspace.actionbar().append(rpm.texture("skillbar_" + icon));
                 } else {
                     workspace.actionbar().append(rpm.texture("skillbar_bleached_" + icon));

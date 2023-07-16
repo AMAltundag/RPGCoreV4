@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorStorageTrait;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorStorageTrait;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.menu.StorageMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;

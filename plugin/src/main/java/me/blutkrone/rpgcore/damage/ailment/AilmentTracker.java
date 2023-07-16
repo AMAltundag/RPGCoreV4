@@ -3,14 +3,14 @@ package me.blutkrone.rpgcore.damage.ailment;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.util.world.ParticleUtility;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public abstract class AilmentTracker {
     // who is afflicted with the ailment
     private CoreEntity holder;
     // visual entity serving as an indicator
-    private IEntityVisual visual;
+    private ItemDisplay visual;
 
     /**
      * A tracker who is tracking a specific ailment for one
@@ -67,10 +67,9 @@ public abstract class AilmentTracker {
      * is to be specified by the implementing ailment.
      *
      * @param interaction the damage which was dealt
-     * @param damage      the contribution to enter with
      * @return true, should we've acquired the ailment.
      */
-    public abstract boolean acquireAilment(DamageInteraction interaction, AilmentSnapshot damage);
+    public abstract boolean acquireAilment(DamageInteraction interaction);
 
     /**
      * Tick the backing implementation of the tracker.
@@ -98,15 +97,22 @@ public abstract class AilmentTracker {
             particle.showAt(spot, observed_players);
         }
         // present the model used to the surrounding players
-        ItemStack decor_model = this.ailment.getModel(this.holder);
-        if (this.visual == null && decor_model != null) {
-            // if we got an item, we are allowed to create the armorstand
-            this.visual = RPGCore.inst().getVolatileManager().createVisualEntity(entity_handle.getLocation(), false);
-            this.visual.setItem(EquipmentSlot.HEAD, decor_model);
+        ItemStack model = this.ailment.getDecorModel();
+        if (model != null) {
+            // create the visual entity
+            if (this.visual == null) {
+                this.visual = (ItemDisplay) entity_handle.getWorld().spawnEntity(entity_handle.getLocation(), EntityType.ITEM_DISPLAY);
+                this.visual.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+                this.visual.setBillboard(Display.Billboard.FIXED);
+                BoundingBox bounds = this.holder.getEntityProvider().getBounds(entity_handle);
+                double scale = Math.max(bounds.getHeight(), Math.max(bounds.getWidthX(), bounds.getWidthZ())) / 2d;
+                this.visual.setTransformation(new Transformation(new Vector3f(), new Quaternionf(), new Vector3f((float) scale), new Quaternionf()));
+            }
+            // maintain it as riding
+            if (this.visual.getVehicle() != entity_handle) {
+                entity_handle.addPassenger(this.visual);
+            }
         }
-        // while we have the armorstand, ensure we respect the riding behaviour
-        if (this.visual != null && this.visual.getRiding() != entity_handle)
-            this.visual.setRiding(entity_handle);
     }
 
     /**

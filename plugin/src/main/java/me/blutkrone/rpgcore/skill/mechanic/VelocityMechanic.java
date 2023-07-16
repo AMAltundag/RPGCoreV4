@@ -1,13 +1,13 @@
 package me.blutkrone.rpgcore.skill.mechanic;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorVelocityMechanic;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorVelocityMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -40,7 +40,7 @@ public class VelocityMechanic extends AbstractCoreMechanic {
         }
         // ensure we've got any anchor
         if (anchors.isEmpty()) {
-            Bukkit.getLogger().severe("No anchor could be found!");
+            RPGCore.inst().getLogger().severe("No anchor could be found!");
             return;
         }
         // grab a random anchor to work with

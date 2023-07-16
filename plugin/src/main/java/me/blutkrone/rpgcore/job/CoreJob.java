@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.job;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.root.job.EditorJob;
+import me.blutkrone.rpgcore.editor.root.job.EditorJob;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import org.bukkit.inventory.ItemStack;
 

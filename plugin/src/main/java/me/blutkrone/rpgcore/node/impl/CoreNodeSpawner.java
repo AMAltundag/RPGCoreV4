@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.node.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeSpawner;
 import me.blutkrone.rpgcore.mob.CoreCreature;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;

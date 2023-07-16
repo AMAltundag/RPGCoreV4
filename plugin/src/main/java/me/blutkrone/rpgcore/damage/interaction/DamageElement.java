@@ -25,12 +25,10 @@ public class DamageElement {
     // damage received from defender
     private final List<String> received;
     // range of damage, and chance to roll again
-    private final List<String> minimum_range;
-    private final List<String> maximum_range;
-    private final List<String> range_lucky;
-    private final List<String> range_unlucky;
+    private final String minimum_range;
+    private final String maximum_range;
     // % of non-element gained as this element
-    private final List<String> extra;
+    private final String extra;
 
     /**
      * The element used in a damage interaction.
@@ -46,12 +44,10 @@ public class DamageElement {
         this.max_reduction = config.getString("max-reduction", "NOTHINGNESS");
         this.multiplier = config.getStringList("multiplier");
         this.taken = config.getString("taken", "NOTHINGNESS");
-        this.extra = config.getStringList("extra");
+        this.extra = config.getString("extra");
         this.received = config.getStringList("received");
-        this.minimum_range = config.getStringList("minimum");
-        this.maximum_range = config.getStringList("maximum");
-        this.range_lucky = config.getStringList("lucky");
-        this.range_unlucky = config.getStringList("unlucky");
+        this.minimum_range = config.getString("minimum");
+        this.maximum_range = config.getString("maximum");
     }
 
     /**
@@ -137,7 +133,7 @@ public class DamageElement {
      *
      * @return extra damage based on other elements
      */
-    public List<String> getExtraAttribute() {
+    public String getExtraAttribute() {
         return extra;
     }
 
@@ -148,7 +144,7 @@ public class DamageElement {
      *
      * @return multiplies damage taken
      */
-    public List<String> getReceived() {
+    public List<String> getReceivedAttribute() {
         return received;
     }
 
@@ -159,7 +155,7 @@ public class DamageElement {
      *
      * @return % that lowers range of damage dealt
      */
-    public List<String> getMinimumRange() {
+    public String getMinimumRange() {
         return minimum_range;
     }
 
@@ -170,29 +166,7 @@ public class DamageElement {
      *
      * @return % that raises range of damage dealt
      */
-    public List<String> getMaximumRange() {
+    public String getMaximumRange() {
         return maximum_range;
-    }
-
-    /**
-     * Read from attacker
-     * <p>
-     * Roll damage range twice, pick better.
-     *
-     * @return chance to pick better damage roll.
-     */
-    public List<String> getRangeLucky() {
-        return range_lucky;
-    }
-
-    /**
-     * Read from attacker
-     * <p>
-     * Roll damage range twice, pick worse.
-     *
-     * @return chance to pick worse damage roll.
-     */
-    public List<String> getRangeUnlucky() {
-        return range_unlucky;
     }
 }

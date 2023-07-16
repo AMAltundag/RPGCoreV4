@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorBankerTrait;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorBankerTrait;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.menu.BankerMenu;
 import me.blutkrone.rpgcore.npc.CoreNPC;

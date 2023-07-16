@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.job;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorStringAndNumber;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.job.EditorProfession;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorStringAndNumber;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.job.EditorProfession;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.item.crafting.CoreCraftingRecipe;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
 import me.blutkrone.rpgcore.menu.PassiveMenu;

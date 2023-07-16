@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.EditorKillTrigger;
+import me.blutkrone.rpgcore.editor.bundle.trigger.EditorKillTrigger;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 

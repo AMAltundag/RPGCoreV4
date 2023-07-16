@@ -1,13 +1,14 @@
 package me.blutkrone.rpgcore.quest;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorDialogue;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogue;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskCollect;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskLogic;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -24,7 +25,7 @@ public class QuestManager implements Listener {
         this.index_quest = new EditorIndex<>("quest", EditorQuest.class, EditorQuest::new);
         this.index_dialogue = new EditorIndex<>("dialogue", EditorDialogue.class, EditorDialogue::new);
 
-        Bukkit.getLogger().info("not implemented (quests as api)");
+        RPGCore.inst().getLogger().info("not implemented (quests as api)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
 
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
@@ -39,11 +40,13 @@ public class QuestManager implements Listener {
                             if (((CoreQuestTaskCollect) task).canMeetDemand(core_player)) {
                                 task.updateQuest(core_player, new Object());
                             }
+                        } else if (task instanceof CoreQuestTaskLogic) {
+                            task.updateQuest(core_player, new Object());
                         }
                     }
                 }
             }
-        }, 0, 60);
+        }, 0, 20);
     }
 
     /**

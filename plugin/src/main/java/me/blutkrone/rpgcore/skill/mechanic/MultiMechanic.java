@@ -2,9 +2,9 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorLogicMultiMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorLogicMultiMechanic;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAction;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 
 import java.util.ArrayList;

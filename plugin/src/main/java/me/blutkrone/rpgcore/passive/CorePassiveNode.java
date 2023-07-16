@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.passive;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.passive.AbstractEditorPassive;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveNode;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.passive.AbstractEditorPassive;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveNode;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.passive.node.AbstractCorePassive;
 import org.bukkit.inventory.ItemStack;

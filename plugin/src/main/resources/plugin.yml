@@ -1,21 +1,21 @@
 name: RPGCore
 version: 4.0.10
 main: me.blutkrone.rpgcore.RPGCore
-authors: [Blutkrone]
+authors: [ Blutkrone ]
 description: "RPGCore - Just about everything you need for an RPG!"
 api-version: 1.18
 libraries:
-- "commons-io:commons-io:2.11.0"
-- "net.lingala.zip4j:zip4j:2.6.4"
-- "com.zaxxer:HikariCP:2.4.1"
-- "com.dropbox.core:dropbox-core-sdk:5.2.0"
-- "net.objecthunter:exp4j:0.4.8"
-- "org.mongodb:mongodb-driver-sync:4.8.2"
-- "org.jsoup:jsoup:1.15.2"
-- "com.github.depsypher:pngtastic:1.7"
-- "com.ezylang:EvalEx:3.0.1"
-- "com.konghq:unirest-java:3.14.1"
-softdepend: [ProtocolLib, WorldGuard, ModelEngine]
+  - "commons-io:commons-io:2.11.0"
+  - "net.lingala.zip4j:zip4j:2.6.4"
+  - "com.zaxxer:HikariCP:2.4.1"
+  - "com.dropbox.core:dropbox-core-sdk:5.2.0"
+  - "net.objecthunter:exp4j:0.4.8"
+  - "org.mongodb:mongodb-driver-sync:4.8.2"
+  - "org.jsoup:jsoup:1.15.2"
+  - "com.github.depsypher:pngtastic:1.7"
+  - "com.ezylang:EvalEx:3.0.1"
+  - "com.konghq:unirest-java:3.14.1"
+softdepend: [ ProtocolLib, WorldGuard, ModelEngine ]
 
 commands:
   rpg:

@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.npc;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.npc.AbstractEditorNPCTrait;
+import me.blutkrone.rpgcore.editor.root.npc.EditorNPC;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.AbstractEditorNPCTrait;
-import me.blutkrone.rpgcore.hud.editor.root.npc.EditorNPC;
 import me.blutkrone.rpgcore.menu.CortexMenu;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileGameProfile;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
@@ -17,7 +17,6 @@ import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskDeliver;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
 import me.blutkrone.rpgcore.skin.CoreSkin;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -46,6 +45,10 @@ public class CoreNPC extends AbstractNode {
     private List<String> quest_whitelist;
     // cannot have any of these quests completed
     private List<String> quest_blacklist;
+    // must have all tags
+    private List<String> tag_whitelist;
+    // cannot have any of these tags
+    private List<String> tag_blacklist;
     // items to equip on NPC
     private ItemStack helmet;
     private ItemStack chestplate;
@@ -70,6 +73,8 @@ public class CoreNPC extends AbstractNode {
         }
         this.quest_whitelist = new ArrayList<>(editor.quest_required);
         this.quest_blacklist = new ArrayList<>(editor.quest_forbidden);
+        this.tag_whitelist = new ArrayList<>(editor.tag_required);
+        this.tag_blacklist = new ArrayList<>(editor.tag_forbidden);
 
         if (!editor.item_helmet.equalsIgnoreCase("nothingness")) {
             this.helmet = RPGCore.inst().getItemManager().getItemIndex().get(editor.item_helmet).getTemplate();
@@ -107,6 +112,24 @@ public class CoreNPC extends AbstractNode {
      */
     public List<String> getQuestWhitelist() {
         return quest_whitelist;
+    }
+
+    /**
+     * Tags forbidden to see NPC
+     *
+     * @return blacklisted tags
+     */
+    public List<String> getTagBlacklist() {
+        return tag_blacklist;
+    }
+
+    /**
+     * Tags required to see NPC
+     *
+     * @return whitelisted tags
+     */
+    public List<String> getTagWhitelist() {
+        return tag_whitelist;
     }
 
     /**
@@ -176,7 +199,7 @@ public class CoreNPC extends AbstractNode {
             if (fetched != null) {
                 profile.addProperty("textures", fetched.value, fetched.signature);
             } else {
-                Bukkit.getLogger().warning("NPC was requested before skin has finished!");
+                RPGCore.inst().getLogger().warning("NPC was requested before skin has finished!");
             }
         }
         // offer up the profile we built

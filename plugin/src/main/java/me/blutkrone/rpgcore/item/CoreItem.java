@@ -1,10 +1,12 @@
 package me.blutkrone.rpgcore.item;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorAffixChance;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorAffixLimit;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorRequirement;
+import me.blutkrone.rpgcore.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixChance;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorAffixLimit;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.item.data.ItemDataDurability;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
@@ -67,6 +69,8 @@ public class CoreItem {
 
     private Map<String, String> hidden_data;
 
+    private List<Requirement> requirements;
+
     /**
      * A container for information on how the given item
      * is engaging with the server.
@@ -114,6 +118,10 @@ public class CoreItem {
         this.bank_quantity = Math.max(1, (int) editor.bank_quantity);
         this.bank_symbol = editor.bank_symbol;
         this.hidden_data = new HashMap<>(editor.hidden_data);
+        this.requirements = new ArrayList<>();
+        for (IEditorBundle bundle : editor.requirement) {
+            this.requirements.add(new Requirement(((EditorRequirement) bundle)));
+        }
     }
 
     /**
@@ -479,5 +487,14 @@ public class CoreItem {
      */
     public String getBankSymbol() {
         return bank_symbol;
+    }
+
+    /**
+     * Requirements needed to be met to equip this item.
+     *
+     * @return Requirements to be met.
+     */
+    public List<Requirement> getRequirements() {
+        return requirements;
     }
 }

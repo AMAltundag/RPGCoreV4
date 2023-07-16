@@ -156,13 +156,14 @@ public class HologramManager {
      *
      * @param where   where to create the hologram.
      * @param content the content of the hologram.
+     * @param locked  prevent auto rotation
      */
-    public void createHologram(Location where, String content) {
+    public void createHologram(Location where, String content, boolean locked) {
         if (where.getWorld() == null) {
             throw new IllegalArgumentException("World cannot be null!");
         }
         // create and register the hologram
-        StationaryHologram hologram = new StationaryHologram(where, content);
+        StationaryHologram hologram = new StationaryHologram(where, content, locked);
         synchronized (this.thread_sync) {
             this.holograms.computeIfAbsent(where.getWorld().getName(), (k -> new HashMap<>())).put(hologram.getId(), hologram);
         }

@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorRefinerTrait;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorRefinerTrait;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.refinement.CoreRefinerRecipe;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;

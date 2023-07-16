@@ -4,13 +4,13 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.dungeon.EditorDungeonTreasure;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorTreasure;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.dungeon.EditorDungeonTreasure;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorTreasure;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
@@ -233,7 +233,7 @@ public class TreasureStructure extends AbstractDungeonStructure<TreasureStructur
                 return null;
             }
             // ensure that the chunk is loaded
-            if (!this.where.getWorld().isChunkLoaded(this.where.getBlockX()>>4, this.where.getBlockZ()>>4)) {
+            if (!this.where.getWorld().isChunkLoaded(this.where.getBlockX() >> 4, this.where.getBlockZ() >> 4)) {
                 return null;
             }
             // re-spawn in case it despawned
@@ -299,7 +299,7 @@ public class TreasureStructure extends AbstractDungeonStructure<TreasureStructur
                     this.finish = Double.valueOf(split[0]).intValue();
                 }
             } catch (Exception e) {
-                Bukkit.getLogger().severe("Bad number range: " + string);
+                RPGCore.inst().getLogger().severe("Bad number range: " + string);
                 this.start = 0;
                 this.finish = 0;
             }

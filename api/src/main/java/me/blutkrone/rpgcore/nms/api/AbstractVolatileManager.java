@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.nms.api;
 
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -78,7 +77,7 @@ public abstract class AbstractVolatileManager {
      * Deploy a chat message to the given players.
      *
      * @param message What message to deploy
-     * @param target Who should receive message
+     * @param target  Who should receive message
      */
     public abstract void sendMessage(BaseComponent[] message, Collection<Player> target);
 
@@ -103,14 +102,6 @@ public abstract class AbstractVolatileManager {
      * @return the entity ID we fetched
      */
     public abstract int getNextEntityId();
-
-    /**
-     * Create an entity for visual purposes.
-     *
-     * @param where where to spawn the entity at
-     * @return the visual entity which was created
-     */
-    public abstract IEntityVisual createVisualEntity(Location where, boolean small);
 
     /**
      * Create an entity for collider purposes.

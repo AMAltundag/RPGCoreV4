@@ -73,7 +73,7 @@ public class PlayerSnapshot implements IDescriptionRequester {
     private void loadSkillInfo(DataBundle bundle) {
         if (!bundle.isEmpty()) {
             for (int i = 0; i < 6; i++) {
-                this.skillbar[i] = bundle.getString(1+i);
+                this.skillbar[i] = bundle.getString(1 + i);
             }
         } else {
             for (int i = 0; i < 6; i++) {

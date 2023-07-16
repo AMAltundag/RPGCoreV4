@@ -352,7 +352,7 @@ public class BungeeGroupHandler implements Listener {
             this.matching_dirty = true;
         }
     }
-    
+
     /**
      * Retrieve the party a player belongs to, this may
      * be null if they do not have a party.

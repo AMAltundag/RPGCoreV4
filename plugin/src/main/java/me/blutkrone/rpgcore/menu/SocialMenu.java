@@ -66,7 +66,7 @@ public class SocialMenu extends AbstractCoreMenu {
             });
         });
 
-        Bukkit.getLogger().info("not implemented (passive tree from socials)");
+        RPGCore.inst().getLogger().info("not implemented (passive tree from socials)");
     }
 
     @Override

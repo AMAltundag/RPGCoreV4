@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.skill.modifier;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
-import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
-import org.bukkit.Bukkit;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierString;
 
 public class CoreModifierString {
 
@@ -11,7 +11,7 @@ public class CoreModifierString {
     public CoreModifierString(EditorModifierString editor) {
         this.string = editor.base_value;
 
-        Bukkit.getLogger().info("not implemented (more complex string modifiers)");
+        RPGCore.inst().getLogger().info("not implemented (more complex string modifiers)");
     }
 
     public CoreModifierString(String string) {

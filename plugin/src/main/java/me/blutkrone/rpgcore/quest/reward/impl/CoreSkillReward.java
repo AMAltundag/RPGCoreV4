@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.quest.reward.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.quest.reward.EditorQuestRewardSkill;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardSkill;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
 import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;

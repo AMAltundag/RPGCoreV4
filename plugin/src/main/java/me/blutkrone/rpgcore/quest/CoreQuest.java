@@ -2,12 +2,12 @@ package me.blutkrone.rpgcore.quest;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.quest.AbstractEditorQuestReward;
+import me.blutkrone.rpgcore.editor.bundle.quest.AbstractEditorQuestTask;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
+import me.blutkrone.rpgcore.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestReward;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.AbstractEditorQuestTask;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
-import me.blutkrone.rpgcore.hud.editor.root.quest.EditorQuest;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;

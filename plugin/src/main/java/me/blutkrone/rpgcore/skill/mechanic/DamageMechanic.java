@@ -3,18 +3,17 @@ package me.blutkrone.rpgcore.skill.mechanic;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
+import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorDamageMechanic;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierString;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorDamageMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.modifier.EditorModifierString;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndModifier;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierString;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -44,11 +43,11 @@ public class DamageMechanic extends AbstractCoreMechanic {
 
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
-        IDamageManager manager = RPGCore.inst().getDamageManager();
+        DamageManager manager = RPGCore.inst().getDamageManager();
         // ensure the damage type exists
         IDamageType type = manager.getType(this.type);
         if (type == null) {
-            Bukkit.getLogger().severe("Unknown damage type: " + this.type);
+            RPGCore.inst().getLogger().severe("Unknown damage type: " + this.type);
             return;
         }
         // extract damage related things applicable to all entities

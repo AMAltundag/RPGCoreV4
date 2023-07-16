@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.item.crafting;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorItemWithQuantity;
+import me.blutkrone.rpgcore.editor.root.item.EditorCraftingRecipe;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorItemWithQuantity;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorCraftingRecipe;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.job.CoreProfession;

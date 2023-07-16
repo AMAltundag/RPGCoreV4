@@ -24,7 +24,7 @@ public class FileUtil {
             // prepare to copy files over
             File[] files = from.listFiles();
             if (files == null) {
-                Bukkit.getLogger().severe("Directory does not exist: " + from.getAbsolutePath());
+                RPGCore.inst().getLogger().severe("Directory does not exist: " + from.getAbsolutePath());
                 return;
             }
             // copy files over

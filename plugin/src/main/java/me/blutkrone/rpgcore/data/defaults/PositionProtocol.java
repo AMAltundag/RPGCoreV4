@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.data.defaults;
 import me.blutkrone.rpgcore.data.DataBundle;
 import me.blutkrone.rpgcore.data.structure.DataProtocol;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.ux.MainPlateComponent;
 
 public class PositionProtocol implements DataProtocol {
 

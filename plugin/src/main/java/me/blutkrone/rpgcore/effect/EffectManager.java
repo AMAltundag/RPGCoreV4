@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.effect;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.root.other.EditorEffect;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.root.other.EditorEffect;
 import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IBlockMutator;
 import org.bukkit.*;

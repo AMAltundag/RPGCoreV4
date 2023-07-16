@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.effect.impl;
 
+import me.blutkrone.rpgcore.editor.bundle.effect.EditorEffectBrush;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.effect.EffectObservation;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectBrush;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Color;

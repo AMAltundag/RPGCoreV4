@@ -18,7 +18,7 @@ public interface IPlayerHandler {
     /**
      * Broadcast a message across RPGCore.
      *
-     * @param player Who sends the message
+     * @param player  Who sends the message
      * @param channel Chat channel we are using
      * @param message Message to deploy
      */

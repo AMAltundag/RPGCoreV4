@@ -5,8 +5,8 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorDungeonScoreMechanic;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorDungeonScoreMechanic;
 import org.bukkit.World;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorMobSleepMechanic;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorMobSleepMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
 import java.util.List;

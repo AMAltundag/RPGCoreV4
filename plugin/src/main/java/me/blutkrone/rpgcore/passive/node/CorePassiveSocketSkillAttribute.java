@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.passive.node;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.passive.EditorPassiveSocketSkillAttribute;
+import me.blutkrone.rpgcore.editor.bundle.passive.EditorPassiveSocketSkillAttribute;
 import me.blutkrone.rpgcore.item.CoreItem;
 
 import java.util.List;

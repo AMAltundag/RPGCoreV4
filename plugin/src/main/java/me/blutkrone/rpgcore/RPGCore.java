@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.social.IGuildHandler;
 import me.blutkrone.rpgcore.attribute.AttributeManager;
 import me.blutkrone.rpgcore.chat.ChatManager;
@@ -12,14 +11,15 @@ import me.blutkrone.rpgcore.command.impl.*;
 import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.data.DataManager;
 import me.blutkrone.rpgcore.dungeon.DungeonManager;
+import me.blutkrone.rpgcore.editor.bundle.EditorBundleGsonAdapter;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.migration.MigrationHandler;
 import me.blutkrone.rpgcore.effect.EffectManager;
 import me.blutkrone.rpgcore.entity.EntityManager;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.exception.InitializationException;
 import me.blutkrone.rpgcore.hologram.HologramManager;
 import me.blutkrone.rpgcore.hud.HUDManager;
-import me.blutkrone.rpgcore.hud.editor.bundle.EditorBundleGsonAdapter;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.hud.world.WorldIntegrationManager;
 import me.blutkrone.rpgcore.item.ItemManager;
 import me.blutkrone.rpgcore.job.JobManager;
@@ -73,7 +73,6 @@ public final class RPGCore extends JavaPlugin {
         Logger.getLogger("org.mongodb.driver.protocol.event").setFilter((log -> false));
         Logger.getLogger("org.mongodb.driver.client").setFilter((log -> false));
         Logger.getLogger("org.mongodb.driver.cluster.event").setFilter((log -> false));
-
     }
 
     // incremented by +1 each tick
@@ -87,6 +86,7 @@ public final class RPGCore extends JavaPlugin {
     private SkinPool skin;
 
     // Managers providing low-level logic and functionality
+    private MigrationHandler migration_manager;
     private AbstractVolatileManager volatile_manager;
     private AttributeManager attribute_manager;
     private EntityManager entity_manager;
@@ -97,7 +97,7 @@ public final class RPGCore extends JavaPlugin {
     private HUDManager hud_manager;
     private MinimapManager minimap_manager;
     private ItemManager item_manager;
-    private IDamageManager damage_manager;
+    private DamageManager damage_manager;
     private JobManager job_manager;
     private EffectManager effect_manager;
     private NodeManager node_manager;
@@ -123,63 +123,22 @@ public final class RPGCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // perform migration scripts
+        this.migration_manager = new MigrationHandler();
+
         // synchronize configuration
         ToolConfigPushCommand.pullConfig();
-        // copy our demo world if we got one
-        File demo_want = FileUtil.directory("demo_world");
-        File demo_have = new File(Bukkit.getWorldContainer().getAbsolutePath() + File.separator + "rpgcore_demo");
-        if (demo_want.exists() && !demo_have.exists()) {
-            try {
-                FileUtils.copyDirectory(demo_want, demo_have);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        // load demo world if it is registered
-        if (demo_have.exists()) {
-            World demo = WorldCreator.name("rpgcore_demo")
-                    .type(WorldType.FLAT)
-                    .generateStructures(false)
-                    .createWorld();
-            if (demo != null) {
-                demo.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-                demo.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-                demo.setGameRule(GameRule.DO_ENTITY_DROPS, false);
-                demo.setGameRule(GameRule.DO_FIRE_TICK, false);
-                demo.setGameRule(GameRule.DO_MOB_LOOT, false);
-                demo.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-                demo.setGameRule(GameRule.DO_TILE_DROPS, false);
-                demo.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-                demo.setGameRule(GameRule.KEEP_INVENTORY, true);
-                demo.setGameRule(GameRule.MOB_GRIEFING, false);
-                demo.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
-                demo.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
-                demo.setGameRule(GameRule.DISABLE_RAIDS, true);
-                demo.setGameRule(GameRule.DO_INSOMNIA, false);
-                demo.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, false);
-                demo.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
-                demo.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
-
-                demo.setKeepSpawnInMemory(true);
-                demo.setSpawnLocation(0, 130, 0);
-
-                Bukkit.getLogger().info("RPGCore 'demo' world was created!");
-            }
-        }
+        // initialise demo world
+        initDemoWorld();
 
         // provide the gson access for other managers to use
+        this.gson_ugly = new Gson();
         this.gson_pretty = new GsonBuilder()
                 .serializeNulls()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
                 .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
                 .create();
-        this.gson_ugly = new Gson();
-        // this.gson_ugly = new GsonBuilder()
-        //         // .disableHtmlEscaping()
-        //         .registerTypeAdapter(IEditorBundle.class, new EditorBundleGsonAdapter<>())
-        //
-        //         .create();
         // track the skin pool we work with
         this.skin = new SkinPool();
 
@@ -190,7 +149,7 @@ public final class RPGCore extends JavaPlugin {
 
         // modules which make up the core
         this.attribute_manager = new AttributeManager();
-         this.data_manager = new DataManager();
+        this.data_manager = new DataManager();
         this.entity_manager = new EntityManager();
         this.language_manager = new LanguageManager();
         this.damage_manager = new DamageManager();
@@ -263,6 +222,53 @@ public final class RPGCore extends JavaPlugin {
         // close down message channel
         this.getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
+    }
+
+    /*
+     * Initialisation for the demo world that RPGCore ships with.
+     */
+    private void initDemoWorld() {
+        // copy our demo world if we got one
+        File demo_want = FileUtil.directory("demo_world");
+        File demo_have = new File(Bukkit.getWorldContainer().getAbsolutePath() + File.separator + "rpgcore_demo");
+        if (demo_want.exists() && !demo_have.exists()) {
+            try {
+                FileUtils.copyDirectory(demo_want, demo_have);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // load demo world if it is registered
+        if (demo_have.exists()) {
+            World demo = WorldCreator.name("rpgcore_demo")
+                    .type(WorldType.FLAT)
+                    .generateStructures(false)
+                    .createWorld();
+            if (demo != null) {
+                demo.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                demo.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                demo.setGameRule(GameRule.DO_ENTITY_DROPS, false);
+                demo.setGameRule(GameRule.DO_FIRE_TICK, false);
+                demo.setGameRule(GameRule.DO_MOB_LOOT, false);
+                demo.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                demo.setGameRule(GameRule.DO_TILE_DROPS, false);
+                demo.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                demo.setGameRule(GameRule.KEEP_INVENTORY, true);
+                demo.setGameRule(GameRule.MOB_GRIEFING, false);
+                demo.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
+                demo.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+                demo.setGameRule(GameRule.DISABLE_RAIDS, true);
+                demo.setGameRule(GameRule.DO_INSOMNIA, false);
+                demo.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, false);
+                demo.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
+                demo.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
+
+                demo.setKeepSpawnInMemory(true);
+                demo.setSpawnLocation(0, 130, 0);
+
+                RPGCore.inst().getLogger().info("RPGCore 'demo' world was created!");
+            }
+        }
     }
 
     /**
@@ -372,7 +378,7 @@ public final class RPGCore extends JavaPlugin {
         return entity_manager;
     }
 
-    public IDamageManager getDamageManager() {
+    public DamageManager getDamageManager() {
         return damage_manager;
     }
 
@@ -458,5 +464,9 @@ public final class RPGCore extends JavaPlugin {
 
     public ChatManager getChatManager() {
         return chat_manager;
+    }
+
+    public MigrationHandler getMigrationManager() {
+        return migration_manager;
     }
 }

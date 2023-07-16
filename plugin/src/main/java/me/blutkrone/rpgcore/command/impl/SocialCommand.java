@@ -34,7 +34,7 @@ public class SocialCommand extends AbstractCommand {
         if (cooldown > System.currentTimeMillis()) {
             return;
         }
-        this.cooldown.put(((Player) sender).getUniqueId(), System.currentTimeMillis()+3000);
+        this.cooldown.put(((Player) sender).getUniqueId(), System.currentTimeMillis() + 3000);
         // process the command
         if (args.length == 2) {
             try {

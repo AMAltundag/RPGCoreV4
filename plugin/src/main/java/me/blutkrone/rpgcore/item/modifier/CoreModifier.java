@@ -2,9 +2,9 @@ package me.blutkrone.rpgcore.item.modifier;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.editor.root.item.EditorModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorModifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;

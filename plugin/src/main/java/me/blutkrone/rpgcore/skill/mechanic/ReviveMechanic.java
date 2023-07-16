@@ -2,11 +2,11 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorReviveMechanic;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndModifier;
+import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorReviveMechanic;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndModifier;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 
@@ -47,15 +47,17 @@ public class ReviveMechanic extends AbstractCoreMechanic {
             attributes.put(id, modifier.evalAsDouble(context));
         });
 
-        Set<CoreEntity> filtered = new HashSet<>();
+        // find everyone we can resurrect
+        Set<IOrigin> filtered = new HashSet<>();
         for (IOrigin target : targets) {
-            List<CoreEntity> nearby = target.getNearby(maximum_radius);
+            List<CoreEntity> nearby = target.getNearby(maximum_radius, true);
             nearby.removeIf(entity -> entity.distance(target) >= minimum_radius);
             filtered.addAll(nearby);
         }
-
+        // only retain those who pass filter
         filtered.retainAll(AbstractCoreSelector.doSelect(filter, context, new ArrayList<>(filtered)));
-        for (CoreEntity entity : filtered) {
+        // offer resurrection to targets
+        for (IOrigin entity : filtered) {
             if (entity instanceof CorePlayer) {
                 ((CorePlayer) entity).offerToRevive(health, mana, stamina, attributes, duration);
             }

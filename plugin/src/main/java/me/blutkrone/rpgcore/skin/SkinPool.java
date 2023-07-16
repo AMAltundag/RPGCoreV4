@@ -84,7 +84,7 @@ public class SkinPool {
                     }
 
                     // notify about successful processing
-                    Bukkit.getLogger().info("Skin '" + tracked.id + "' was cached, " + this.queried.size() + " skins pending!");
+                    RPGCore.inst().getLogger().info("Skin '" + tracked.id + "' was cached, " + this.queried.size() + " skins pending!");
                     // unlock our pool to process another skin
                     this.working = false;
                 }));

@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.api;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.proxy.AbstractSkillProxy;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public interface IContext {
 
         @Override
         public void addProxy(AbstractSkillProxy proxy) {
-            Bukkit.getLogger().severe("Cannot add proxy to empty context");
+            RPGCore.inst().getLogger().severe("Cannot add proxy to empty context");
         }
 
         @Override
@@ -53,7 +53,7 @@ public interface IContext {
 
         @Override
         public void addPipeline(CoreAction.ActionPipeline pipeline) {
-            Bukkit.getLogger().severe("Cannot add pipeline to empty context");
+            RPGCore.inst().getLogger().severe("Cannot add pipeline to empty context");
         }
 
         @Override

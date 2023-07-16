@@ -5,8 +5,8 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
+import me.blutkrone.rpgcore.editor.bundle.selector.EditorDungeonScoreSelector;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.EditorDungeonScoreSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -85,7 +85,7 @@ public class DungeonScoreSelector extends AbstractCoreSelector {
                     this.finish = Double.valueOf(split[0]).intValue();
                 }
             } catch (Exception e) {
-                Bukkit.getLogger().severe("Bad number range: " + string);
+                RPGCore.inst().getLogger().severe("Bad number range: " + string);
                 this.start = 0;
                 this.finish = 0;
             }

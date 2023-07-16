@@ -1,9 +1,8 @@
 package me.blutkrone.rpgcore.damage.interaction.types;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
-import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
+import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
@@ -19,7 +18,7 @@ public class SpellDamageType implements IDamageType {
 
     private void takeDamageAs(DamageInteraction interaction, Map<DamageElement, Double> damage_multi, Map<DamageElement, Double> damage_flat) {
         // managers which may be necessary to process damage
-        IDamageManager damage_manager = RPGCore.inst().getDamageManager();
+        DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
         // 5.) Apply rules to take all damage as one element
         Map<DamageElement, Double> damage_taken_as = new HashMap<>();
@@ -77,13 +76,11 @@ public class SpellDamageType implements IDamageType {
 
     private void scaleAsAttacker(DamageInteraction interaction, Map<DamageElement, Double> damage_multi, Map<DamageElement, Double> damage_flat) {
         // managers which may be necessary to process damage
-        IDamageManager damage_manager = RPGCore.inst().getDamageManager();
+        DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
         // decide if this damage is going to be processed as a critical hit
         if (interaction.getAttacker() != null && !interaction.checkForTag("CANNOT_CRITICAL", interaction.getAttacker())) {
-            double crit_chance = 0d;
-            crit_chance += interaction.evaluateAttribute("CRIT_CHANCE", interaction.getAttacker());
-            crit_chance += interaction.evaluateAttribute("CRIT_CHANCE_SPELL", interaction.getAttacker());
+            double crit_chance = interaction.evaluateAttribute("CRIT_CHANCE_SPELL", interaction.getAttacker());
             if (Math.random() <= crit_chance) {
                 interaction.addTags("CRITICAL_HIT");
             }
@@ -110,20 +107,18 @@ public class SpellDamageType implements IDamageType {
 
         for (DamageElement element : damage_manager.getElements()) {
             // identify how much damage we gain from other elements
-            double extra = 0d;
-            for (String attribute : element.getExtraAttribute())
-                extra += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-            // carry over the damage multi
-            double extra_damage = extra;
-            damage_multi.forEach((group, factor) -> {
-                double ratio = group == element ? 1d : extra_damage;
-                updated_damage_multi.merge(group, factor * ratio, (a, b) -> a + b);
-            });
-            // carry over the damage flat
-            damage_flat.forEach((group, factor) -> {
-                double ratio = group == element ? 1d : extra_damage;
-                updated_damage_flat.merge(group, factor * ratio, (a, b) -> a + b);
-            });
+            double extra_damage = interaction.evaluateAttribute(element.getExtraAttribute(), interaction.getAttacker());
+            if (extra_damage > 0d) {
+                damage_multi.forEach((group, factor) -> {
+                    double ratio = group == element ? 1d : extra_damage;
+                    updated_damage_multi.merge(group, factor * ratio, (a, b) -> a + b);
+                });
+                // carry over the damage flat
+                damage_flat.forEach((group, factor) -> {
+                    double ratio = group == element ? 1d : extra_damage;
+                    updated_damage_flat.merge(group, factor * ratio, (a, b) -> a + b);
+                });
+            }
         }
 
         damage_multi.clear();
@@ -135,7 +130,7 @@ public class SpellDamageType implements IDamageType {
     @Override
     public void process(DamageInteraction interaction) {
         // managers which may be necessary to process damage
-        IDamageManager damage_manager = RPGCore.inst().getDamageManager();
+        DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
         // the elements that are dealt damage thorough
         Map<DamageElement, Double> damage_multi = new HashMap<>();
@@ -165,7 +160,6 @@ public class SpellDamageType implements IDamageType {
         // upscale according to critical damage
         double crit_damage = 1d;
         if (interaction.getAttacker() != null && interaction.checkForTag("CRITICAL_HIT", interaction.getAttacker())) {
-            crit_damage += Math.max(0d, interaction.evaluateAttribute("CRIT_DAMAGE", interaction.getAttacker()));
             crit_damage += Math.max(0d, interaction.evaluateAttribute("CRIT_DAMAGE_SPELL", interaction.getAttacker()));
         }
 
@@ -180,7 +174,7 @@ public class SpellDamageType implements IDamageType {
             approx_damage += approximation;
         }
         // compute modifiers specific to spell damage
-        double received_spell = interaction.evaluateAttribute("SPELL_TAKEN_MULTIPLIER", interaction.getDefender());
+        double received_spell = interaction.evaluateAttribute("SPELL_DAMAGE_TAKEN_MULTIPLIER", interaction.getDefender());
         double resistance_spell = interaction.evaluateAttribute("SPELL_RESISTANCE", interaction.getDefender());
         double multi_spell = 0d;
         if (interaction.getAttacker() != null)
@@ -191,7 +185,7 @@ public class SpellDamageType implements IDamageType {
             // reduce armor based on armor break
             double armor_break = 0d;
             if (interaction.getAttacker() != null) {
-                armor_break = Math.max(0d, interaction.evaluateAttribute("SPELL_ARMOR_BREAK", interaction.getAttacker()));
+                armor_break = Math.max(0d, interaction.evaluateAttribute("ARMOR_BREAK", interaction.getAttacker()));
             }
             // acquire resistance relative to damage
             resistance_spell += Math.log(1d + (armor_spell / approx_damage)) / Math.log(2d + Math.max(0d, armor_break)) * 0.1d;
@@ -207,7 +201,7 @@ public class SpellDamageType implements IDamageType {
 
             // damage multiplier of the defender
             double received = 1d;
-            for (String attribute : element.getReceived())
+            for (String attribute : element.getReceivedAttribute())
                 received += interaction.evaluateAttribute(attribute, interaction.getDefender());
             damage *= Math.max(0d, received + received_spell);
 
@@ -236,16 +230,18 @@ public class SpellDamageType implements IDamageType {
             if (interaction.getAttacker() != null) {
                 EntityWard ward = interaction.getAttacker().getWard();
                 if (ward != null) {
-                    double leech_health = interaction.evaluateAttribute("SPELL_LEECH_" + element.getId() + "_AS_LIFE", interaction.getAttacker());
+                    double leech_health = interaction.evaluateAttribute("SPELL_LEECH_" + element.getId() + "_AS_HEALTH", interaction.getAttacker());
+                    leech_health += interaction.evaluateAttribute("SPELL_LEECH_AS_LIFE", interaction.getAttacker());
                     interaction.getAttacker().getHealth().addLeech(damage * leech_health);
                     double leech_mana = interaction.evaluateAttribute("SPELL_LEECH_" + element.getId() + "_AS_MANA", interaction.getAttacker());
+                    leech_mana += interaction.evaluateAttribute("SPELL_LEECH_AS_MANA", interaction.getAttacker());
                     interaction.getAttacker().getMana().addLeech(damage * leech_mana);
                 }
             }
         }
 
         // allow to inflict ailments with spell based damage
-        damage_manager.handleAilment(interaction, new AilmentSnapshot(damage_flat, damage_multi));
+        damage_manager.handleAilment(interaction);
     }
 
     @Override

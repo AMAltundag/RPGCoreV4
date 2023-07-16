@@ -4,9 +4,9 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.EditorDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.TreasureStructure;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.dungeon.EditorDungeon;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.root.dungeon.EditorDungeon;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,7 +28,7 @@ import java.util.UUID;
 
 /**
  * A manager for all dungeon specific logic.
- *
+ * <p>
  * todo: proper dungeon entrance, testing
  */
 public class DungeonManager implements Listener {
@@ -173,7 +173,7 @@ public class DungeonManager implements Listener {
         // strip hidden blocks from loaded chunks
         IDungeonInstance instance = getInstance(event.getWorld());
         if (instance instanceof ActiveDungeonInstance && ((ActiveDungeonInstance) instance).canHideChunk(event.getChunk())) {
-            long chunk = (((long)event.getChunk().getX())<<32) | event.getChunk().getZ();
+            long chunk = (((long) event.getChunk().getX()) << 32) | event.getChunk().getZ();
             for (ActiveDungeonInstance.StructureTracker structure : ((ActiveDungeonInstance) instance).getStructures()) {
                 List<Location> hidden = structure.hidden.get(chunk);
                 if (hidden != null) {

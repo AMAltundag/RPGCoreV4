@@ -130,7 +130,7 @@ public final class Matching {
      * response given is in context of {@link #getPhase()} and we are
      * one of the original interest holders.
      *
-     * @param member Whose response did we receive
+     * @param member   Whose response did we receive
      * @param response What response did we receive
      */
     public void response(UUID member, boolean response) {

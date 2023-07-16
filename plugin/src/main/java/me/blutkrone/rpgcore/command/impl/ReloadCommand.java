@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.command.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
@@ -35,6 +35,8 @@ public class ReloadCommand extends AbstractCommand {
         RPGCore.inst().getNodeManager().reload();
         // reload the hologram manager
         RPGCore.inst().getHologramManager().reload();
+        // flush hud menu controllers
+        RPGCore.inst().getHUDManager().reload();
 
         sender.sendMessage("§fReloaded RPGCore in: §c%.2f§f seconds!".formatted((System.currentTimeMillis() - stamp) / 1000d));
     }

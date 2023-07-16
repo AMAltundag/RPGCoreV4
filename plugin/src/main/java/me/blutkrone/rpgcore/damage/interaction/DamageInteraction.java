@@ -4,6 +4,9 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.attribute.AttributeCollection;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import me.blutkrone.rpgcore.entity.entities.CoreMob;
+import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
+import org.bukkit.entity.LivingEntity;
 
 import java.util.*;
 
@@ -29,6 +32,8 @@ public final class DamageInteraction {
     private IContext source_context = null;
     // blame generated for the skill
     private String damage_blame = "unknown";
+    // multiplier to the damage inflicted
+    private double multiplier;
 
     /**
      * An interaction holding information about damage.
@@ -219,4 +224,59 @@ public final class DamageInteraction {
         return this.attribute.computeIfAbsent(attribute.toLowerCase(), (k -> new AttributeCollection(IContext.EMPTY)));
     }
 
+    /**
+     * Meant for death handling to transfer rage to someone else.
+     */
+    public void shiftRageBlame() {
+        // only mobs do have rage
+        if (!(attacker instanceof CoreMob)) {
+            return;
+        }
+        // only transfer rage if we actually hold it
+        IEntityBase attacker_base = ((CoreMob) attacker).getBase();
+        LivingEntity rage_entity = attacker_base.getRageEntity();
+        if (rage_entity == null || !defender.getUniqueId().equals(rage_entity.getUniqueId())) {
+            return;
+        }
+        // find someone to shift the rage to
+        List<CoreEntity> candidates = attacker.getNearby(32d);
+        candidates.remove(attacker);
+        candidates.removeIf(e -> e.distance(attacker) > 32d || e.isFriendly(attacker) || !e.hasLineOfSight(attacker));
+        CoreEntity picked = null;
+        double closest = Double.MAX_VALUE;
+        for (CoreEntity candidate : candidates) {
+            double dist = candidate.distance(attacker);
+            if (dist < closest || picked == null) {
+                picked = candidate;
+                closest = dist;
+            }
+        }
+        // if we can, transfer otherwise reset
+        if (picked != null) {
+            double focus = picked.evaluateAttribute("RAGE_FOCUS");
+            attacker_base.rageTransfer(picked.getEntity(), focus);
+        } else {
+            attacker_base.resetRage();
+        }
+    }
+
+    /**
+     * Enforce a certain multiplier to the damage that will be applied to the
+     * final amount of damage.
+     *
+     * @param multiplier Multiplier to damage
+     */
+    public void setMultiplier(double multiplier) {
+        this.multiplier = multiplier;
+    }
+
+    /**
+     * Enforce a certain multiplier to the damage that will be applied to the
+     * final amount of damage.
+     *
+     * @return Multiplier to damage
+     */
+    public double getMultiplier() {
+        return multiplier;
+    }
 }

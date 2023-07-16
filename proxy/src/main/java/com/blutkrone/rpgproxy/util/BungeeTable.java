@@ -70,7 +70,7 @@ public final class BungeeTable {
      * Prepare a byte array to be deployed to a server running
      * RPGCore with bungeecord handling.
      *
-     * @param topic What topic is the message about
+     * @param topic   What topic is the message about
      * @param subject Who is related to the subject
      * @return Prepared output
      */

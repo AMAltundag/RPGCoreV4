@@ -15,7 +15,7 @@ public class PassivePointCommand extends AbstractCommand {
 
     @Override
     public boolean canUseCommand(CommandSender sender) {
-        return sender.isOp();
+        return sender.hasPermission("rpg.admin");
     }
 
     @Override

@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.util.MenuAnimator;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
@@ -143,6 +143,7 @@ public class JewelMenu extends AbstractCoreMenu {
         CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(bukkit_player);
         ItemStack working = player.getMenuPersistence().remove("jewel_inspection");
         RPGCore.inst().getItemManager().describe(working, player);
+        bukkit_player.updateInventory();
         if (bukkit_player.getInventory().firstEmpty() != -1) {
             // add to inventory if we got the space for that
             bukkit_player.getInventory().addItem(working);

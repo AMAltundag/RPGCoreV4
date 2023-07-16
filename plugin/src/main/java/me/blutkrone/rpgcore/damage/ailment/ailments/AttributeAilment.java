@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.damage.ailment.ailments;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
-import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.AilmentTracker;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
@@ -17,21 +16,23 @@ import java.util.Map;
 
 public class AttributeAilment extends AbstractAilment {
 
+    // what element we are associated with (does nothing, needed for attribute initialisation)
+    public String element;
     // maximum stacks of this attribute ailment
-    private List<String> maximum_stack;
+    public List<String> maximum_stack;
     // reduces the intensity of the inflicted ailment
-    private List<String> reduced_effect;
+    public List<String> reduced_effect;
     // the ratio at which attributes will be affected
-    private Map<String, Double> attribute_ratio = new HashMap<>();
-    private List<String> tag_list;
+    public Map<String, Double> attribute_ratio = new HashMap<>();
+    public List<String> tag_list;
     // % of damage inherited by element
-    private Map<String, List<String>> contribution = new HashMap<>();
+    public Map<String, String> contribution = new HashMap<>();
     // base duration of inflicted ailment
-    private int base_duration;
+    public int base_duration;
     // duration which the ailment will last
-    private List<String> percent_duration;
+    public List<String> percent_duration;
     // chance to inflict the ailment
-    private List<String> chance;
+    public List<String> chance;
 
     /**
      * An ailment is a secondary effect caused by non-DOT damage.
@@ -41,12 +42,13 @@ public class AttributeAilment extends AbstractAilment {
      */
     public AttributeAilment(String id, ConfigWrapper config) {
         super(id, config);
+        element = config.getString("element");
         maximum_stack = config.getStringList("maximum-stack");
         base_duration = config.getInt("base-duration");
         percent_duration = config.getStringList("percent-duration");
         chance = config.getStringList("chance");
         config.forEachUnder("contribution", (path, root) -> {
-            contribution.put(path, root.getStringList(path));
+            contribution.put(path, root.getString(path));
         });
         reduced_effect = config.getStringList("reduced-effect");
         config.forEachUnder("attribute-ratio", (path, root) -> {
@@ -81,7 +83,7 @@ public class AttributeAilment extends AbstractAilment {
         }
 
         @Override
-        public boolean acquireAilment(DamageInteraction interaction, AilmentSnapshot damage) {
+        public boolean acquireAilment(DamageInteraction interaction) {
             // non-crit damage may fail to inflict the ailment
             if (!interaction.checkForTag("CRITICAL_HIT", interaction.getAttacker())) {
                 double chance = 0d;
@@ -106,9 +108,9 @@ public class AttributeAilment extends AbstractAilment {
                 double inflicted = interaction.getDamage(element);
                 if (inflicted <= 0d) continue;
                 // identify % of damage which counts
-                double ratio = 0d;
-                for (String attribute : contribution.getOrDefault(element.getId(), new ArrayList<>()))
-                    ratio += interaction.evaluateAttribute(attribute, interaction.getAttacker());
+                String attribute = contribution.get(element.getId());
+                if (attribute == null) continue;
+                double ratio = interaction.evaluateAttribute(attribute, interaction.getAttacker());
                 // skip if ratio is less-equal zero
                 if (ratio <= 0d)
                     continue;

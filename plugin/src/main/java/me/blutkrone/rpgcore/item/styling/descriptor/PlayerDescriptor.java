@@ -536,7 +536,7 @@ public class PlayerDescriptor {
     /**
      * Create a description item for the given player.
      *
-     * @param player Player to describe
+     * @param player  Player to describe
      * @param styling Style to utilise
      * @return Description item
      */

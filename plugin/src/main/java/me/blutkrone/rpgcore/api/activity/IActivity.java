@@ -1,7 +1,5 @@
 package me.blutkrone.rpgcore.api.activity;
 
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-
 /**
  * An activity refers to a process tying to an action, only
  * one activity may be run at a given time.
@@ -34,8 +32,6 @@ public interface IActivity {
     /**
      * Interrupt the activity, should this method be called
      * the activity must be removed from the entity.
-     *
-     * @param entity which entity created the interruption.
      */
-    void interrupt(CoreEntity entity);
+    void interrupt();
 }

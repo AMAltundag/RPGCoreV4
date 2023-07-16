@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.quest.dialogue;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorDialogueChoice;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorDialogueBundle;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorDialogueChoice;
 
 /**
  * A choice made by a player from within the dialogue, which

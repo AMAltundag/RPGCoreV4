@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.entity.resource;
 
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,17 +40,15 @@ public class EntityResource {
         this.entity = entity;
         this.nullable = nullable;
         this.minimum = minimum;
-
-        Bukkit.getLogger().info("not implemented (refactoring broke the naming, everything is ward in here)");
     }
 
     /**
-     * Tank the given amount with the ward, reducing the remaining
-     * ward and returning how much it could NOT tank.
+     * Tank the given amount with the resource, reducing the remaining
+     * resource and returning how much it could NOT tank.
      * <p>
      * If the amount is less-equal zero, nothing happens.
      *
-     * @param amount damage to take from ward
+     * @param amount damage to take from resource
      * @return how much damage couldn't be tanked
      */
     public double damageBy(double amount) {
@@ -61,12 +58,11 @@ public class EntityResource {
         }
 
         // compute attributes that matter for resource
-        double recharge_delay = this.entity.evaluateAttribute(this.id + "_RECHARGE_FASTER");
+        double recharge_faster = this.entity.evaluateAttribute(this.id + "_RECHARGE_FASTER");
         double recoup_rate = this.entity.evaluateAttribute(id + "_RECOUP_RATE");
 
         // apply a delay on when we can recharge again
-        this.current_recharge_delay = (int) (80d / Math.max(0.01d,
-                1d + recharge_delay));
+        this.current_recharge_delay = (int) (80d / Math.max(0.01d, 1d + recharge_faster));
 
         // adjust the damage taken by effectiveness
         double updated = this.current_amount - amount;
@@ -97,7 +93,7 @@ public class EntityResource {
     }
 
     /**
-     * Recover the ward on the entity, do note that if the remaining ward
+     * Recover the resource on the entity, do note that if the remaining resource
      * is zero it cannot be recovered at all and will be removed soon.
      * <p>
      * If the amount is less-equal zero, nothing happens.
@@ -110,7 +106,7 @@ public class EntityResource {
         if (amount <= 0) {
             return 0d;
         }
-        // ignore if ward was already emptied
+        // ignore if resource was already emptied
         if (!this.nullable && this.current_amount <= 0d) {
             return amount;
         }
@@ -149,6 +145,32 @@ public class EntityResource {
         this.leech_buffer += Math.max(0d, amount);
     }
 
+    /*
+     * Generate snapshots of the attributes for read-only purposes
+     */
+    public void updateAttributeSnapshots() {
+        // compute our updated maximum amount
+        double maximum_amount = this.attribute("MAXIMUM");
+        maximum_amount *= 1d + this.attribute("MAXIMUM_PERCENT");
+        maximum_amount = Math.max(this.minimum, maximum_amount);
+        this.entity.getAttribute(this.id + "_MAXIMUM_SNAPSHOT").setOverride(maximum_amount);
+
+        // update recovery information
+        this.entity.getAttribute(this.id + "_REGENERATION_SNAPSHOT").setOverride(this.attribute("REGENERATION_FLAT") + this.attribute("REGENERATION_PERCENT") * maximum_amount);
+        this.entity.getAttribute(this.id + "_RECHARGE_SNAPSHOT").setOverride(this.attribute("RECHARGE_FLAT") + this.attribute("RECHARGE_PERCENT") * maximum_amount);
+        
+        // snapshot for recoup time
+        if (this.attribute("RECOUP_PER_SECOND") <= 0d) {
+            this.entity.getAttribute(this.id + "_RECOUP_TIME_SNAPSHOT").setOverride(0d);
+        } else {
+            this.entity.getAttribute(this.id + "_RECOUP_TIME_SNAPSHOT").setOverride(20d * (1d / this.attribute("RECOUP_PER_SECOND")));
+        }
+
+        // snapshot for recharge delay
+        double recharge_faster = this.entity.evaluateAttribute(this.id + "_RECHARGE_FASTER");
+        this.entity.getAttribute(this.id + "_RECHARGE_TIME_SNAPSHOT").setOverride((int) (80d / Math.max(0.01d, 1d + recharge_faster)));
+    }
+
     /**
      * Tick the recovery logic associated with the resource.
      *
@@ -171,25 +193,27 @@ public class EntityResource {
         if (this.nullable || this.current_amount > 0d) {
             // ratio based off the ticking rate
             double time_ratio = delta / 20d;
-            // compute how much ward we want to recover
-            double ward_to_recover = 0d;
+            // compute how much resource we want to recover
+            double resource_to_recover = 0d;
             // recovery thorough regeneration
-            ward_to_recover += this.attribute("REGENERATION_FLAT") * time_ratio;
-            ward_to_recover += this.attribute("REGENERATION_PERCENT") * maximum_amount * time_ratio;
+            resource_to_recover += this.attribute("REGENERATION_FLAT");
+            resource_to_recover += this.attribute("REGENERATION_PERCENT") * maximum_amount;
             // recovery thorough recharge
             if (this.current_recharge_delay <= 0) {
-                ward_to_recover += this.attribute("RECHARGE_FLAT") * time_ratio;
-                ward_to_recover += this.attribute("RECHARGE_PERCENT") * maximum_amount * time_ratio;
+                resource_to_recover += this.attribute("RECHARGE_FLAT");
+                resource_to_recover += this.attribute("RECHARGE_PERCENT") * maximum_amount;
             }
+            // apply time ratio
+            resource_to_recover = resource_to_recover * time_ratio;
             // recovery via recoup tickets
-            double recoup_rate = 0.25d * time_ratio * Math.max(0.1d, 1d + this.attribute("RECOUP_SPEED"));
+            double recoup_rate = Math.max(0d, this.attribute("RECOUP_PER_SECOND")) * time_ratio;
             for (RecoupTicket recoup : recoup_buffer) {
                 double step = recoup.maximum * recoup_rate;
                 if (recoup.remaining <= step) {
-                    ward_to_recover += recoup.remaining;
+                    resource_to_recover += recoup.remaining;
                     recoup.remaining = 0d;
                 } else {
-                    ward_to_recover += step;
+                    resource_to_recover += step;
                     recoup.remaining -= step;
                 }
             }
@@ -197,9 +221,9 @@ public class EntityResource {
             // recovery via leeched damage
             double available_leech = Math.max(0d, Math.min(this.leech_buffer, maximum_amount * this.attribute("LEECH_MAXIMUM") * time_ratio));
             this.leech_buffer -= available_leech;
-            ward_to_recover += available_leech;
+            resource_to_recover += available_leech;
             // acquire the total amount to recover
-            if (recoverBy(ward_to_recover) > 0) {
+            if (recoverBy(resource_to_recover) > 0) {
                 // leech resets if resource is capped.
                 this.leech_buffer = 0d;
             }

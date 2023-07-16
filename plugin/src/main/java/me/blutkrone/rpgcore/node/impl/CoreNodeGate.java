@@ -3,9 +3,9 @@ package me.blutkrone.rpgcore.node.impl;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.dungeon.CoreDungeon;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
+import me.blutkrone.rpgcore.editor.root.node.EditorNodeGate;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeGate;
 import me.blutkrone.rpgcore.menu.AbstractCoreMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
@@ -182,7 +182,8 @@ public class CoreNodeGate extends AbstractNode {
                         }
                     }
                 }
-            }        }
+            }
+        }
 
         @Override
         public boolean isTrivial() {

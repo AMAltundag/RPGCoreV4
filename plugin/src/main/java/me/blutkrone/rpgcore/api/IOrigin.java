@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.api;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -75,7 +74,16 @@ public interface IOrigin {
      * @return all entities found
      */
     default List<CoreEntity> getNearby(double radius) {
-        Bukkit.getLogger().info("not implemented (nearby must be filtered for untargetable properly)");
+        return getNearby(radius, false);
+    }
+
+    /**
+     * Retrieve all entities near this origin.
+     *
+     * @param radius the radius to search
+     * @return all entities found
+     */
+    default List<CoreEntity> getNearby(double radius, boolean force) {
         List<CoreEntity> output = new ArrayList<>();
         // ensure the location can be searched
         Location where = getLocation();
@@ -86,7 +94,7 @@ public interface IOrigin {
         Collection<Entity> entities = where.getWorld().getNearbyEntities(where, radius, radius, radius);
         for (Entity entity : entities) {
             CoreEntity core_entity = RPGCore.inst().getEntityManager().getEntity(entity.getUniqueId());
-            if (core_entity != null) {
+            if (core_entity != null && (force || !core_entity.isInvalid())) {
                 output.add(core_entity);
             }
         }
@@ -162,7 +170,7 @@ public interface IOrigin {
         Location location = getLocation().clone();
         Vector direction = other.getLocation().clone().subtract(getLocation()).toVector().normalize();
         // throw a cast to find a block
-        RayTraceResult result = getWorld().rayTraceBlocks(location, direction, this.distance(other), FluidCollisionMode.NEVER, true);
+        RayTraceResult result = getWorld().rayTraceBlocks(location, direction, this.distance(other) + 1, FluidCollisionMode.NEVER, true);
         // check if we've got a block
         Block block = null;
         if (result != null) {

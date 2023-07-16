@@ -2,12 +2,10 @@ package me.blutkrone.rpgcore.damage;
 
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
-import me.blutkrone.rpgcore.damage.ailment.AilmentSnapshot;
 import me.blutkrone.rpgcore.damage.ailment.ailments.AttributeAilment;
 import me.blutkrone.rpgcore.damage.ailment.ailments.DamageAilment;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
@@ -41,12 +39,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Manages all instances of damage between two entities.
+ * Manages all instances of damage to a core entity..
  *
  * @see DamageInteraction contains information about damage dealt
  * @see CoreEntity only a core entity may be involved in damage
  */
-public final class DamageManager implements IDamageManager, Listener {
+public final class DamageManager implements Listener {
 
     // a type defines how damage is calculated
     private Map<String, IDamageType> damage_types = new HashMap<>();
@@ -69,21 +67,6 @@ public final class DamageManager implements IDamageManager, Listener {
             ex.printStackTrace();
         }
 
-        // dispatch warning on nulled maximum resistance
-        for (DamageElement element : this.damage_elements.values()) {
-            String attribute = element.getMaxReductionAttribute();
-            try {
-                RPGCore.inst().getAttributeManager().getIndex().create(attribute, (attr -> {
-                    attr.defaults = 0.75d;
-                }));
-            } catch (Exception e) {
-                double defaults = RPGCore.inst().getAttributeManager().getIndex().get(attribute).getDefaults();
-                if (defaults <= 0d) {
-                    Bukkit.getLogger().warning("Attribute '%s' defaults to zero (This prevents resistances from applying!)".formatted(attribute));
-                }
-            }
-        }
-
         // load secondary ailments which can be inflicted
         try {
             ConfigWrapper damage_config = FileUtil.asConfigYML(FileUtil.file("ailment.yml"));
@@ -95,18 +78,22 @@ public final class DamageManager implements IDamageManager, Listener {
                 } else if (ailment_type.equalsIgnoreCase("ATTRIBUTE")) {
                     ailments.add(new AttributeAilment(path, root.getSection(path)));
                 } else {
-                    Bukkit.getLogger().warning(String.format("Unable to create ailment of type '%s'", ailment_type));
+                    RPGCore.inst().getLogger().warning(String.format("Unable to create ailment of type '%s'", ailment_type));
                 }
             }));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        Bukkit.getLogger().info("not implemented (vanilla migration)");
+        RPGCore.inst().getLogger().info("not implemented (vanilla migration)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
-    @Override
+    /**
+     * Process a damage interaction.
+     *
+     * @param interaction Interaction.
+     */
     public void damage(DamageInteraction interaction) {
         // do not process damage against friendlies
         if (interaction.getAttacker() != null) {
@@ -161,22 +148,10 @@ public final class DamageManager implements IDamageManager, Listener {
                     continue;
                 }
                 // ranges of damage that can be dealt
-                double minimum = 1d;
-                for (String attribute : element.getMinimumRange()) {
-                    minimum += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-                }
-                double maximum = 1d;
-                for (String attribute : element.getMaximumRange()) {
-                    maximum += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-                }
-                double lucky = 0d;
-                for (String attribute : element.getRangeLucky()) {
-                    lucky += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-                }
-                double unlucky = 0d;
-                for (String attribute : element.getRangeUnlucky()) {
-                    unlucky += interaction.evaluateAttribute(attribute, interaction.getAttacker());
-                }
+                double minimum = interaction.evaluateAttribute(element.getMinimumRange(), interaction.getAttacker());
+                double maximum = interaction.evaluateAttribute(element.getMaximumRange(), interaction.getAttacker());
+                double lucky = interaction.evaluateAttribute("LUCKY_CHANCE", interaction.getAttacker());
+                double unlucky = interaction.evaluateAttribute("UNLUCKY_CHANCE", interaction.getAttacker());
                 // normalize minimum/maximum
                 double real_minimum = Math.min(minimum, maximum);
                 double real_maximum = Math.max(minimum, maximum);
@@ -195,6 +170,12 @@ public final class DamageManager implements IDamageManager, Listener {
                 // multiply damage with the range
                 interaction.setDamage(element, damage * range);
             }
+        }
+
+        // apply final damage mulitplier
+        for (DamageElement element : getElements()) {
+            double damage = Math.max(0d, interaction.getDamage(element) * interaction.getMultiplier());
+            interaction.setDamage(element, damage);
         }
 
         // if mob got a barrier phase absorb that
@@ -217,7 +198,7 @@ public final class DamageManager implements IDamageManager, Listener {
             }
         }
 
-        // allow mana to tank part of the damage
+        // allow mana to absorb part of the damage
         double mana_as_life = Math.max(0d, interaction.evaluateAttribute("MANA_AS_HEALTH", interaction.getDefender()));
         if (interaction.getAttacker() != null)
             mana_as_life += Math.max(0d, interaction.evaluateAttribute("MANA_BURN", interaction.getAttacker()));
@@ -226,8 +207,9 @@ public final class DamageManager implements IDamageManager, Listener {
             for (DamageElement element : getElements()) {
                 double remaining = interaction.getDamage(element);
                 if (remaining <= 0d) continue;
-                double excess = interaction.getDefender().getMana().damageBy(remaining * mana_as_life);
-                interaction.setDamage(element, (remaining * (1d - mana_as_life)) + excess);
+                double mana_damage = remaining * mana_as_life;
+                mana_damage -= interaction.getDefender().getMana().damageBy(mana_damage);
+                interaction.setDamage(element, remaining - mana_damage);
             }
         }
 
@@ -278,19 +260,19 @@ public final class DamageManager implements IDamageManager, Listener {
                         interaction.getDefender().die(interaction);
                         Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
 
-                        Bukkit.getLogger().info("not implemented (kill trigger)");
-                        Bukkit.getLogger().info("not implemented (died trigger)");
+                        RPGCore.inst().getLogger().info("not implemented (kill trigger)");
+                        RPGCore.inst().getLogger().info("not implemented (died trigger)");
                     });
                 }
             } else if (interaction.getDefender() instanceof CorePlayer) {
                 ((CorePlayer) interaction.getDefender()).setAsGrave(interaction);
-                Bukkit.getLogger().info("not implemented (kill trigger)");
-                Bukkit.getLogger().info("not implemented (died trigger)");
+                RPGCore.inst().getLogger().info("not implemented (kill trigger)");
+                RPGCore.inst().getLogger().info("not implemented (died trigger)");
             } else {
                 interaction.getDefender().die(interaction);
                 Bukkit.getPluginManager().callEvent(new CoreEntityKilledEvent(interaction));
-                Bukkit.getLogger().info("not implemented (kill trigger)");
-                Bukkit.getLogger().info("not implemented (died trigger)");
+                RPGCore.inst().getLogger().info("not implemented (kill trigger)");
+                RPGCore.inst().getLogger().info("not implemented (died trigger)");
             }
         }
 
@@ -298,12 +280,16 @@ public final class DamageManager implements IDamageManager, Listener {
         interaction.getDefender().getEntity().damage(0d);
         // inform skills about the damage inflicted
 
-        Bukkit.getLogger().info("not implemented (dealt damage trigger)");
-        Bukkit.getLogger().info("not implemented (took damage trigger)");
+        RPGCore.inst().getLogger().info("not implemented (dealt damage trigger)");
+        RPGCore.inst().getLogger().info("not implemented (took damage trigger)");
     }
 
-    @Override
-    public void handleAilment(DamageInteraction interaction, AilmentSnapshot prepared_damage) {
+    /**
+     * Handle ailments for a damage interaction.
+     *
+     * @param interaction Interaction to handle
+     */
+    public void handleAilment(DamageInteraction interaction) {
         // only inflict ailment if there is an attacker
         if (interaction.getAttacker() == null)
             return;
@@ -311,48 +297,81 @@ public final class DamageManager implements IDamageManager, Listener {
         for (AbstractAilment ailment : this.ailments) {
             interaction.getDefender().getAilmentTracker()
                     .computeIfAbsent(ailment, (k -> k.createTracker(interaction.getDefender())))
-                    .acquireAilment(interaction, prepared_damage);
+                    .acquireAilment(interaction);
         }
     }
 
-    @Override
+    /**
+     * Damage can only have one type, but be made up of multiple elements. Each element
+     * has its own scaling vectors.
+     *
+     * @return Damage elements
+     */
     public DamageElement getElement(String element) {
         return this.damage_elements.get(element);
     }
 
-    @Override
+    /**
+     * Damage can only have one type, but be made up of multiple elements. Each element
+     * has its own scaling vectors.
+     *
+     * @return Damage elements
+     */
     public List<DamageElement> getElements() {
         return new ArrayList<>(this.damage_elements.values());
     }
 
-    @Override
+    /**
+     * Damage can only have one type, but be made up of multiple elements. Each element
+     * has its own scaling vectors.
+     *
+     * @return Damage elements
+     */
     public List<DamageElement> getElements(List<String> elements) {
         return elements.stream().map(this::getElement).collect(Collectors.toList());
     }
 
-    @Override
+    /**
+     * Damage can only have one type, but be made up of multiple elements. Each element
+     * has its own scaling vectors.
+     *
+     * @return Damage elements
+     */
     public List<String> getElementIds() {
         return new ArrayList<>(this.damage_elements.keySet());
     }
 
-    @Override
+    /**
+     * A damage type usually ties into the source of a damage, if we attacked
+     * with a sword it would be a 'WEAPON' type, if we have a fireball it would
+     * be 'SPELL' etc.
+     *
+     * @param type Type of damage
+     * @return Type of damage
+     */
     public IDamageType getType(String type) {
         return this.damage_types.get(type);
     }
 
-    @Override
-    public List<IDamageType> getTypes() {
-        return new ArrayList<>(this.damage_types.values());
+    /**
+     * A damage type usually ties into the source of a damage, if we attacked
+     * with a sword it would be a 'WEAPON' type, if we have a fireball it would
+     * be 'SPELL' etc.
+     *
+     * @return All damage types
+     */
+    public Map<String, IDamageType> getDamageTypes() {
+        return damage_types;
     }
 
-    @Override
-    public List<IDamageType> getTypes(List<String> types) {
-        return types.stream().map(this::getType).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<String> getTypeIds() {
-        return new ArrayList<>(this.damage_types.keySet());
+    /**
+     * All ailments registered with the damage manager, an ailment can
+     * be invoked by weapon/spell damage
+     *
+     * @return Ailments
+     */
+    public List<AbstractAilment> getAilments() {
+        return this.ailments;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -375,12 +394,19 @@ public final class DamageManager implements IDamageManager, Listener {
                 }
             }
 
+            double attack_power = 1d;
+
             // retrieve relevant entities that we are using
             Entity vanilla_attacker = ((EntityDamageByEntityEvent) e).getDamager();
             Entity vanilla_defender = e.getEntity();
             if (vanilla_attacker instanceof LivingEntity) {
                 attacker = RPGCore.inst().getEntityManager().getEntity(vanilla_attacker.getUniqueId());
                 defender = RPGCore.inst().getEntityManager().getEntity(vanilla_defender.getUniqueId());
+
+                if (vanilla_attacker instanceof Player) {
+                    attack_power = ((Player) vanilla_attacker).getAttackCooldown();
+                    attack_power = attack_power * attack_power;
+                }
             } else if (vanilla_attacker instanceof Projectile) {
                 ProjectileSource shooter = ((Projectile) vanilla_attacker).getShooter();
                 if (shooter instanceof LivingEntity) {
@@ -394,6 +420,7 @@ public final class DamageManager implements IDamageManager, Listener {
                 // inflict weapon type damage on the entity
                 DamageInteraction interaction = getType("WEAPON").create(defender, attacker);
                 interaction.setDamageBlame("autoattack");
+                interaction.setMultiplier(attack_power);
                 damage(interaction);
                 // update the rage on the given mob
                 if (defender instanceof CoreMob) {

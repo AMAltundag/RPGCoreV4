@@ -1,11 +1,13 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -40,6 +42,9 @@ public class EquipMenu extends AbstractCoreMenu {
                         if (slot.isAccepted(event.getCursor(), getMenu().getViewer())) {
                             // equip the item into an empty slot
                             event.setCurrentItem(new ItemStack(Material.AIR));
+                            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                                applyIntermittentChanges(((Player) event.getWhoClicked()), false);
+                            });
                         } else {
                             // it is not compatible with slot
                             event.setCancelled(true);
@@ -50,12 +55,18 @@ public class EquipMenu extends AbstractCoreMenu {
                             event.setCursor(event.getCurrentItem());
                             event.setCurrentItem(slot.empty);
                             event.setCancelled(true);
+                            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                                applyIntermittentChanges(((Player) event.getWhoClicked()), false);
+                            });
                         } else if (!slot.isAccepted(event.getCursor(), getMenu().getViewer())) {
                             // it is not compatible with slot
                             event.setCancelled(true);
                         } else {
                             // swap with the equipped item
                             event.setCancelled(false);
+                            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                                applyIntermittentChanges(((Player) event.getWhoClicked()), false);
+                            });
                         }
                     }
                 } else {
@@ -69,6 +80,44 @@ public class EquipMenu extends AbstractCoreMenu {
         } else {
             event.setCancelled(true);
         }
+    }
+
+    /*
+     * An intermittent change applies all changes, except for modifying
+     * the bukkit inventory.
+     */
+    private void applyIntermittentChanges(Player bukkit_player, boolean reflected) {
+        // update equipment and reflect it
+        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(bukkit_player);
+        if (core_player == null) {
+            return;
+        }
+
+        for (me.blutkrone.rpgcore.hud.menu.EquipMenu.Slot slot : this.slots) {
+            if (!slot.empty.isSimilar(getMenu().getItemAt(slot.slot))) {
+                core_player.setEquipped(slot.id, getMenu().getItemAt(slot.slot));
+            } else {
+                core_player.setEquipped(slot.id, null);
+            }
+        }
+
+        // apply the changes that were made
+        RPGCore.inst().getHUDManager().getEquipMenu().applyEquipChange(core_player, reflected);
+
+        // flush all items in the inventory
+        CorePlayer player = RPGCore.inst().getEntityManager().getPlayer(bukkit_player);
+        Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+            // flush from cursor
+            RPGCore.inst().getItemManager().describe(bukkit_player.getItemOnCursor(), player);
+            // flush from inventory
+            for (ItemStack item : bukkit_player.getInventory().getContents()) {
+                if (item == null || RPGCore.inst().getHUDManager().getEquipMenu().isReflected(item)) {
+                    continue;
+                }
+                RPGCore.inst().getItemManager().describe(item, player);
+            }
+            bukkit_player.updateInventory();
+        });
     }
 
     @Override
@@ -104,20 +153,7 @@ public class EquipMenu extends AbstractCoreMenu {
 
     @Override
     public void close(InventoryCloseEvent event) {
-        // update equipment and reflect it
-        CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(event.getPlayer());
-        if (core_player == null) {
-            return;
-        }
-        for (me.blutkrone.rpgcore.hud.menu.EquipMenu.Slot slot : this.slots) {
-            if (!slot.empty.isSimilar(getMenu().getItemAt(slot.slot))) {
-                core_player.setEquipped(slot.id, getMenu().getItemAt(slot.slot));
-            } else {
-                core_player.setEquipped(slot.id, null);
-            }
-        }
-        // apply the changes that were made
-        RPGCore.inst().getHUDManager().getEquipMenu().applyEquipChange(core_player);
+        applyIntermittentChanges((Player) event.getPlayer(), true);
     }
 
     @Override

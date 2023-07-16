@@ -8,6 +8,7 @@ import me.blutkrone.rpgcore.resourcepack.bbmodel.BBExporter;
 import me.blutkrone.rpgcore.resourcepack.component.ResourcePackFont;
 import me.blutkrone.rpgcore.resourcepack.component.ResourcePackItem;
 import me.blutkrone.rpgcore.resourcepack.generated.*;
+import me.blutkrone.rpgcore.resourcepack.upload.KeepUploader;
 import me.blutkrone.rpgcore.resourcepack.upload.TempUploader;
 import me.blutkrone.rpgcore.resourcepack.upload.TransferUploader;
 import me.blutkrone.rpgcore.resourcepack.utils.CompileClock;
@@ -43,8 +44,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -335,7 +336,7 @@ public class ResourcePackManager implements Listener {
             // Copy the template into our working directory
             FileUtils.copyDirectory(TEMPLATE, WORKSPACE_WORKING);
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Preparing the working space in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Preparing the working space in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -344,7 +345,7 @@ public class ResourcePackManager implements Listener {
                 indexed_parameter.put("char_length_" + ((int) c), 0d + len);
             });
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Processed font measurements in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Processed font measurements in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -356,7 +357,7 @@ public class ResourcePackManager implements Listener {
             for (File armor_files : INPUT_ARMOR.listFiles()) {
                 int color = Integer.parseInt(armor_files.getName());
                 if (color >= (2 << (8 * 3 - 1)) || color < 0) {
-                    Bukkit.getLogger().severe("Illegal Shader Armor ID: " + color);
+                    RPGCore.inst().getLogger().severe("Illegal Shader Armor ID: " + color);
                 } else {
                     layer1.put(color, ImageIO.read(new File(armor_files, "layer_1.png")));
                     layer2.put(color, ImageIO.read(new File(armor_files, "layer_2.png")));
@@ -409,7 +410,7 @@ public class ResourcePackManager implements Listener {
             ImageIO.write(joined1, "png", new File(OUTPUT_ARMOR, "leather_layer_1.png"));
             ImageIO.write(joined2, "png", new File(OUTPUT_ARMOR, "leather_layer_2.png"));
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Processed shader armors in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Processed shader armors in %sms", clock.loop()));
 
         });
         worker.add(true, () -> {
@@ -434,7 +435,7 @@ public class ResourcePackManager implements Listener {
             // register the sounds we have added
             ResourceUtil.saveToDisk(sounds, WORKSPACE_SOUND_FILE, do_compression);
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Processed audio files in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Processed audio files in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -447,7 +448,7 @@ public class ResourcePackManager implements Listener {
                 fonts.put(filename, ResourceUtil.workingLoadFont(font_file));
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Loading pre-existing fonts in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Loading pre-existing fonts in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -458,7 +459,7 @@ public class ResourcePackManager implements Listener {
                         fonts.computeIfAbsent(id, (k -> new ArrayList<>())).addAll(list);
                     });
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Loading fonts with special offsets %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Loading fonts with special offsets %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -532,7 +533,7 @@ public class ResourcePackManager implements Listener {
                 }
             }
 
-            Bukkit.getLogger().info(String.format("Generated 'maps' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'maps' font textures in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             StaticGenerator.PooledSymbolSpace interface_base_space = new StaticGenerator.PooledSymbolSpace();
@@ -540,28 +541,28 @@ public class ResourcePackManager implements Listener {
             clock.loop();
             // basic textures for the menus
             indexed_fonts.putAll(MenuGenerator.construct(INPUT_MENU));
-            Bukkit.getLogger().info(String.format("Generated 'menu' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'menu' font textures in %sms", clock.loop()));
             // marker textures for the compass
             indexed_fonts.putAll(MarkerGenerator.construct(INPUT_MARKER, rules.marker_offset));
-            Bukkit.getLogger().info(String.format("Generated 'markers' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'markers' font textures in %sms", clock.loop()));
             // status effect icons for self
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "self_upper", rules.status_self_upper_offset));
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "self_lower", rules.status_self_lower_offset));
-            Bukkit.getLogger().info(String.format("Generated 'status' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'status' font textures in %sms", clock.loop()));
             // icons specific to skills
             indexed_fonts.putAll(SkillGenerator.construct(INPUT_SKILLBAR, rules.skillbar_offset, rules.focus_skillbar_offset));
-            Bukkit.getLogger().info(String.format("Generated 'skill' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'skill' font textures in %sms", clock.loop()));
             // progress bar for player activity
             indexed_fonts.putAll(BarGenerator.construct(FileUtil.file("resourcepack/generated/interface", "activity_filling.png"), rules.activity_offset));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file("resourcepack/generated/interface", "activity_back.png"), "interface_base", rules.activity_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file("resourcepack/generated/interface", "activity_front.png"), "interface_base", rules.activity_offset, interface_base_space));
-            Bukkit.getLogger().info(String.format("Generated 'activity' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'activity' font textures in %sms", clock.loop()));
             // resources of the shown player
             indexed_fonts.putAll(OrbGenerator.construct(FileUtil.file(INPUT_INTERFACE, "self_health.png"), rules.health_orb_offset));
             indexed_fonts.putAll(OrbGenerator.construct(FileUtil.file(INPUT_INTERFACE, "self_mana.png"), rules.mana_orb_offset));
             indexed_fonts.putAll(RadialGenerator.construct(FileUtil.file(INPUT_INTERFACE, "self_ward.png"), rules.ward_radial_offset));
             indexed_fonts.putAll(RadialGenerator.construct(FileUtil.file(INPUT_INTERFACE, "self_stamina.png"), rules.stamina_radial_offset));
-            Bukkit.getLogger().info(String.format("Generated 'resource' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'resource' font textures in %sms", clock.loop()));
             // party member specifics
             for (int i = 0; i < 5; i++) {
                 int displacement = rules.party_offset - (rules.party_distance * i);
@@ -571,14 +572,14 @@ public class ResourcePackManager implements Listener {
                 indexed_fonts.putAll(BarGenerator.construct(FileUtil.file(INPUT_INTERFACE, "party_health_filling.png"), String.valueOf(i), displacement + rules.party_health_offset));
                 indexed_fonts.putAll(BarGenerator.construct(FileUtil.file(INPUT_INTERFACE, "party_ward_filling.png"), String.valueOf(i), displacement + rules.party_ward_offset));
             }
-            Bukkit.getLogger().info(String.format("Generated 'party' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'party' font textures in %sms", clock.loop()));
             // focused entity specifics
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "focus_back.png"), "interface_base", rules.focus_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "focus_front.png"), "interface_base", rules.focus_offset, interface_base_space));
             indexed_fonts.putAll(BarGenerator.construct(FileUtil.file(INPUT_INTERFACE, "focus_health_filling.png"), rules.focus_offset + rules.focus_health_offset));
             indexed_fonts.putAll(BarGenerator.construct(FileUtil.file(INPUT_INTERFACE, "focus_ward_filling.png"), rules.focus_offset + rules.focus_ward_offset));
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "focus", rules.focus_offset + rules.focus_status_offset));
-            Bukkit.getLogger().info(String.format("Generated 'focus' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'focus' font textures in %sms", clock.loop()));
             // generic item lore specific
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "item_lore", 0));
             // basic interface components to be rendered
@@ -596,60 +597,60 @@ public class ResourcePackManager implements Listener {
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "plate_glass.png"), "interface_base", rules.plate_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "skill_unaffordable.png"), "interface_base", rules.skillbar_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "skill_cooldown.png"), "interface_base", rules.skillbar_offset, interface_base_space));
-            Bukkit.getLogger().info(String.format("Generated 'misc' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'misc' font textures in %sms", clock.loop()));
             // track symbols used to build the lore
             indexed_fonts.putAll(LoreGenerator.construct(INPUT_LORE_STYLE, INPUT_LORE_ICON, INPUT_LORE_JEWEL, INPUT_SKILLBAR, rules, new StaticGenerator.PooledSymbolSpace()));
-            Bukkit.getLogger().info(String.format("Generated 'lore' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'lore' font textures in %sms", clock.loop()));
             // generate job portraits
             StaticGenerator.PooledSymbolSpace portrait_symbol_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_PORTRAIT)) {
                 indexed_fonts.putAll(StaticGenerator.construct(file, "portrait", "portrait", rules.portrait_offset, portrait_symbol_space));
             }
-            Bukkit.getLogger().info(String.format("Generated 'portrait' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'portrait' font textures in %sms", clock.loop()));
             // generate frame wrappers
             // indexed_fonts.putAll(FrameGenerator.construct(FileUtil.file(INPUT_FRAME, "instruction.png"), "instruction", rules.instruction_offset));
-            Bukkit.getLogger().info(String.format("Generated 'frame' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'frame' font textures in %sms", clock.loop()));
             // generate slot based menu animations
             indexed_fonts.putAll(AnimationGenerator.createSlotAnimation(INPUT_ANIMATION_SLOT));
-            Bukkit.getLogger().info(String.format("Generated 'slot animation' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'slot animation' font textures in %sms", clock.loop()));
             // passive texture
             indexed_fonts.putAll(PassiveGenerator.createSlotAnimation(INPUT_PASSIVE));
-            Bukkit.getLogger().info(String.format("Generated 'passive' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'passive' font textures in %sms", clock.loop()));
             // generate cortex menu textures
             indexed_fonts.putAll(CortexGenerator.constructSmall(INPUT_CORTEX_SMALL));
             indexed_fonts.putAll(CortexGenerator.constructMedium(INPUT_CORTEX_MEDIUM));
             indexed_fonts.putAll(CortexGenerator.constructLarge(INPUT_CORTEX_LARGE));
-            Bukkit.getLogger().info(String.format("Generated 'cortex' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'cortex' font textures in %sms", clock.loop()));
             // textures used by holograms
             indexed_fonts.putAll(HologramGenerator.construct(INPUT_HOLOGRAM));
-            Bukkit.getLogger().info(String.format("Generated 'hologram' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'hologram' font textures in %sms", clock.loop()));
             // textures used by scroller menu
             indexed_fonts.putAll(ScrollerGenerator.construct(INPUT_SCROLLER));
-            Bukkit.getLogger().info(String.format("Generated 'scroller' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'scroller' font textures in %sms", clock.loop()));
             // textures used by currencies
             indexed_fonts.putAll(CurrencyGenerator.construct(INPUT_CURRENCY));
-            Bukkit.getLogger().info(String.format("Generated 'currency' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'currency' font textures in %sms", clock.loop()));
             // textures used by dialogue
             indexed_fonts.putAll(DialogueGenerator.construct(INPUT_DIALOGUE));
-            Bukkit.getLogger().info(String.format("Generated 'dialogue' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'dialogue' font textures in %sms", clock.loop()));
             // textures used by dialogue
             StaticGenerator.PooledSymbolSpace selfie_symbol_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_SELFIE)) {
                 indexed_fonts.putAll(StaticGenerator.construct(file, "dialogue_selfie", "selfie", MenuGenerator.MENU_VERTICAL_OFFSET, selfie_symbol_space));
             }
-            Bukkit.getLogger().info(String.format("Generated 'selfie' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'selfie' font textures in %sms", clock.loop()));
             // sigils are used on the focus bar
             StaticGenerator.PooledSymbolSpace sigil_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_FOCUS_SIGIL)) {
                 indexed_fonts.putAll(StaticGenerator.construct(file, "focus_sigil", "focus_sigil", rules.focus_sigil_offset, sigil_space));
             }
-            Bukkit.getLogger().info(String.format("Generated 'sigil' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'sigil' font textures in %sms", clock.loop()));
             // textures used by quests
             StaticGenerator.PooledSymbolSpace quest_symbol_space = new StaticGenerator.PooledSymbolSpace();
             for (File file : FileUtil.buildAllFiles(INPUT_QUEST)) {
                 indexed_fonts.putAll(StaticGenerator.construct(file, "quest_icon", "quest_icon", rules.quest_offset, quest_symbol_space));
             }
-            Bukkit.getLogger().info(String.format("Generated 'quest' font textures in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generated 'quest' font textures in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -702,7 +703,7 @@ public class ResourcePackManager implements Listener {
                 }
             }
 
-            Bukkit.getLogger().info(String.format("Built %s font textures in %sms", indexed_fonts.size(), clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Built %s font textures in %sms", indexed_fonts.size(), clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -710,7 +711,7 @@ public class ResourcePackManager implements Listener {
             // Load up items which have been specified previously already
             items.putAll(ResourceUtil.workingLoadItem(WORKSPACE_ITEM));
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Loading pre-existing items in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Loading pre-existing items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -738,7 +739,7 @@ public class ResourcePackManager implements Listener {
                 }
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Generating texture based items in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generating texture based items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -768,12 +769,12 @@ public class ResourcePackManager implements Listener {
                     items.computeIfAbsent(material, (k -> ResourceUtil.createItemCompound(material)))
                             .overrides.add(new ResourcePackItem.ItemOverride(model_data, "minecraft:generated/" + model_name));
                 } catch (Exception ex) {
-                    Bukkit.getLogger().severe("BBModel could not parse: " + file_bb_model.getPath());
+                    RPGCore.inst().getLogger().severe("BBModel could not parse: " + file_bb_model.getPath());
                     ex.printStackTrace();
                 }
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Generating bbmodel based items in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Generating bbmodel based items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -796,7 +797,7 @@ public class ResourcePackManager implements Listener {
                 ResourceUtil.saveToDisk(font_output, file, do_compression);
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Constructing the font registry in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Constructing the font registry in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -812,7 +813,7 @@ public class ResourcePackManager implements Listener {
                 ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, do_compression);
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Constructing the item registry in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Constructing the item registry in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -858,7 +859,7 @@ public class ResourcePackManager implements Listener {
                 e.printStackTrace();
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Building font index in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Building font index in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             if (do_compression) {
@@ -897,11 +898,11 @@ public class ResourcePackManager implements Listener {
                     processed++;
                     if ((System.currentTimeMillis() - last_stamp) > 6000L) {
                         last_stamp = System.currentTimeMillis();
-                        Bukkit.getLogger().info("Compressing " + processed + " of " + total + " files!");
+                        RPGCore.inst().getLogger().info("Compressing " + processed + " of " + total + " files!");
                     }
                 }
                 // Notify about what've done
-                Bukkit.getLogger().info(String.format("Image compression pass done in %sms", clock.loop()));
+                RPGCore.inst().getLogger().info(String.format("Image compression pass done in %sms", clock.loop()));
             }
         });
         worker.add(true, () -> {
@@ -916,7 +917,7 @@ public class ResourcePackManager implements Listener {
                         zip_file.addFolder(file);
                     else zip_file.addFile(file);
                 } catch (ZipException ex) {
-                    Bukkit.getLogger().severe("Zip Conflict: " + file.getPath() + ", skipped!");
+                    RPGCore.inst().getLogger().severe("Zip Conflict: " + file.getPath() + ", skipped!");
                 }
             }
             // stall until threaded zipper has finished working
@@ -929,7 +930,7 @@ public class ResourcePackManager implements Listener {
             } catch (IOException ignored) {
             }
             // Notify about what've done
-            Bukkit.getLogger().info(String.format("Finalizing workspace in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Finalizing workspace in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
@@ -944,13 +945,17 @@ public class ResourcePackManager implements Listener {
             if (url.equals("error")) {
                 url = TempUploader.upload(OUTPUT_RESULT);
             }
+            // upload to keep.sh
+            if (url.equals("error")) {
+                url = KeepUploader.upload(OUTPUT_RESULT);
+            }
             // warn if no upload succeed
             if (url.equals("error")) {
-                Bukkit.getLogger().severe("The upload services failed, try again later or upload './resourcepack/output/result.zip' manually.");
+                RPGCore.inst().getLogger().severe("The upload services failed, try again later or upload './resourcepack/output/result.zip' manually.");
             }
             this.setUrl(url);
             // Notify about what we've done
-            Bukkit.getLogger().info(String.format("Uploaded resourcepack in %sms", clock.loop()));
+            RPGCore.inst().getLogger().info(String.format("Uploaded resourcepack in %sms", clock.loop()));
         });
         worker.add(false, () -> {
             callback.accept(OUTPUT_RESULT);

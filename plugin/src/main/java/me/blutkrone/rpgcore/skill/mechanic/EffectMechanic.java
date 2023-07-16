@@ -3,8 +3,8 @@ package me.blutkrone.rpgcore.skill.mechanic;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorEffectMechanic;
 import me.blutkrone.rpgcore.effect.CoreEffect;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorEffectMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
 import java.util.ArrayList;

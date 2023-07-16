@@ -1,13 +1,13 @@
 package me.blutkrone.rpgcore.mob.loot;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.editor.bundle.loot.EditorLootItem;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
-import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootItem;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Bukkit;
@@ -72,7 +72,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
             }
 
             if (weighed.isEmpty()) {
-                Bukkit.getLogger().severe("No items can drop with weights " + weights);
+                RPGCore.inst().getLogger().severe("No items can drop with weights " + weights);
             }
 
             return weighed;

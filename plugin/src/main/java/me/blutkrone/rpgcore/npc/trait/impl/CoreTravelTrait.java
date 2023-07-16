@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorTravelTrait;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorTravelTrait;
 import me.blutkrone.rpgcore.menu.NavigationMenu;
 import me.blutkrone.rpgcore.minimap.MapMarker;
 import me.blutkrone.rpgcore.minimap.MapRegion;

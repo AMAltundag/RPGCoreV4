@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorAnchorMechanic;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorAnchorMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.proxy.AnchorProxy;
 import org.bukkit.inventory.ItemStack;

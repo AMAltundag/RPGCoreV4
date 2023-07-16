@@ -4,7 +4,10 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
+import me.blutkrone.rpgcore.nms.api.packet.handle.IItemDisplay;
+import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
+import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileBillboard;
+import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileDisplay;
 import me.blutkrone.rpgcore.skill.mechanic.StatusMechanic;
 import me.blutkrone.rpgcore.util.Utility;
 import net.md_5.bungee.api.chat.*;
@@ -14,7 +17,6 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -31,8 +33,8 @@ public class PlayerGraveTask extends BukkitRunnable {
     // interaction to blame for the player death
     private DamageInteraction grave_interaction;
     // entity to mark the grave of the player
-    private IHologram hologram_grave;
-    private IHologram hologram_text;
+    private IItemDisplay hologram_grave;
+    private ITextDisplay hologram_text;
     // where did the player die
     private Location grave_anchor;
     // offer to revive the player
@@ -59,8 +61,8 @@ public class PlayerGraveTask extends BukkitRunnable {
     /**
      * If dying, will allow the player to resurrect instead.
      *
-     * @param health Percentage to revive with
-     * @param mana Percentage to revive with
+     * @param health  Percentage to revive with
+     * @param mana    Percentage to revive with
      * @param stamina Percentage to revive with
      */
     public void offerToRevive(double health, double mana, double stamina, Map<String, Double> attributes, int duration) {
@@ -113,9 +115,9 @@ public class PlayerGraveTask extends BukkitRunnable {
         this.grave_anchor = null;
         this.revive_allow = false;
         // recover resources of player
-        this.player.getHealth().setToExactUnsafe(this.player.getHealth().getSnapshotMaximum()*this.revive_health);
-        this.player.getMana().setToExactUnsafe(this.player.getMana().getSnapshotMaximum()*this.revive_mana);
-        this.player.getStamina().setToExactUnsafe(this.player.getStamina().getSnapshotMaximum()*this.revive_stamina);
+        this.player.getHealth().setToExactUnsafe(this.player.getHealth().getSnapshotMaximum() * this.revive_health);
+        this.player.getMana().setToExactUnsafe(this.player.getMana().getSnapshotMaximum() * this.revive_mana);
+        this.player.getStamina().setToExactUnsafe(this.player.getStamina().getSnapshotMaximum() * this.revive_stamina);
         // temporary status effect on player
         if (!this.revive_attributes.isEmpty()) {
             this.player.addEffect("rpgcore_revive_effect", new StatusMechanic.StatusEffect(
@@ -143,19 +145,17 @@ public class PlayerGraveTask extends BukkitRunnable {
             }
             this.grave_anchor = block.getLocation();
             // show the hologram to everyone interested
-            this.hologram_grave = RPGCore.inst().getVolatileManager().getPackets().hologram();
-            this.hologram_text = RPGCore.inst().getVolatileManager().getPackets().hologram();
+            this.hologram_grave = RPGCore.inst().getVolatileManager().getPackets().item();
+            this.hologram_text = RPGCore.inst().getVolatileManager().getPackets().text();
             String info = RPGCore.inst().getLanguageManager().getTranslation("grave_indicator")
                     .replace("{NAME}", this.player.getName())
                     .replace("{TIME}", String.valueOf(Math.max(this.grave_counter / 20, 1)));
             List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.grave_anchor);
             for (Player viewer : observing) {
-                if (viewer != player_bukkit || true) {
-                    this.hologram_grave.spawn(viewer, this.grave_anchor);
-                    this.hologram_grave.equip(viewer, EquipmentSlot.HEAD, RPGCore.inst().getEntityManager().getGraveDefault());
-                    this.hologram_text.spawn(viewer, this.grave_anchor.clone().add(0d, 2.5d, 0d));
-                    this.hologram_text.name(viewer, TextComponent.fromLegacyText(info));
-                }
+                this.hologram_grave.spawn(viewer, this.grave_anchor);
+                this.hologram_grave.item(viewer, RPGCore.inst().getEntityManager().getGraveDefault(), 1d, VolatileBillboard.FIXED, VolatileDisplay.FIXED);
+                this.hologram_text.spawn(viewer, this.grave_anchor.clone().add(0d, 2.5d, 0d));
+                this.hologram_text.message(viewer, TextComponent.fromLegacyText(info), true, false);
             }
             // be invisible during the death phase
             for (Player viewer : player_bukkit.getWorld().getPlayers()) {
@@ -179,7 +179,7 @@ public class PlayerGraveTask extends BukkitRunnable {
             List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.grave_anchor);
             for (Player viewer : observing) {
                 if (viewer != player_bukkit || true) {
-                    this.hologram_text.name(viewer, TextComponent.fromLegacyText(info));
+                    this.hologram_text.message(viewer, TextComponent.fromLegacyText(info), true, false);
                 }
             }
             // just in case player somehow moved, snap back

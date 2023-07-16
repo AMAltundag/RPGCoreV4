@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.npc.trait.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.EditorDialogueTrait;
+import me.blutkrone.rpgcore.editor.bundle.npc.EditorDialogueTrait;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;

@@ -82,15 +82,25 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         if (core_player == null) {
             return false;
         }
-        // cannot have completed any blacklist quests
+        // check for quests
         for (String id : template().getQuestBlacklist()) {
             if (core_player.getCompletedQuests().contains(id)) {
                 return false;
             }
         }
-        // must have completed all whitelist quests
         for (String id : template().getQuestWhitelist()) {
             if (!core_player.getCompletedQuests().contains(id)) {
+                return false;
+            }
+        }
+        // check for tags
+        for (String id : template().getTagBlacklist()) {
+            if (core_player.getPersistentTags().contains(id)) {
+                return false;
+            }
+        }
+        for (String id : template().getTagWhitelist()) {
+            if (!core_player.getPersistentTags().contains(id)) {
                 return false;
             }
         }
@@ -128,7 +138,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         // create a hologram for the NPC name
         hologram().spawn(player, location());
         hologram().mount(player, this.id());
-        hologram().name(player, describe(player));
+        hologram().message(player, describe(player), true, false);
     }
 
     @Override
@@ -139,7 +149,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         }
         // update name shown via hologram
         if (Math.random() <= 0.25d) {
-            hologram().name(player, describe(player));
+            hologram().message(player, describe(player), true, false);
         }
     }
 

@@ -30,21 +30,35 @@ public class CoreToBukkitAttributeTask extends BukkitRunnable {
             return;
 
         // action speed serves as a multiplier to other speed modifiers
-        double action_speed = this.entity.evaluateAttribute("ACTION_SPEED");
+        double action_speed = Math.max(0d, 1d + this.entity.evaluateAttribute("ACTION_SPEED"));
 
         // adjust bukkit attack speed modifier
-        double attack_speed = Math.max(0.25, (1d + this.entity.evaluateAttribute("ATTACK_SPEED")) * (1d + action_speed));
+        double attack_speed = this.entity.evaluateAttribute("ATTACK_SPEED") * action_speed;
         if (Math.abs(attack_speed - last_attack_speed) > 0.001d) {
             AttributeInstance attribute = bukkit_entity.getAttribute(org.bukkit.attribute.Attribute.GENERIC_ATTACK_SPEED);
-            Utility.swapModifier(attribute, "rpgcore_attack_speed", attack_speed, AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            if (attack_speed < 0d) {
+                Utility.swapModifier(attribute, "rpgcore_attack_speed", 1 / (1d - attack_speed), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            } else if (attack_speed > 0d) {
+                Utility.swapModifier(attribute, "rpgcore_attack_speed", attack_speed, AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            } else {
+                Utility.removeModifier(attribute, "rpgcore_attack_speed");
+            }
+
             last_attack_speed = attack_speed;
         }
 
         // adjust bukkit movement speed modifier
-        double move_speed = Math.min(5d, Math.max(0.01, (1d + this.entity.evaluateAttribute("MOVE_SPEED")) * (1d + action_speed)));
+        double move_speed = this.entity.evaluateAttribute("MOVE_SPEED") * action_speed;
         if (Math.abs(move_speed - last_move_speed) > 0.001d) {
             AttributeInstance attribute = bukkit_entity.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MOVEMENT_SPEED);
-            Utility.swapModifier(attribute, "rpgcore_move_speed", move_speed, AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            if (move_speed < 0d) {
+                Utility.swapModifier(attribute, "rpgcore_move_speed", 1 / (1d - move_speed), AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            } else if (move_speed > 0d) {
+                Utility.swapModifier(attribute, "rpgcore_move_speed", move_speed, AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+            } else {
+                Utility.removeModifier(attribute, "rpgcore_move_speed");
+            }
+
             last_move_speed = move_speed;
         }
     }

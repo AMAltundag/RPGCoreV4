@@ -2,15 +2,14 @@ package me.blutkrone.rpgcore.node.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.activity.IActivity;
+import me.blutkrone.rpgcore.editor.bundle.item.EditorLoot;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.root.node.EditorNodeCollectible;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.item.EditorLoot;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
-import me.blutkrone.rpgcore.hud.editor.root.node.EditorNodeCollectible;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.job.CoreProfession;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.node.activity.ObserveCollectionActivity;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
@@ -21,8 +20,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
@@ -205,6 +206,7 @@ public class CoreNodeCollectible extends AbstractNode {
         // update collection rating of the node
         if (RPGCore.inst().getTimestamp() >= data.collecting_expire) {
             data.have_collected = 0d;
+            data.collecting.clear();
         }
         data.collecting_expire = RPGCore.inst().getTimestamp() + 40;
         data.collecting.add(player.getUniqueId());
@@ -291,7 +293,7 @@ public class CoreNodeCollectible extends AbstractNode {
         // when can the node be restocked
         private int cooldown_until;
         // physical entity representing us
-        private Reference<IEntityVisual> visual;
+        private Reference<ItemDisplay> visual;
         private Reference<IEntityCollider> collide;
         // location of the node
         private Location where;
@@ -343,9 +345,9 @@ public class CoreNodeCollectible extends AbstractNode {
         void update(ItemStack item) {
             if (NOTHING.isSimilar(item))
                 item = new ItemStack(Material.AIR);
-            IEntityVisual visual = getVisual();
-            if (!item.isSimilar(visual.getItem(EquipmentSlot.HAND))) {
-                visual.setItem(EquipmentSlot.HAND, item);
+            ItemDisplay visual = getVisual();
+            if (!item.isSimilar(visual.getItemStack())) {
+                visual.setItemStack(item);
             }
         }
 
@@ -354,25 +356,27 @@ public class CoreNodeCollectible extends AbstractNode {
          *
          * @return what entity we are backing
          */
-        IEntityVisual getVisual() {
+        ItemDisplay getVisual() {
             // fetch the existing model entity
-            IEntityVisual visual = this.visual.get();
+            ItemDisplay visual = this.visual.get();
             // if the model entity broke, create a new one
-            if (visual == null || !visual.isActive()) {
-                visual = RPGCore.inst().getVolatileManager().createVisualEntity(this.where, false);
-                visual.asBukkit().setMetadata("rpgcore-node", new FixedMetadataValue(RPGCore.inst(), this.node_identifier));
+            if (visual == null || !visual.isValid()) {
+                visual = (ItemDisplay) this.where.getWorld().spawnEntity(where, EntityType.ITEM_DISPLAY);
+                visual.setMetadata("rpgcore-node", new FixedMetadataValue(RPGCore.inst(), this.node_identifier));
+                visual.setBillboard(Display.Billboard.FIXED);
+                visual.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
                 this.visual = new WeakReference<>(visual);
             }
             // if the collider broke, create a new one
             IEntityCollider collider = this.collide.get();
             if (collider == null || !collider.isActive()) {
-                collider = RPGCore.inst().getVolatileManager().createCollider(visual.asBukkit());
+                collider = RPGCore.inst().getVolatileManager().createCollider(visual);
                 collider.resize(collider_size);
                 this.collide = new WeakReference<>(collider);
             }
             // establish a link
-            collider.link(visual.asBukkit());
-            collider.move(visual.asBukkit().getLocation());
+            collider.link(visual);
+            collider.move(visual.getLocation());
             // offer up our model entity
             return visual;
         }
@@ -380,7 +384,7 @@ public class CoreNodeCollectible extends AbstractNode {
         @Override
         public void abandon() {
             // clean up the model of the collectible object
-            IEntityVisual entity = this.visual.get();
+            ItemDisplay entity = this.visual.get();
             if (entity != null) {
                 entity.remove();
             }

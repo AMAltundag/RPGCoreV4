@@ -5,7 +5,7 @@ matchmaker-configuration:
     players: 2
     # Use server with the least players online
     servers:
-    - "shard-01"
-    - "shard-02"
+      - "shard-01"
+      - "shard-02"
     # Player limit of the servers
     maximum-players: 50

@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.skill.skillbar.bound;
 
 import me.blutkrone.rpgcore.api.activity.IActivity;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.binding.EditorCastBind;
-import me.blutkrone.rpgcore.hud.editor.bundle.cost.AbstractEditorCost;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAction;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.binding.EditorCastBind;
+import me.blutkrone.rpgcore.editor.bundle.cost.AbstractEditorCost;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAction;
 import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
@@ -42,6 +42,8 @@ public class SkillBindCast implements ISkillBind {
     public List<CoreAction> actions;
     // whether we can be externally triggered
     public CoreModifierBoolean triggerable;
+    // interruption flag
+    public CoreModifierBoolean interruptable;
 
     public SkillBindCast(CoreSkill skill, EditorCastBind editor) {
         this.skill = skill;
@@ -61,6 +63,7 @@ public class SkillBindCast implements ISkillBind {
         this.cast_time = editor.cast_time.build();
         this.cast_faster = editor.cast_faster.build();
         this.triggerable = editor.triggerable.build();
+        this.interruptable = editor.interruptable.build();
     }
 
     @Override

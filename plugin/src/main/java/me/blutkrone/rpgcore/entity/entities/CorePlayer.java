@@ -11,8 +11,11 @@ import me.blutkrone.rpgcore.entity.IOfflineCorePlayer;
 import me.blutkrone.rpgcore.entity.focus.FocusTracker;
 import me.blutkrone.rpgcore.entity.tasks.PlayerFocusTask;
 import me.blutkrone.rpgcore.entity.tasks.PlayerGraveTask;
+import me.blutkrone.rpgcore.entity.tasks.SnapshotTask;
 import me.blutkrone.rpgcore.hud.menu.SettingsMenu;
+import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.item.ItemManager;
+import me.blutkrone.rpgcore.item.Requirement;
 import me.blutkrone.rpgcore.item.data.ItemDataGeneric;
 import me.blutkrone.rpgcore.item.data.ItemDataJewel;
 import me.blutkrone.rpgcore.item.data.ItemDataModifier;
@@ -34,6 +37,9 @@ import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
 import java.io.IOException;
@@ -153,6 +159,9 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // task to handle death in grave
         this.bukkit_tasks.add((this.grave_task = new PlayerGraveTask(this)).runTaskTimer(RPGCore.inst(), 1, 1));
+        // snapshot for attributes task
+        this.bukkit_tasks.add(new SnapshotTask(this).runTaskTimer(RPGCore.inst(), 1, 20));
+
         // the character which we represent
         this.character = character;
         // snapshot name of player
@@ -191,8 +200,8 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     /**
      * If dying, will allow the player to resurrect instead.
      *
-     * @param health Percentage to revive with
-     * @param mana Percentage to revive with
+     * @param health  Percentage to revive with
+     * @param mana    Percentage to revive with
      * @param stamina Percentage to revive with
      */
     public void offerToRevive(double health, double mana, double stamina, Map<String, Double> attributes, int duration) {
@@ -214,33 +223,14 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         // player death allows for quick login
         this.quickJoinNextTime();
 
-        // if we hold the target rage, reset it
+        // fail-safe, rage should be already be reset when we use a grave
         if (interaction.getAttacker() instanceof CoreMob) {
             CoreMob attacker = (CoreMob) interaction.getAttacker();
             IEntityBase attacker_base = attacker.getBase();
             if (attacker_base != null) {
                 LivingEntity rage_entity = attacker_base.getRageEntity();
                 if (rage_entity != null && this.getUniqueId().equals(rage_entity.getUniqueId())) {
-                    // find someone to shift the rage to
-                    List<CoreEntity> candidates = attacker.getNearby(32d);
-                    candidates.remove(attacker);
-                    candidates.remove(this);
-                    candidates.removeIf(e -> e.distance(attacker) > 32d || e.isFriendly(attacker) || !e.hasLineOfSight(attacker));
-                    CoreEntity picked = null;
-                    double closest = Double.MAX_VALUE;
-                    for (CoreEntity candidate : candidates) {
-                        double dist = candidate.distance(attacker);
-                        if (dist < closest || picked == null) {
-                            picked = candidate;
-                            closest = dist;
-                        }
-                    }
-                    if (picked != null) {
-                        double focus = picked.evaluateAttribute("RAGE_FOCUS");
-                        attacker_base.rageTransfer(picked.getEntity(), focus);
-                    } else {
-                        attacker_base.resetRage();
-                    }
+                    attacker_base.resetRage();
                 }
             }
         }
@@ -370,6 +360,19 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         // update our current level
         this.current_exp = 0d;
         setCurrentLevel(this.getCurrentLevel() + 1);
+        // with a delay, flush item descriptions
+        Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+            Player entity = this.getEntity();
+            if (entity != null) {
+                for (ItemStack item : entity.getInventory().getContents()) {
+                    if (item == null || RPGCore.inst().getHUDManager().getEquipMenu().isReflected(item)) {
+                        continue;
+                    }
+                    RPGCore.inst().getItemManager().describe(item, this);
+                }
+                entity.updateInventory();
+            }
+        });
     }
 
     /**
@@ -388,11 +391,12 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * access to.
      */
     public void updatePassiveTree() {
-        List<IExpiringModifier> passive_cache_attribute = getExpiringModifiers("passive");
-        for (IExpiringModifier modifier : passive_cache_attribute) {
+        List<IExpiringModifier> passive_expiring = getExpiringModifiers("passive");
+        for (IExpiringModifier modifier : passive_expiring) {
             modifier.setExpired();
         }
-        passive_cache_attribute.clear();
+        passive_expiring.clear();
+
         // reset the caching structure we have
         passive_cache_skill_attribute.clear();
         passive_cache_skill_reference.clear();
@@ -425,11 +429,15 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
                 }
                 // handle the node on the tree
                 AbstractCorePassive effect = node.getEffect().orElse(null);
-                if (effect instanceof CorePassiveEntityAttribute) {
+                if (effect instanceof CorePassiveUnlockSkill) {
+                    ((CorePassiveUnlockSkill) effect).getSkills().forEach((skillId -> {
+                        passive_expiring.add(grantTag("skill_" + skillId.toLowerCase()));
+                    }));
+                } else if (effect instanceof CorePassiveEntityAttribute) {
                     // add attributes to the entity
                     Map<String, Double> attributes = ((CorePassiveEntityAttribute) effect).getAttributes();
                     attributes.forEach((attribute, factor) -> {
-                        passive_cache_attribute.add(getAttribute(attribute).create(factor));
+                        passive_expiring.add(getAttribute(attribute).create(factor));
                     });
                 } else if (effect instanceof CorePassiveSkillAttribute) {
                     // add attributes to the skill
@@ -444,7 +452,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
                         if (data != null) {
                             if (effect instanceof CorePassiveSocketEntityAttribute) {
                                 // add attributes to the entity, from socketed item
-                                passive_cache_attribute.addAll(data.apply(this));
+                                passive_expiring.addAll(data.apply(this));
                             } else if (effect instanceof CorePassiveSocketSkillAttribute) {
                                 // add attributes to the skill, from socketed item
                                 for (CoreModifier modifier : data.getModifiers()) {
@@ -482,11 +490,15 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
 
                     // handle the node on the tree
                     AbstractCorePassive effect = node.getEffect().orElse(null);
-                    if (effect instanceof CorePassiveEntityAttribute) {
+                    if (effect instanceof CorePassiveUnlockSkill) {
+                        ((CorePassiveUnlockSkill) effect).getSkills().forEach((skillId -> {
+                            passive_expiring.add(grantTag("skill_" + skillId.toLowerCase()));
+                        }));
+                    } else if (effect instanceof CorePassiveEntityAttribute) {
                         // add attributes to the entity
                         Map<String, Double> attributes = ((CorePassiveEntityAttribute) effect).getAttributes();
                         attributes.forEach((attribute, factor) -> {
-                            passive_cache_attribute.add(getAttribute(attribute).create(factor));
+                            passive_expiring.add(getAttribute(attribute).create(factor));
                         });
                     } else {
                         ItemStack item = getPassiveSocketed(tree.getId(), where);
@@ -495,7 +507,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
                             if (data != null) {
                                 if (effect instanceof CorePassiveSocketEntityAttribute) {
                                     // add attributes to the entity, from socketed item
-                                    passive_cache_attribute.addAll(data.apply(this));
+                                    passive_expiring.addAll(data.apply(this));
                                 }
                             }
                         }
@@ -730,6 +742,31 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         return editor_history;
     }
 
+    private boolean canEquipItem(CoreItem item, ItemStack stack) {
+        for (Requirement requirement : item.getRequirements()) {
+            if (!requirement.doesArchive(this)) {
+                // extract item name
+                String displayname = null;
+                try {
+                    ItemMeta meta = stack.getItemMeta();
+                    PersistentDataContainer data = meta.getPersistentDataContainer();
+                    displayname = data.get(new NamespacedKey(RPGCore.inst(), "rpgcore-name"), PersistentDataType.STRING);
+                } catch (Exception ignored) {
+                    // ignored
+                }
+                // fallback name if necessary
+                if (displayname == null) {
+                    displayname = "???";
+                }
+                // inform about being unable to equip
+                RPGCore.inst().getLanguageManager().sendMessage(getEntity(), "item_prevented_to_apply", displayname);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Abandon preceding modifiers from equipment
      */
@@ -747,12 +784,16 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
             if (modifiers == null) {
                 continue;
             }
-            expiring.addAll(modifiers.apply(this));
-            // modifiers from socketed jewels
-            ItemDataJewel jewels = manager.getItemData(item, ItemDataJewel.class);
-            jewels.getAttributes().forEach((attribute, factor) -> {
-                expiring.add(this.getAttribute(attribute).create(factor));
-            });
+            // check against item requirement
+            if (canEquipItem(modifiers.getItem(), item)) {
+                // add modifiers directly from the item
+                expiring.addAll(modifiers.apply(this));
+                // modifiers from socketed jewels
+                ItemDataJewel jewels = manager.getItemData(item, ItemDataJewel.class);
+                jewels.getAttributes().forEach((attribute, factor) -> {
+                    expiring.add(this.getAttribute(attribute).create(factor));
+                });
+            }
         }
     }
 
@@ -877,6 +918,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      */
     public void setAsGrave(DamageInteraction interaction) {
         this.grave_task.setAsGrave(RPGCore.inst().getEntityManager().getGraveTimer(), interaction);
+        interaction.shiftRageBlame();
     }
 
     /**
@@ -1134,7 +1176,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         // request the data-handler to drop our data
         try {
             RPGCore.inst().getDataManager().savePlayer(this);
-            Bukkit.getLogger().info("not implemented (async data handling)");
+            RPGCore.inst().getLogger().info("not implemented (async data handling)");
         } catch (IOException e) {
             e.printStackTrace();
         }

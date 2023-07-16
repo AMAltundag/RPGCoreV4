@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.api.event;
 
+import me.blutkrone.rpgcore.RPGCore;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -55,7 +56,7 @@ public class CoreInitializationEvent<K> extends Event {
         if (this.custom == null) {
             this.custom = custom;
         } else {
-            Bukkit.getLogger().warning("Another plugin already injected '" + this.clazz.getSimpleName() + "' before you!");
+            RPGCore.inst().getLogger().warning("Another plugin already injected '" + this.clazz.getSimpleName() + "' before you!");
         }
     }
 

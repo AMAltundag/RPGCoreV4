@@ -2,9 +2,9 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorWardMechanic;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorWardMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
 import java.util.List;

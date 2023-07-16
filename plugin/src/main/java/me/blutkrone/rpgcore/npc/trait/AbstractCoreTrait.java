@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.npc.trait;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.npc.AbstractEditorNPCTrait;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.npc.AbstractEditorNPCTrait;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import org.bukkit.entity.Player;

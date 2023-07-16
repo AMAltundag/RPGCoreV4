@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.skill.mechanic;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorBoltMechanic;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.mechanic.EditorBoltMechanic;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.proxy.BoltProxy;
 import org.bukkit.entity.LivingEntity;
@@ -20,6 +20,7 @@ public class BoltMechanic extends AbstractCoreMechanic {
 
     private ItemStack item;
     // private CoreModifierNumber up;
+    private CoreModifierNumber duration;
     private CoreModifierNumber pierce;
     private CoreModifierNumber radius;
     private CoreModifierNumber speed;
@@ -29,6 +30,7 @@ public class BoltMechanic extends AbstractCoreMechanic {
     public BoltMechanic(EditorBoltMechanic editor) {
         this.item = editor.item.build();
         // this.up = editor.up.build();
+        this.duration = editor.duration.build();
         this.pierce = editor.pierce.build();
         this.radius = editor.radius.build();
         this.speed = editor.speed.build();
@@ -38,6 +40,7 @@ public class BoltMechanic extends AbstractCoreMechanic {
 
     @Override
     public void doMechanic(IContext context, List<IOrigin> targets) {
+        int duration = this.duration.evalAsInt(context);
         int pierce = this.pierce.evalAsInt(context);
         int radius = this.radius.evalAsInt(context);
         int speed = this.speed.evalAsInt(context);
@@ -50,7 +53,7 @@ public class BoltMechanic extends AbstractCoreMechanic {
             } else {
                 where = target.isolate();
             }
-            BoltProxy proxy = new BoltProxy(context, where, this.item, this.impact, this.effect, pierce, speed, radius);
+            BoltProxy proxy = new BoltProxy(context, where, this.item, this.impact, this.effect, duration, pierce, speed, radius);
             context.addProxy(proxy);
         }
     }

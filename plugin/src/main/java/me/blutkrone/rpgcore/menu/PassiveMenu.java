@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.passive.CorePassiveNode;
@@ -295,7 +295,7 @@ public class PassiveMenu extends AbstractCoreMenu {
                 getMenu().stalled(this::rebuild);
             }
         } else if (event.getClick() == ClickType.SHIFT_LEFT) {
-            if (event.getWhoClicked().isOp()) {
+            if (event.getWhoClicked().hasPermission("rpg.admin")) {
                 // open editor to work within
                 long __position = position;
                 getMenu().stalled(() -> {
@@ -511,7 +511,7 @@ public class PassiveMenu extends AbstractCoreMenu {
             // save changes made to disk
             try {
                 // todo keep a version control of our changes
-                Bukkit.getLogger().info("not implemented (backup before save)");
+                RPGCore.inst().getLogger().info("not implemented (backup before save)");
                 // apply the actual saving
                 editor.save();
                 // inform about having saved

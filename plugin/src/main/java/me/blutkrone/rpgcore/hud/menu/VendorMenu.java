@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.hud.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.hud.editor.index.IndexAttachment;
+import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;

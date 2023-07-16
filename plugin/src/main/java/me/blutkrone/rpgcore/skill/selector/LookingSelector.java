@@ -2,8 +2,8 @@ package me.blutkrone.rpgcore.skill.selector;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
+import me.blutkrone.rpgcore.editor.bundle.selector.EditorLookingSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.EditorLookingSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierBoolean;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import org.bukkit.FluidCollisionMode;

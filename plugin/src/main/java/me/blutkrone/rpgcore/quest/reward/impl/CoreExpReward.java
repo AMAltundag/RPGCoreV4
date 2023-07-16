@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.quest.reward.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.quest.reward.EditorQuestRewardExp;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.reward.EditorQuestRewardExp;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;

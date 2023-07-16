@@ -34,9 +34,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * All characters of a player belong to their roster, which provides
@@ -50,7 +48,7 @@ public class DataManager implements Listener {
     // factory which can provide us with vanilla players
     private EntityProvider player_provider = new PlayerProvider();
     // the approach on reading and writing player data
-    private Map<String, DataProtocol> data_protocol = new HashMap<>();
+    private Map<String, DataProtocol> data_protocol = new LinkedHashMap<>();
     // position to use before player is fully initialized
     private Location pre_login_position;
     // which adapter to load data thorough
@@ -59,7 +57,7 @@ public class DataManager implements Listener {
     private Map<UUID, Long> suppress_time = new HashMap<>();
 
     public DataManager() {
-        Bukkit.getLogger().info("not implemented (data manager needs better threading!");
+        RPGCore.inst().getLogger().info("not implemented (data manager needs better threading!");
 
         try {
             this.data_adapter = CoreInitializationEvent.find(IDataAdapter.class);
@@ -190,22 +188,23 @@ public class DataManager implements Listener {
         }, 20, 1200);
 
         // default protocols to store data thorough
-        data_protocol.put("position", new PositionProtocol());
-        data_protocol.put("display", new DisplayProtocol());
-        data_protocol.put("job", new JobProtocol());
-        data_protocol.put("skill", new SkillProtocol());
-        data_protocol.put("item", new ItemProtocol());
-        data_protocol.put("editor", new EditorProtocol());
-        data_protocol.put("menu", new MenuProtocol());
-        data_protocol.put("quest", new QuestProtocol());
-        data_protocol.put("tag", new TagProtocol());
-        data_protocol.put("passive", new PassiveProtocol());
-        data_protocol.put("level", new LevelProtocol());
         data_protocol.put("roster_bank", new RosterBankerProtocol());
         data_protocol.put("roster_storage", new RosterStorageProtocol());
         data_protocol.put("roster_refinement", new RosterRefinementProtocol());
         data_protocol.put("roster_quick_slot", new RosterQuickJoinProtocol());
         data_protocol.put("roster_chat", new RosterChatProtocol());
+
+        data_protocol.put("level", new LevelProtocol());
+        data_protocol.put("display", new DisplayProtocol());
+        data_protocol.put("position", new PositionProtocol());
+        data_protocol.put("job", new JobProtocol());
+        data_protocol.put("skill", new SkillProtocol());
+        data_protocol.put("editor", new EditorProtocol());
+        data_protocol.put("menu", new MenuProtocol());
+        data_protocol.put("quest", new QuestProtocol());
+        data_protocol.put("tag", new TagProtocol());
+        data_protocol.put("passive", new PassiveProtocol());
+        data_protocol.put("item", new ItemProtocol());
     }
 
     /**
@@ -309,6 +308,8 @@ public class DataManager implements Listener {
             }
             // serialize into data bundle
             protocol.load(core_player, bundle, version);
+            // flush inventory contents
+            bukkit_player.updateInventory();
         });
         // write back info on last loaded character
         data_adapter.saveInfo(identity.getUserId(), "last_character", new DataBundle(String.valueOf(identity.getCharacter())));
@@ -361,7 +362,7 @@ public class DataManager implements Listener {
                 data_adapter.saveCharacterData(player.getUserId(), player.getCharacter(), raw_data_character);
                 data_adapter.saveRosterData(player.getUserId(), raw_data_roster);
             } catch (Exception e) {
-                Bukkit.getLogger().severe("DataAdapter could not write " + player.getUniqueId() + ":" + player.getCharacter());
+                RPGCore.inst().getLogger().severe("DataAdapter could not write " + player.getUniqueId() + ":" + player.getCharacter());
                 e.printStackTrace();
             }
         });

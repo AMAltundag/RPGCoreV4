@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorTalk;
+import me.blutkrone.rpgcore.editor.bundle.quest.task.EditorQuestTaskTalk;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorTalk;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskTalk;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;

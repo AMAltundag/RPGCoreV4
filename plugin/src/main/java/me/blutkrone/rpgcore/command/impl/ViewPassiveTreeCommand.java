@@ -12,7 +12,7 @@ import java.util.List;
 public class ViewPassiveTreeCommand extends AbstractCommand {
     @Override
     public boolean canUseCommand(CommandSender sender) {
-        return sender.isOp();
+        return sender.hasPermission("rpg.admin");
     }
 
     @Override

@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.hud.menu;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.util.collection.TreeGraph;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class PlayerMenu {
 
             // ensure parameters are fine
             if (depth < 0 || (depth - current.getDepth()) > 1) {
-                Bukkit.getLogger().severe("Bad depth in 'menu/player.yml' from 'player-menu'");
+                RPGCore.inst().getLogger().severe("Bad depth in 'menu/player.yml' from 'player-menu'");
                 return;
             }
 

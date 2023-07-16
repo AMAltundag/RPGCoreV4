@@ -1,25 +1,24 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.FocusQueue;
+import me.blutkrone.rpgcore.editor.IEditorConstraint;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.design.Design;
+import me.blutkrone.rpgcore.editor.design.DesignCategory;
+import me.blutkrone.rpgcore.editor.design.DesignElement;
+import me.blutkrone.rpgcore.editor.design.designs.DesignList;
+import me.blutkrone.rpgcore.editor.index.EditorIndex;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
+import me.blutkrone.rpgcore.editor.root.IEditorRoot;
+import me.blutkrone.rpgcore.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.FocusQueue;
-import me.blutkrone.rpgcore.hud.editor.IEditorConstraint;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.design.Design;
-import me.blutkrone.rpgcore.hud.editor.design.DesignCategory;
-import me.blutkrone.rpgcore.hud.editor.design.DesignElement;
-import me.blutkrone.rpgcore.hud.editor.design.designs.DesignList;
-import me.blutkrone.rpgcore.hud.editor.index.EditorIndex;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
-import me.blutkrone.rpgcore.hud.editor.root.IEditorRoot;
-import me.blutkrone.rpgcore.hud.editor.root.item.EditorItem;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -339,7 +338,7 @@ public class EditorMenu extends AbstractCoreMenu {
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_element", "").isEmpty()) {
             // enter an bundle of the top-most current bundle
             String element = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_element", "");
-            setFocusToElement(element);
+            setFocusToElement(element, event.isShiftClick());
         } else if (!IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_root", "").isEmpty()) {
             // pick from the history element
             String id = IChestMenu.getBrand(event.getCurrentItem(), RPGCore.inst(), "select_root", "");
@@ -517,7 +516,7 @@ public class EditorMenu extends AbstractCoreMenu {
         // save changes to disk
         try {
             // todo keep a version control of our changes
-            Bukkit.getLogger().info("not implemented (backup before save)");
+            RPGCore.inst().getLogger().info("not implemented (backup before save)");
             // apply the actual saving
             root.save();
             // inform about having saved
@@ -642,10 +641,10 @@ public class EditorMenu extends AbstractCoreMenu {
     /*
      * Focus on an element of the current element.
      *
-     * @param editor which menu to implement logic on
-     * @param element which element to focus on
+     * @param _uuid Identifier of the elemetn we focus on
+     * @param wasShiftFocus user clicked shift-left to edit this
      */
-    private void setFocusToElement(String _uuid) {
+    private void setFocusToElement(String _uuid, boolean wasShiftFocus) {
         FocusQueue.ElementFocus focused = (FocusQueue.ElementFocus) focus.getHeader();
         UUID uuid = UUID.fromString(_uuid);
 
@@ -666,7 +665,7 @@ public class EditorMenu extends AbstractCoreMenu {
         // present the editor for the given element
         DesignElement final_match = match;
         getMenu().stalled(() -> {
-            final_match.edit(focused.getBundle(), getMenu().getViewer(), this);
+            final_match.edit(focused.getBundle(), getMenu().getViewer(), this, wasShiftFocus);
         });
     }
 
@@ -683,7 +682,7 @@ public class EditorMenu extends AbstractCoreMenu {
                 this.getMenu().queryRebuild();
             });
         } else {
-            Bukkit.getLogger().severe("Index could not be found");
+            RPGCore.inst().getLogger().severe("Index could not be found");
         }
     }
 

@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.skill.trigger;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.trigger.EditorWardBreakTrigger;
+import me.blutkrone.rpgcore.editor.bundle.trigger.EditorWardBreakTrigger;
 import me.blutkrone.rpgcore.skill.SkillContext;
 
 public class CoreWardBreakTrigger extends AbstractCoreTrigger {

@@ -2,20 +2,19 @@ package me.blutkrone.rpgcore.mob;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.entity.AbstractEditorEntityProvider;
+import me.blutkrone.rpgcore.editor.bundle.loot.AbstractEditorLoot;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorMobLogic;
+import me.blutkrone.rpgcore.editor.root.mob.EditorCreature;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.providers.LivingProvider;
-import me.blutkrone.rpgcore.hud.editor.bundle.IEditorBundle;
-import me.blutkrone.rpgcore.hud.editor.bundle.entity.AbstractEditorEntityProvider;
-import me.blutkrone.rpgcore.hud.editor.bundle.loot.AbstractEditorLoot;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobLogic;
-import me.blutkrone.rpgcore.hud.editor.root.mob.EditorCreature;
 import me.blutkrone.rpgcore.mob.ai.CoreMobLogic;
 import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.AbstractEntityRoutine;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.util.Utility;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -73,7 +72,7 @@ public class CoreCreature {
         this.tags_hostile = new ArrayList<>(editor.hostile_tag);
         this.tags_friendly = new ArrayList<>(editor.friendly_tag);
         this.focus_sigil = editor.focus_sigil;
-        Bukkit.getLogger().info("not implemented (loot from mobs)");
+        RPGCore.inst().getLogger().info("not implemented (loot from mobs)");
     }
 
     /**

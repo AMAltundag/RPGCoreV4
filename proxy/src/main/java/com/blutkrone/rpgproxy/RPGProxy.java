@@ -138,7 +138,7 @@ public final class RPGProxy extends Plugin implements Listener {
     /**
      * Send a RPGCore packet to every server
      *
-     * @param data What data we are sending to the server
+     * @param data  What data we are sending to the server
      * @param queue Hold the message for later sending if it cannot be sent immediately.
      */
     public void send(byte[] data, boolean queue) {
@@ -151,7 +151,7 @@ public final class RPGProxy extends Plugin implements Listener {
      * Send a RPGCore packet to the target server
      *
      * @param server What server to send to
-     * @param data What data to deploy
+     * @param data   What data to deploy
      */
     public void send(Server server, byte[] data) {
         server.getInfo().sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
@@ -160,11 +160,9 @@ public final class RPGProxy extends Plugin implements Listener {
     /**
      * Send a RPGCore packet to the target server
      *
-     *
-     *
      * @param server What server to send to
-     * @param data What data we are sending to the server
-     * @param queue Hold the message for later sending if it cannot be sent immediately.
+     * @param data   What data we are sending to the server
+     * @param queue  Hold the message for later sending if it cannot be sent immediately.
      */
     public void send(Server server, byte[] data, boolean queue) {
         server.getInfo().sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
@@ -174,7 +172,7 @@ public final class RPGProxy extends Plugin implements Listener {
      * Send a RPGCore packet to the target server
      *
      * @param server What server to send to
-     * @param data What data to deploy
+     * @param data   What data to deploy
      */
     public void send(ServerInfo server, byte[] data) {
         server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);
@@ -183,11 +181,9 @@ public final class RPGProxy extends Plugin implements Listener {
     /**
      * Send a RPGCore packet to the target server
      *
-     *
-     *
      * @param server What server to send to
-     * @param data What data we are sending to the server
-     * @param queue Hold the message for later sending if it cannot be sent immediately.
+     * @param data   What data we are sending to the server
+     * @param queue  Hold the message for later sending if it cannot be sent immediately.
      */
     public void send(ServerInfo server, byte[] data, boolean queue) {
         server.sendData(BungeeTable.CHANNEL_BUNGEE, data, false);

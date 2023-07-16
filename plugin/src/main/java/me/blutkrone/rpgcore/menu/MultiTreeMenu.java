@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
 import me.blutkrone.rpgcore.util.ItemBuilder;
@@ -23,7 +23,6 @@ public abstract class MultiTreeMenu extends AbstractCoreMenu {
     public MultiTreeMenu() {
         super(5);
     }
-
 
 
     /**

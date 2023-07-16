@@ -1,15 +1,14 @@
 package me.blutkrone.rpgcore.skill.proxy;
 
-import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
@@ -30,7 +29,7 @@ public class TrapProxy extends AbstractSkillProxy {
     private ArmorStand thrown_entity;
     private ItemStack item;
     // afterwards it becomes stationary
-    private IEntityVisual item_entity;
+    private ItemDisplay item_entity;
 
     // contextual information
     private IOrigin anchor;
@@ -96,8 +95,11 @@ public class TrapProxy extends AbstractSkillProxy {
                 if (!this.thrown_entity.getLocation().add(0d, -0.01d, 0d).getBlock().isPassable()) {
                     if (this.item != null) {
                         this.anchor = new IOrigin.SnapshotOrigin(this.thrown_entity.getLocation());
-                        this.item_entity = RPGCore.inst().getVolatileManager().createVisualEntity(this.anchor.getLocation(), false);
-                        this.item_entity.setItem(EquipmentSlot.HAND, this.item);
+
+                        this.item_entity = (ItemDisplay) anchor.getWorld().spawnEntity(anchor.getLocation(), EntityType.ITEM_DISPLAY);
+                        this.item_entity.setItemStack(item);
+                        this.item_entity.setBillboard(Display.Billboard.FIXED);
+                        this.item_entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
                     }
 
                     this.thrown_entity.remove();

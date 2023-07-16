@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.skill.activity.activities;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
@@ -37,6 +36,8 @@ public class ChannelSkillActivity implements ISkillActivity {
     private Location snapshot;
     // pipelines need to finish already
     private List<CoreAction.ActionPipeline> working = new ArrayList<>();
+    // allow binding to be interrupted
+    private boolean interruptable;
 
     public ChannelSkillActivity(SkillBindChannel binding, SkillContext context) {
         this.context = context;
@@ -47,6 +48,7 @@ public class ChannelSkillActivity implements ISkillActivity {
         double interval = Math.max(1d, this.binding.channel_interval.evalAsDouble(this.context));
         double faster = Math.max(0.1d, 1d + this.binding.channel_faster.evalAsDouble(this.context));
         this.interval = (int) Math.max(1, interval / faster);
+        this.interruptable = binding.interruptable.evaluate(context);
 
         this.tick = 0;
         this.instability = 0d;
@@ -119,7 +121,19 @@ public class ChannelSkillActivity implements ISkillActivity {
     }
 
     @Override
-    public void interrupt(CoreEntity entity) {
+    public void interrupt() {
+        // if we ever ticked, make sure to finish it up
+        if (this.tick != 0) {
+            // set off the last trigger
+            this.context.addTag("CHANNEL_LAST_USE");
+            // invoke the skill trigger
+            this.context.getCoreEntity().proliferateTrigger(CoreChannelTrigger.class, this);
+            // invoke the logic
+            for (CoreAction action : this.binding.actions) {
+                this.working.add(action.pipeline(this.context, Arrays.asList(this.context)));
+            }
+        }
+
         // calculate how long a cooldown we receive
         double cooldown_recovery = 1d + this.binding.cooldown_recovery.evalAsDouble(this.context);
         int cooldown_time = this.binding.cooldown_time.evalAsInt(context);

@@ -1,9 +1,9 @@
 package me.blutkrone.rpgcore.mob.loot;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.loot.EditorLootExperience;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.loot.EditorLootExperience;
 import me.blutkrone.rpgcore.level.LevelManager;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class ExpCoreLoot extends AbstractCoreLoot {
             int other = killed.getCurrentLevel();
             double experience = this.experience * manager.getMultiplier(self, other);
             double multiplier = 1d;
-            multiplier += player.evaluateAttribute("exp_multi_kill");
+            multiplier += player.evaluateAttribute("EXP_MULTI_KILL");
             for (String attribute : this.attributes) {
                 multiplier += player.evaluateAttribute(attribute);
             }

@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.effect.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.effect.EditorEffectBlock;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorTransmutation;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.effect.EffectObservation;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectBlock;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorTransmutation;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -40,7 +40,7 @@ public class CoreEffectBlock implements CoreEffect.IEffectPart {
         this.samples = (int) editor.samples;
         particle = editor.particle;
 
-        Bukkit.getLogger().info("not implemented (block worker)");
+        RPGCore.inst().getLogger().info("not implemented (block worker)");
     }
 
     @Override

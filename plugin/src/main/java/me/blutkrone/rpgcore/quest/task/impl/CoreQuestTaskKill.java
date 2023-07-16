@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
+import me.blutkrone.rpgcore.editor.bundle.other.EditorMobCount;
+import me.blutkrone.rpgcore.editor.bundle.quest.task.EditorQuestTaskKill;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorMobCount;
-import me.blutkrone.rpgcore.hud.editor.bundle.quest.task.EditorQuestTaskKill;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 

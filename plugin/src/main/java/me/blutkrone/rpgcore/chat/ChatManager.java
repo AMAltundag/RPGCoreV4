@@ -50,7 +50,7 @@ public class ChatManager implements Listener {
                 this.chat_format = ChatColor.translateAlternateColorCodes('&', this.chat_format);
                 for (String limit : config.getStringList("rate-limitation")) {
                     String[] split = limit.split("\\:");
-                    this.rate_limits.add(new Integer[] {Integer.parseInt(split[0]), Integer.parseInt(split[1])*1000});
+                    this.rate_limits.add(new Integer[]{Integer.parseInt(split[0]), Integer.parseInt(split[1]) * 1000});
                 }
                 for (Integer[] rate_limit : rate_limits) {
                     this.oldest = Math.max(oldest, rate_limit[1]);
@@ -104,7 +104,7 @@ public class ChatManager implements Listener {
             String item_info = RPGCore.inst().getVolatileManager().getItemTagAsJSON(describe);
             for (BaseComponent component : header_parts) {
                 component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rpg social " + bukkit_sender.getUniqueId()));
-                component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{ new TextComponent(item_info) }));
+                component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(item_info)}));
             }
         }
 
@@ -149,7 +149,7 @@ public class ChatManager implements Listener {
                 if (only_apply_to_first) {
                     TextComponent component = new TextComponent("");
                     component.setExtra(Arrays.asList(TextComponent.fromLegacyText("§f[" + item_name + "§f]")));
-                    component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{ new TextComponent(item_info) }));
+                    component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(item_info)}));
                     components.add(component);
                     only_apply_to_first = false;
                 } else {
@@ -224,7 +224,7 @@ public class ChatManager implements Listener {
         timestamps.subSet(0L, System.currentTimeMillis() - oldest).clear();
         for (Integer[] rate_limit : rate_limits) {
             // check if messages sent in past #s exceeds threshold
-            int count = timestamps.subSet(System.currentTimeMillis()-rate_limit[1], System.currentTimeMillis()).size();
+            int count = timestamps.subSet(System.currentTimeMillis() - rate_limit[1], System.currentTimeMillis()).size();
             if (count < rate_limit[0]) {
                 continue;
             }
@@ -277,5 +277,4 @@ public class ChatManager implements Listener {
     private void onClean(PlayerQuitEvent event) {
         rate_limit_tracker.remove(event.getPlayer().getUniqueId());
     }
-
 }

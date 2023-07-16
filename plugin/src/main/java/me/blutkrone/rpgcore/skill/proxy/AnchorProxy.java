@@ -1,11 +1,11 @@
 package me.blutkrone.rpgcore.skill.proxy;
 
-import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.skill.mechanic.MultiMechanic;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
@@ -20,7 +20,7 @@ public class AnchorProxy extends AbstractSkillProxy {
 
     // contextual information
     private IOrigin anchor;
-    private IEntityVisual item_entity;
+    private ItemDisplay item_entity;
     // proxy information
     private boolean terminate = false;
     private int cycle;
@@ -46,8 +46,10 @@ public class AnchorProxy extends AbstractSkillProxy {
         this.duration = duration;
 
         if (item != null) {
-            this.item_entity = RPGCore.inst().getVolatileManager().createVisualEntity(origin.getLocation(), true);
-            this.item_entity.setItem(EquipmentSlot.HAND, item);
+            this.item_entity = (ItemDisplay) origin.getWorld().spawnEntity(origin.getLocation(), EntityType.ITEM_DISPLAY);
+            this.item_entity.setItemStack(item);
+            this.item_entity.setBillboard(Display.Billboard.FIXED);
+            this.item_entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
         }
     }
 

@@ -3,8 +3,8 @@ package me.blutkrone.rpgcore.passive;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.hud.editor.root.passive.EditorPassiveTree;
 import me.blutkrone.rpgcore.mail.CoreMail;
 import org.bukkit.inventory.ItemStack;
 

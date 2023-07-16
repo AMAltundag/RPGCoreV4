@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.damage.interaction.types;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.api.damage.IDamageManager;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
+import me.blutkrone.rpgcore.damage.DamageManager;
 import me.blutkrone.rpgcore.damage.interaction.DamageElement;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
@@ -21,7 +21,7 @@ public class TimeDamageType implements IDamageType {
     @Override
     public void process(DamageInteraction interaction) {
         // managers which may be necessary to process damage
-        IDamageManager damage_manager = RPGCore.inst().getDamageManager();
+        DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
         // prevent damage of certain elements being applied at all
         for (DamageElement element : damage_manager.getElements()) {
@@ -32,7 +32,7 @@ public class TimeDamageType implements IDamageType {
         }
 
         // compute modifiers specific to dot damage
-        double received_dot = interaction.evaluateAttribute("DOT_TAKEN_MULTIPLIER", interaction.getDefender());
+        double received_dot = interaction.evaluateAttribute("DOT_DAMAGE_TAKEN_MULTIPLIER", interaction.getDefender());
         double multi_dot = 0d;
         if (interaction.getAttacker() != null)
             multi_dot = interaction.evaluateAttribute("DOT_MULTIPLIER", interaction.getAttacker());

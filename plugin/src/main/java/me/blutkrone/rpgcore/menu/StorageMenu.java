@@ -83,7 +83,7 @@ public class StorageMenu extends AbstractCoreMenu {
         msb.append(resourcepack().texture("menu_storage"), ChatColor.WHITE);
         this.getMenu().setTitle(msb.compile());
 
-        Bukkit.getLogger().info("not implemented (scroller storage.)");
+        RPGCore.inst().getLogger().info("not implemented (scroller storage.)");
     }
 
     @Override

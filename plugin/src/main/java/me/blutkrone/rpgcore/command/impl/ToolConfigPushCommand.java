@@ -54,7 +54,7 @@ public class ToolConfigPushCommand extends AbstractCommand {
                     return;
                 }
 
-                Bukkit.getLogger().info("Configuration synced from " + version_have + " to " + version_want);
+                RPGCore.inst().getLogger().info("Configuration synced from " + version_have + " to " + version_want);
 
                 // wipe configuration and rebuild from database
                 FileUtils.deleteDirectory(RPGCore.inst().getDataFolder());
@@ -77,7 +77,7 @@ public class ToolConfigPushCommand extends AbstractCommand {
                     }
                 }
                 // inform about synchronization completion
-                Bukkit.getLogger().info("Synchronized with pushed configurations, total " + collection.countDocuments() + " files!");
+                RPGCore.inst().getLogger().info("Synchronized with pushed configurations, total " + collection.countDocuments() + " files!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,11 +144,11 @@ public class ToolConfigPushCommand extends AbstractCommand {
 
                                 counter += 1;
                             } catch (Exception e) {
-                                Bukkit.getLogger().severe("File " + file.getPath() + " is too large, and could not be pushed!");
+                                RPGCore.inst().getLogger().severe("File " + file.getPath() + " is too large, and could not be pushed!");
                             }
                         }
 
-                        Bukkit.getLogger().info("Configurations synced to database: " + counter + "/" + size);
+                        RPGCore.inst().getLogger().info("Configurations synced to database: " + counter + "/" + size);
 
                         if (!iterator.hasNext()) {
                             // meta information
@@ -158,17 +158,17 @@ public class ToolConfigPushCommand extends AbstractCommand {
                             document.put("version", version.toString());
                             collection.replaceOne(new Document("type", "version"), document);
                             // inform about the change performed
-                            Bukkit.getLogger().info("Configuration was pushed, restart other servers to pull!");
+                            RPGCore.inst().getLogger().info("Configuration was pushed, restart other servers to pull!");
                             // terminate the pushing task
                             cancel();
                         }
                     }
                 }.runTaskTimer(RPGCore.inst(), 1, 1);
             } else {
-                Bukkit.getLogger().severe("Sync-Token '" + token + " ' in network.yml must be a MongoDB token!");
+                RPGCore.inst().getLogger().severe("Sync-Token '" + token + " ' in network.yml must be a MongoDB token!");
             }
         } catch (Exception e) {
-            Bukkit.getLogger().severe("Something went wrong while pushing!");
+            RPGCore.inst().getLogger().severe("Something went wrong while pushing!");
         }
     }
 

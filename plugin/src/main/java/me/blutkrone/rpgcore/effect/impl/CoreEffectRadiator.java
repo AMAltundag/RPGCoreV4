@@ -1,10 +1,10 @@
 package me.blutkrone.rpgcore.effect.impl;
 
+import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.editor.bundle.effect.EditorEffectRadiator;
 import me.blutkrone.rpgcore.effect.CoreEffect;
 import me.blutkrone.rpgcore.effect.EffectObservation;
-import me.blutkrone.rpgcore.hud.editor.bundle.effect.EditorEffectRadiator;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -33,7 +33,7 @@ public class CoreEffectRadiator implements CoreEffect.IEffectPart {
         this.sample = editor.sample;
         this.scatter = editor.scatter;
 
-        Bukkit.getLogger().info("not implemented (radiator looks off?)");
+        RPGCore.inst().getLogger().info("not implemented (radiator looks off?)");
     }
 
     @Override

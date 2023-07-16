@@ -2,7 +2,7 @@ package me.blutkrone.rpgcore.skill.selector;
 
 import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
-import me.blutkrone.rpgcore.hud.editor.bundle.selector.EditorOffsetSelector;
+import me.blutkrone.rpgcore.editor.bundle.selector.EditorOffsetSelector;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import org.bukkit.Location;
 

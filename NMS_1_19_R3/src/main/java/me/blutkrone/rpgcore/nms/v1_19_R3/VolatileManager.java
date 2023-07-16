@@ -4,13 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityVisual;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.v1_19_R3.entity.VolatileEntityCollider;
-import me.blutkrone.rpgcore.nms.v1_19_R3.entity.VolatileVisualEntity;
 import me.blutkrone.rpgcore.nms.v1_19_R3.menu.VolatileChestMenu;
 import me.blutkrone.rpgcore.nms.v1_19_R3.menu.VolatileTextInput;
 import me.blutkrone.rpgcore.nms.v1_19_R3.mob.VolatileEntityBase;
@@ -27,27 +25,34 @@ import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.boss.CraftBossBar;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftChatMessage;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
-public class VolatileManager extends AbstractVolatileManager implements Listener  {
+public class VolatileManager extends AbstractVolatileManager implements Listener {
 
     private static final Gson gson = new GsonBuilder().
             registerTypeAdapter(BaseComponent.class, new ComponentSerializer()).
@@ -111,22 +116,7 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
     }
 
     @Override
-    public IEntityVisual createVisualEntity(Location where, boolean small) {
-        World world = where.getWorld();
-        if (world instanceof CraftWorld) {
-            VolatileVisualEntity visual = new VolatileVisualEntity(((CraftWorld) world).getHandle(), small);
-            visual.move(where.getX(), where.getY(), where.getZ());
-            if (!((CraftWorld) world).getHandle().addFreshEntity(visual, CreatureSpawnEvent.SpawnReason.CUSTOM)) {
-                throw new IllegalArgumentException("Could not add visual entity to server!");
-            }
-            return visual;
-        }
-
-        throw new IllegalArgumentException("Bad location passed");
-    }
-
-    @Override
-    public IEntityCollider createCollider(Entity owner) {
+    public IEntityCollider createCollider(org.bukkit.entity.Entity owner) {
         World world = owner.getWorld();
         if (world instanceof CraftWorld) {
             VolatileEntityCollider collider = new VolatileEntityCollider(((CraftWorld) owner.getWorld()).getHandle());
@@ -150,7 +140,7 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
 
     @Override
     public IChestMenu createMenu(int size, Player holder, Object core_handle) {
-        return new VolatileChestMenu(getPlugin(), size, holder, core_handle);
+        return new VolatileChestMenu(getPlugin(), size * 9, holder, core_handle);
     }
 
     @Override
@@ -388,7 +378,7 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
 
         // ensure we could map to a NMS type
         if (typeNMS == null) {
-            Bukkit.getLogger().severe("Entity type '" + type + "' is not supported!");
+            this.getPlugin().getLogger().severe("Entity type '" + type + "' is not supported!");
             return null;
         }
 
@@ -435,5 +425,124 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
             ex.printStackTrace();
             return "{}";
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    void onChestMenu(InventoryClickEvent event) {
+        Inventory inventory = event.getView().getTopInventory();
+        if (inventory instanceof VolatileChestMenu) {
+            ((VolatileChestMenu) inventory).on(event);
+        } else if (inventory instanceof VolatileTextInput.BukkitAnvil) {
+            event.setCancelled(true);
+            if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+                Bukkit.getScheduler().runTask(getPlugin(), () -> event.getWhoClicked().closeInventory());
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    void onChestMenu(InventoryOpenEvent event) {
+        Inventory inventory = event.getView().getTopInventory();
+        if (inventory instanceof VolatileChestMenu) {
+            ((VolatileChestMenu) inventory).on(event);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    void onChestMenu(InventoryCloseEvent event) {
+        Inventory inventory = event.getView().getTopInventory();
+        if (inventory instanceof VolatileChestMenu) {
+            ((VolatileChestMenu) inventory).on(event);
+
+        } else if (inventory instanceof VolatileTextInput.BukkitAnvil) {
+            ((VolatileTextInput.BukkitAnvil) inventory).getVolatile().conclude();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    void onChestMenu(InventoryDragEvent event) {
+        Inventory inventory = event.getView().getTopInventory();
+        if (inventory instanceof VolatileChestMenu) {
+            ((VolatileChestMenu) inventory).on(event);
+        } else if (inventory instanceof VolatileTextInput.BukkitAnvil) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    void onChestMenu(InventoryCreativeEvent event) {
+        Inventory inventory = event.getView().getTopInventory();
+        if (inventory instanceof VolatileChestMenu) {
+            ((VolatileChestMenu) inventory).on(event);
+        } else if (inventory instanceof VolatileTextInput.BukkitAnvil) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    void onCollide(ProjectileHitEvent e) {
+        // check if we are a collider entity
+        UUID uuid = VolatileEntityCollider.getLinkedEntity(e.getHitEntity());
+        if (uuid == null) {
+            return;
+        }
+        e.setCancelled(true);
+        // retrieve the entity backing up
+        org.bukkit.entity.Entity linked_entity = Bukkit.getEntity(uuid);
+        if (linked_entity == null) {
+            e.getHitEntity().remove();
+            return;
+        }
+        // delegate the event to who we are sync-ed to
+        ProjectileHitEvent event = new ProjectileHitEvent(e.getEntity(), linked_entity, e.getHitBlock());
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    void onCollide(PlayerInteractEntityEvent e) {
+        // check if we are a collider entity
+        UUID uuid = VolatileEntityCollider.getLinkedEntity(e.getRightClicked());
+        if (uuid == null) {
+            return;
+        }
+        e.setCancelled(true);
+        // retrieve the entity backing up
+        org.bukkit.entity.Entity linked_entity = Bukkit.getEntity(uuid);
+        if (linked_entity == null) {
+            e.getRightClicked().remove();
+            return;
+        }
+        // delegate the event to who we are sync-ed to
+        PlayerInteractEntityEvent event = new PlayerInteractEntityEvent(e.getPlayer(), linked_entity, e.getHand());
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    void onCollide(EntityDamageEvent e) {
+        // check if we are a collider entity
+        UUID uuid = VolatileEntityCollider.getLinkedEntity(e.getEntity());
+        if (uuid == null) {
+            return;
+        }
+        e.setCancelled(true);
+        // retrieve the entity backing up
+        org.bukkit.entity.Entity linked_entity = Bukkit.getEntity(uuid);
+        if (linked_entity == null) {
+            e.getEntity().remove();
+            return;
+        }
+        e.setCancelled(true);
+        // delegate based on exact event
+        Event event;
+        if (e instanceof EntityDamageByBlockEvent) {
+            Block source = ((EntityDamageByBlockEvent) e).getDamager();
+            event = new EntityDamageByBlockEvent(source, linked_entity, e.getCause(), e.getDamage());
+        } else if (e instanceof EntityDamageByEntityEvent) {
+            org.bukkit.entity.Entity source = ((EntityDamageByEntityEvent) e).getDamager();
+            event = new EntityDamageByEntityEvent(source, linked_entity, e.getCause(), e.getDamage());
+        } else {
+            event = new EntityDamageEvent(linked_entity, e.getCause(), e.getDamage());
+        }
+        Bukkit.getPluginManager().callEvent(event);
     }
 }

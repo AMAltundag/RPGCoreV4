@@ -6,8 +6,8 @@ import me.blutkrone.rpgcore.attribute.AttributeModifier;
 import me.blutkrone.rpgcore.dungeon.CoreDungeon;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.structure.AbstractDungeonStructure;
-import me.blutkrone.rpgcore.dungeon.structure.SpawnpointStructure;
 import me.blutkrone.rpgcore.dungeon.structure.BlockStructure;
+import me.blutkrone.rpgcore.dungeon.structure.SpawnpointStructure;
 import me.blutkrone.rpgcore.dungeon.structure.TreasureStructure;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
@@ -39,8 +39,8 @@ public class ActiveDungeonInstance implements IDungeonInstance {
     private Map<UUID, TreasureStructure.ActiveTreasure> treasures;
 
     public ActiveDungeonInstance(String id, CoreDungeon template) {
-        Bukkit.getLogger().info("not implemented (Dungeon entrance UX)");
-        Bukkit.getLogger().info("not implemented (Location selection)");
+        RPGCore.inst().getLogger().info("not implemented (Dungeon entrance UX)");
+        RPGCore.inst().getLogger().info("not implemented (Location selection)");
 
         // prepare a dungeon world
         this.world = id;
@@ -122,7 +122,7 @@ public class ActiveDungeonInstance implements IDungeonInstance {
      * @return Hidden chunk
      */
     public boolean canHideChunk(Chunk chunk) {
-        return this.chunk_processed.add((((long) chunk.getX())<<32) | chunk.getZ());
+        return this.chunk_processed.add((((long) chunk.getX()) << 32) | chunk.getZ());
     }
 
     /**
@@ -199,13 +199,13 @@ public class ActiveDungeonInstance implements IDungeonInstance {
             for (LivingEntity entity : getWorld().getLivingEntities()) {
                 CoreMob mob = RPGCore.inst().getEntityManager().getMob(entity);
                 if (mob != null) {
-                    totals.merge(mob.getTemplate().getId(), 1, (a,b)->a+b);
+                    totals.merge(mob.getTemplate().getId(), 1, (a, b) -> a + b);
                     total += 1;
                 }
             }
-            this.score.put("total_alive", 0d+total);
+            this.score.put("total_alive", 0d + total);
             totals.forEach((id, counted) -> {
-                this.score.put(id + "_alive", 0d+counted);
+                this.score.put(id + "_alive", 0d + counted);
             });
         }
 
@@ -313,7 +313,7 @@ public class ActiveDungeonInstance implements IDungeonInstance {
                 for (AbstractDungeonStructure.StructureData datum : this.data) {
                     long x = datum.where.getBlockX();
                     long z = datum.where.getBlockZ();
-                    long chunk = ((x>>4) << 32) | (z >> 4);
+                    long chunk = ((x >> 4) << 32) | (z >> 4);
                     this.hidden.computeIfAbsent(chunk, (k -> new ArrayList<>()))
                             .add(datum.where);
                 }
@@ -324,7 +324,7 @@ public class ActiveDungeonInstance implements IDungeonInstance {
                         for (BlockVector vector : vectors) {
                             long x = vector.getBlockX();
                             long z = vector.getBlockZ();
-                            long chunk = ((x>>4) << 32) | (z >> 4);
+                            long chunk = ((x >> 4) << 32) | (z >> 4);
                             this.hidden.computeIfAbsent(chunk, (k -> new ArrayList<>()))
                                     .add(vector.toLocation(instance.getWorld()));
                         }

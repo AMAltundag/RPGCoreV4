@@ -1,17 +1,15 @@
 package me.blutkrone.rpgcore.hologram.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.nms.api.packet.handle.IHologram;
+import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
-import me.blutkrone.rpgcore.util.Utility;
-import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,19 +24,25 @@ public class StationaryHologram {
     private double x;
     private double y;
     private double z;
+    private float pitch;
+    private float yaw;
+    private boolean locked;
     // text used by the hologram
     private String lc_text;
     // runtime entity reference
-    private transient IHologram hologram;
+    private transient ITextDisplay hologram;
 
     public StationaryHologram() {
     }
 
-    public StationaryHologram(Location where, String text) {
+    public StationaryHologram(Location where, String text, boolean locked) {
         this.id = UUID.randomUUID();
         this.x = where.getX();
         this.y = where.getY();
         this.z = where.getZ();
+        this.pitch = where.getPitch();
+        this.yaw = where.getYaw();
+        this.locked = locked;
         this.lc_text = text;
     }
 
@@ -67,65 +71,31 @@ public class StationaryHologram {
      */
     public void update(Player player) {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        MagicStringBuilder msb = new MagicStringBuilder();
 
         // retrieve the description for the mob
+        ComponentBuilder builder = new ComponentBuilder();
         List<String> contents = RPGCore.inst().getLanguageManager().getTranslationList(lc_text);
-        // draw the basic holographic textures
         for (String content : contents) {
-            if (rpm.textures().containsKey("hologram_" + content)) {
-                IndexedTexture texture = rpm.texture("hologram_" + content);
-                msb.shiftCentered(0, texture.width);
-                msb.append(texture);
+            IndexedTexture.ConfigTexture texture = rpm.textures().get(content);
+            if (texture == null) {
+                // add as text
+                builder.append(content).append("\n");
+            } else {
+                // add as message
+                TextComponent component = new TextComponent();
+                component.setText(texture.symbol);
+                component.setFont(texture.table);
+                builder.append(component).append("\n");
             }
         }
-        // write hologram contents in reverse to ascend upward
-        Collections.reverse(contents);
-        // first pass writes the shadows
-        int j = 0;
-        for (int i = 0; i < contents.size() && i < 24; i++) {
-            String content = contents.get(i);
-            boolean shadow = content.startsWith("&!") || content.startsWith("§!");
-            if (shadow) {
-                content = content.substring(2);
-            }
-
-            if (!rpm.textures().containsKey("hologram_" + content)) {
-                if (shadow) {
-                    msb.shiftCentered(+1, Utility.measure(content));
-                    msb.shadow(content, "nameplate_" + j);
-                }
-                j += 1;
-            }
-        }
-
-        j = 0;
-        for (int i = 0; i < contents.size() && i < 24; i++) {
-            String content = contents.get(i);
-            boolean shadow = content.startsWith("&!") || content.startsWith("§!");
-            if (shadow) {
-                content = content.substring(2);
-            }
-
-            if (!rpm.textures().containsKey("hologram_" + content)) {
-                msb.shiftCentered(0, Utility.measure(content));
-                msb.append(content, "nameplate_" + j++);
-            }
-        }
-        // finalize the constructed hologram
-        BaseComponent[] result = msb.shiftToExact(-2).compile();
-
-        // // warn about text being too long
-        // if (msb.getSymbolCount() > 256) {
-        //     Bukkit.getLogger().severe("Hologram text '" + this.lc_text + "' is too long, contents were trimmed!");
-        // }
 
         // present the hologram
         if (this.hologram == null) {
-            this.hologram = RPGCore.inst().getVolatileManager().getPackets().hologram();
+            this.hologram = RPGCore.inst().getVolatileManager().getPackets().text();
         }
-        this.hologram.spawn(player, this.x, this.y, this.z);
-        this.hologram.name(player, result);
+        this.hologram.spawn(player, this.x, this.y, this.z, this.pitch, this.yaw);
+        this.hologram.rotate(player, this.yaw);
+        this.hologram.message(player, builder.create(), true, this.locked);
     }
 
     /**

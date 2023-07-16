@@ -13,6 +13,7 @@ public class ResourcePackFont {
     public final long ascent;
     public final long height;
     public final List<String> chars;
+
     public ResourcePackFont(String type, String file, long ascent, long height, List<String> chars) {
         this.type = type;
         this.file = file;

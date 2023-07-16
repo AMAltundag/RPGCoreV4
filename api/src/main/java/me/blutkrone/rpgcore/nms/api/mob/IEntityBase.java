@@ -36,7 +36,7 @@ public interface IEntityBase {
      * Retain the current rage, but focus it on another player.
      *
      * @param target Who to shift to
-     * @param focus What focus to apply on the rage
+     * @param focus  What focus to apply on the rage
      */
     void rageTransfer(LivingEntity target, double focus);
 

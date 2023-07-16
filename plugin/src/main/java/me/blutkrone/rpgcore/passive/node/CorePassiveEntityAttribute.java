@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.passive.node;
 
-import me.blutkrone.rpgcore.hud.editor.bundle.other.EditorAttributeAndFactor;
-import me.blutkrone.rpgcore.hud.editor.bundle.passive.EditorPassiveEntityAttribute;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndFactor;
+import me.blutkrone.rpgcore.editor.bundle.passive.EditorPassiveEntityAttribute;
 import me.blutkrone.rpgcore.item.CoreItem;
 
 import java.util.HashMap;

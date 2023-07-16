@@ -57,7 +57,7 @@
                         <configuration>
                             <target>
                                 <copy file="target/RPGCore.jar"
-                                      tofile="F:/minecraft/1.19.4/plugins/update/rpgcore.jar"/>
+                                      tofile="F:/minecraft/1.20.1/plugins/update/rpgcore.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -164,12 +164,12 @@
         </dependency>
         <dependency>
             <groupId>me.blutkrone</groupId>
-            <artifactId>NMS_1_19_R1</artifactId>
+            <artifactId>NMS_1_19_R3</artifactId>
             <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>me.blutkrone</groupId>
-            <artifactId>NMS_1_19_R3</artifactId>
+            <artifactId>NMS_1_20_R1</artifactId>
             <version>4.0.0</version>
         </dependency>
     </dependencies>

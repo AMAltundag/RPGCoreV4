@@ -1,6 +1,5 @@
 package me.blutkrone.rpgcore.skill.activity.activities;
 
-import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
@@ -39,7 +38,7 @@ public class FocusSkillActivity implements ISkillActivity {
     }
 
     @Override
-    public void interrupt(CoreEntity entity) {
+    public void interrupt() {
 
     }
 
