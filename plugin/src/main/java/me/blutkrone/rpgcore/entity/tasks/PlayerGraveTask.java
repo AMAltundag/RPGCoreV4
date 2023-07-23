@@ -152,7 +152,7 @@ public class PlayerGraveTask extends BukkitRunnable {
                     .replace("{TIME}", String.valueOf(Math.max(this.grave_counter / 20, 1)));
             List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.grave_anchor);
             for (Player viewer : observing) {
-                this.hologram_grave.spawn(viewer, this.grave_anchor);
+                this.hologram_grave.spawn(viewer, this.grave_anchor.clone().add(0d, 1d, 0d));
                 this.hologram_grave.item(viewer, RPGCore.inst().getEntityManager().getGraveDefault(), 1d, VolatileBillboard.FIXED, VolatileDisplay.FIXED);
                 this.hologram_text.spawn(viewer, this.grave_anchor.clone().add(0d, 2.5d, 0d));
                 this.hologram_text.message(viewer, TextComponent.fromLegacyText(info), true, false);

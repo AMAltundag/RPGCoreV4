@@ -24,58 +24,42 @@ public class WeaponDamageType implements IDamageType {
         // managers which may be necessary to process damage
         DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
-        // 5.) Apply rules to take all damage as one element
-        Map<DamageElement, Double> damage_taken_as = new HashMap<>();
-        double total_taken_as = 0d;
-        for (DamageElement element : damage_manager.getElements()) {
-            double taken_as = interaction.evaluateAttribute(element.getTakenAttribute(), interaction.getDefender());
-            damage_taken_as.put(element, taken_as);
-            total_taken_as += taken_as;
-        }
+        Map<DamageElement, Double> updated_damage_flat = new HashMap<>();
+        Map<DamageElement, Double> updated_damage_multi = new HashMap<>();
 
-        // transform damage if we got taken-as applying
-        if (total_taken_as > 0d) {
-            // normalize to not take more then a 100% damage
-            if (total_taken_as > 1d) {
-                for (Map.Entry<DamageElement, Double> taken : damage_taken_as.entrySet()) {
-                    taken.setValue(taken.getValue() / total_taken_as);
+        for (DamageElement element : damage_manager.getElements()) {
+            // compute what ratio of damage
+            Map<DamageElement, Double> taken_as_ratio = new HashMap<>();
+            for (DamageElement taken_as_element : damage_manager.getElements()) {
+                double taken_as = interaction.evaluateAttribute(taken_as_element.getTakenAttribute(), interaction.getDefender());
+                taken_as_ratio.put(taken_as_element, taken_as);
+            }
+            // below 100% pad it with base element
+            double total_ratio = taken_as_ratio.values().stream().mapToDouble(Double::valueOf).sum();
+            if (total_ratio < 1.0d) {
+                taken_as_ratio.merge(element, 1d-total_ratio, Double::sum);
+            }
+            // above 100% normalize it to 100%
+            total_ratio = taken_as_ratio.values().stream().mapToDouble(Double::valueOf).sum();
+            if (total_ratio > 1.0d) {
+                for (Map.Entry<DamageElement, Double> entry : taken_as_ratio.entrySet()) {
+                    entry.setValue(entry.getValue() / total_ratio);
                 }
             }
-
-            // transform the damage taken
-            Map<DamageElement, Double> updated_damage_flat = new HashMap<>();
-            Map<DamageElement, Double> updated_damage_multi = new HashMap<>();
-
-            // retain damage if applicable
-            if (total_taken_as < 1d) {
-                for (Map.Entry<DamageElement, Double> entry_damage : damage_flat.entrySet())
-                    updated_damage_flat.put(entry_damage.getKey(), entry_damage.getValue() * (1d - total_taken_as));
-                for (Map.Entry<DamageElement, Double> entry_damage : damage_multi.entrySet())
-                    updated_damage_multi.put(entry_damage.getKey(), entry_damage.getValue() * (1d - total_taken_as));
-            }
-
-            // compute total damage available
-            double summed_flat = 0d;
-            for (Map.Entry<DamageElement, Double> entry_damage : damage_flat.entrySet())
-                summed_flat += entry_damage.getValue();
-            double summed_multi = 0d;
-            for (Map.Entry<DamageElement, Double> entry_damage : damage_flat.entrySet())
-                summed_multi += entry_damage.getValue();
-
-            // take the damage as that given element
-            for (Map.Entry<DamageElement, Double> entry_taken : damage_taken_as.entrySet()) {
-                DamageElement element = entry_taken.getKey();
-                double ratio = entry_taken.getValue();
-                updated_damage_flat.merge(element, ratio * summed_flat, (a, b) -> a + b);
-                updated_damage_multi.merge(element, ratio * summed_multi, (a, b) -> a + b);
-            }
-
-            // apply the transformed damage
-            damage_flat.clear();
-            damage_flat.putAll(updated_damage_flat);
-            damage_multi.clear();
-            damage_multi.putAll(updated_damage_multi);
+            // spread over relevant elements
+            double flat = damage_flat.getOrDefault(element, 0d);
+            double multi = damage_multi.getOrDefault(element, 0d);
+            taken_as_ratio.forEach((take_as_element, ratio) -> {
+                updated_damage_flat.merge(take_as_element, flat*ratio, Double::sum);
+                updated_damage_multi.merge(take_as_element, multi*ratio, Double::sum);
+            });
         }
+
+        // apply the transformed damage
+        damage_flat.clear();
+        damage_flat.putAll(updated_damage_flat);
+        damage_multi.clear();
+        damage_multi.putAll(updated_damage_multi);
     }
 
     private void scaleAsAttacker(DamageInteraction interaction, Map<DamageElement, Double> damage_multi, Map<DamageElement, Double> damage_flat) {
@@ -98,29 +82,31 @@ public class WeaponDamageType implements IDamageType {
             for (String attribute : element.getMultiplierAttribute()) {
                 multi += interaction.evaluateAttribute(attribute, interaction.getAttacker());
             }
-            damage_multi.merge(element, multi, (a, b) -> a + b);
+            damage_multi.merge(element, multi, Double::sum);
             // apply scaling for damage base
             double base = 0d;
             base += interaction.evaluateAttribute("WEAPON_" + element.getId() + "_BASE", interaction.getAttacker());
-            damage_flat.merge(element, base, (a, b) -> a + b);
+            damage_flat.merge(element, base, Double::sum);
         }
 
         // apply rules to gain extra damage
-        Map<DamageElement, Double> updated_damage_multi = new HashMap<>();
-        Map<DamageElement, Double> updated_damage_flat = new HashMap<>();
+        Map<DamageElement, Double> updated_damage_multi = new HashMap<>(damage_multi);
+        Map<DamageElement, Double> updated_damage_flat = new HashMap<>(damage_flat);
 
         for (DamageElement element : damage_manager.getElements()) {
             // identify how much damage we gain from other elements
-            double extra_damage = interaction.evaluateAttribute(element.getExtraAttribute(), interaction.getAttacker());
-            if (extra_damage > 0d) {
-                damage_multi.forEach((group, factor) -> {
-                    double ratio = group == element ? 1d : extra_damage;
-                    updated_damage_multi.merge(group, factor * ratio, (a, b) -> a + b);
+            double gain_as_extra = interaction.evaluateAttribute(element.getExtraAttribute(), interaction.getAttacker());
+            // inherit as extra damage
+            if (gain_as_extra > 0d) {
+                damage_multi.forEach((other_element, damage) -> {
+                    if (element != other_element) {
+                        updated_damage_multi.merge(other_element, damage * gain_as_extra, Double::sum);
+                    }
                 });
-                // carry over the damage flat
-                damage_flat.forEach((group, factor) -> {
-                    double ratio = group == element ? 1d : extra_damage;
-                    updated_damage_flat.merge(group, factor * ratio, (a, b) -> a + b);
+                damage_flat.forEach((other_element, damage) -> {
+                    if (element != other_element) {
+                        updated_damage_flat.merge(other_element, damage * gain_as_extra, Double::sum);
+                    }
                 });
             }
         }
@@ -194,7 +180,6 @@ public class WeaponDamageType implements IDamageType {
                 }
             }
         }
-
 
         // apply armor specific damage reduction
         double armor_weapon = interaction.evaluateAttribute("WEAPON_ARMOR", interaction.getDefender());

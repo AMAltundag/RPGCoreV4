@@ -20,7 +20,7 @@ import java.util.Queue;
 /*
  * Bundle paths need to be corrected.
  */
-public class Migration_0000_ClassRefactorings extends AbstractMigration {
+public class Migration_0001_ClassRefactorings extends AbstractMigration {
 
     private static Map<String, String> LEGACY_MAPPING = new HashMap<>();
 

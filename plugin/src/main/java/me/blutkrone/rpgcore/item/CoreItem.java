@@ -15,6 +15,9 @@ import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.type.ItemType;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -82,6 +85,11 @@ public class CoreItem {
             builder.model((int) editor.model_data);
         }
         builder.color(Integer.parseInt(editor.color_data, 16));
+        if (editor.attack_speed >= 0d) {
+            builder.meta((meta -> {
+                meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, new AttributeModifier(UUID.randomUUID(), "rpgcore_weapon_attack_speed", editor.attack_speed - 4d, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
+            }));
+        }
         this.template = builder.build();
         this.lc_text = editor.lc_text;
         this.lc_info = editor.lc_info;

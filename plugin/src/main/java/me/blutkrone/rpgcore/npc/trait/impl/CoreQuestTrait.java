@@ -6,12 +6,10 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.npc.trait.AbstractCoreTrait;
 import me.blutkrone.rpgcore.quest.CoreQuest;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A trait intended for progression in a quest, this trait is treated
@@ -22,6 +20,8 @@ public class CoreQuestTrait extends AbstractCoreTrait {
 
     // all quests which we do offer
     private Set<String> quests = new LinkedHashSet<>();
+    // cache for async operations
+    private Map<CorePlayer, List<CoreQuest>> async_cache = Collections.synchronizedMap(new WeakHashMap<>());
 
     public CoreQuestTrait(EditorQuestTrait editor) {
         super(editor);
@@ -42,6 +42,16 @@ public class CoreQuestTrait extends AbstractCoreTrait {
      */
     public Set<String> getQuests() {
         return quests;
+    }
+
+    /**
+     * Retrieve an approximation of the available quests.
+     *
+     * @return A list of all quests to claim
+     */
+    public List<CoreQuest> getQuestAvailableApproximate(CorePlayer player) {
+        Bukkit.getScheduler().runTask(RPGCore.inst(), () -> getQuestAvailable(player));
+        return this.async_cache.getOrDefault(player, new ArrayList<>());
     }
 
     /**
@@ -69,6 +79,9 @@ public class CoreQuestTrait extends AbstractCoreTrait {
                 available.add(quest);
             }
         }
+
+        // snapshot for async information
+        this.async_cache.put(player, available);
 
         return available;
     }

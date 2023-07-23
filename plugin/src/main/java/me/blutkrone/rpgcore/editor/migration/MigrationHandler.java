@@ -1,7 +1,8 @@
 package me.blutkrone.rpgcore.editor.migration;
 
-import me.blutkrone.rpgcore.editor.migration.scripts.Migration_0000_ClassRefactorings;
-import me.blutkrone.rpgcore.editor.migration.scripts.Migration_0001_HologramExtraParameters;
+import me.blutkrone.rpgcore.editor.migration.scripts.Migration_0000_DeleteBadJSON;
+import me.blutkrone.rpgcore.editor.migration.scripts.Migration_0001_ClassRefactorings;
+import me.blutkrone.rpgcore.editor.migration.scripts.Migration_0002_HologramExtraParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +17,9 @@ public class MigrationHandler {
 
     public MigrationHandler() {
         // register migration scripts
-        this.migrations.add(new Migration_0000_ClassRefactorings());
-        this.migrations.add(new Migration_0001_HologramExtraParameters());
+        this.migrations.add(new Migration_0000_DeleteBadJSON());
+        this.migrations.add(new Migration_0001_ClassRefactorings());
+        this.migrations.add(new Migration_0002_HologramExtraParameters());
 
         // invoke migration scripts
         for (AbstractMigration migration : this.migrations) {

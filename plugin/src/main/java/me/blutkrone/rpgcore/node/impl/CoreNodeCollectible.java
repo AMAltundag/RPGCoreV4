@@ -361,7 +361,8 @@ public class CoreNodeCollectible extends AbstractNode {
             ItemDisplay visual = this.visual.get();
             // if the model entity broke, create a new one
             if (visual == null || !visual.isValid()) {
-                visual = (ItemDisplay) this.where.getWorld().spawnEntity(where, EntityType.ITEM_DISPLAY);
+                visual = (ItemDisplay) this.where.getWorld().spawnEntity(where.clone().add(0d, 0.5d, 0d), EntityType.ITEM_DISPLAY);
+                visual.setPersistent(false);
                 visual.setMetadata("rpgcore-node", new FixedMetadataValue(RPGCore.inst(), this.node_identifier));
                 visual.setBillboard(Display.Billboard.FIXED);
                 visual.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);

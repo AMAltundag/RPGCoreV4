@@ -61,6 +61,9 @@ public class EditorItem implements IEditorRoot<CoreItem> {
     @EditorList(name = "Weapon", constraint = AttributeConstraint.class)
     @EditorTooltip(tooltip = {"Damage multiplier attributes if used as a weapon.", "This only applies for damage type 'weapon'"})
     public List<String> weapon_scaling_attribute = new ArrayList<>();
+    @EditorNumber(name = "Attack Speed")
+    @EditorTooltip(tooltip = {"Override native attack speed if equipped", "Negative to not apply."})
+    public double attack_speed = -1d;
 
     @EditorCategory(icon = Material.ANVIL, info = {"Durability", "Configure durability and repairing"})
     @EditorNumber(name = "Durability")

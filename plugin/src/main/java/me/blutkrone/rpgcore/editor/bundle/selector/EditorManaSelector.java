@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.editor.bundle.selector;
 
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.editor.annotation.value.EditorBoolean;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierBoolean;
 import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
@@ -22,7 +21,7 @@ public class EditorManaSelector extends AbstractEditorSelector {
     @EditorBundle(name = "Maximum")
     @EditorTooltip(tooltip = "Maximum amount of the resource")
     public EditorModifierNumber maximum = new EditorModifierNumber(99999);
-    @EditorBoolean(name = "Percentage")
+    @EditorBundle(name = "Percentage")
     @EditorTooltip(tooltip = "Process as percentage")
     public EditorModifierBoolean percentage = new EditorModifierBoolean();
 

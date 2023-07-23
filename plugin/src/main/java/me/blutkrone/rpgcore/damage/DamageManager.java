@@ -85,7 +85,6 @@ public final class DamageManager implements Listener {
             ex.printStackTrace();
         }
 
-        RPGCore.inst().getLogger().info("not implemented (vanilla migration)");
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
     }
 
@@ -172,7 +171,7 @@ public final class DamageManager implements Listener {
             }
         }
 
-        // apply final damage mulitplier
+        // apply final damage multiplier
         for (DamageElement element : getElements()) {
             double damage = Math.max(0d, interaction.getDamage(element) * interaction.getMultiplier());
             interaction.setDamage(element, damage);

@@ -17,10 +17,10 @@ public class EditorLogicFlagMechanic extends AbstractEditorMechanic {
 
     @EditorBundle(name = "Flag")
     @EditorTooltip(tooltip = {"The flag to be acquired."})
-    public EditorModifierString flag;
+    public EditorModifierString flag = new EditorModifierString("NOTHINGNESS");
     @EditorBundle(name = "Duration")
     @EditorTooltip(tooltip = {"Duration to hold the flag."})
-    public EditorModifierNumber time;
+    public EditorModifierNumber time = new EditorModifierNumber(80);
 
     @Override
     public AbstractCoreMechanic build() {
@@ -31,6 +31,8 @@ public class EditorLogicFlagMechanic extends AbstractEditorMechanic {
     public ItemStack getPreview() {
         return ItemBuilder.of(Material.CHEST)
                 .name("§fFlag Mechanic")
+                .name("§fFlag: " + flag.base_value)
+                .name("§fDuration: " + time.base_value)
                 .build();
     }
 

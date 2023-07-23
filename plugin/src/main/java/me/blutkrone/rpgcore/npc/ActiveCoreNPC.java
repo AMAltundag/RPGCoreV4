@@ -199,7 +199,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         } else {
             CoreQuestTrait trait = template.getTrait(CoreQuestTrait.class);
             if (trait != null) {
-                List<CoreQuest> available = trait.getQuestAvailable(core_player);
+                List<CoreQuest> available = trait.getQuestAvailableApproximate(core_player);
                 if (!available.isEmpty()) {
                     texture = rpm.texture(available.get(0).getSymbol());
                 }
