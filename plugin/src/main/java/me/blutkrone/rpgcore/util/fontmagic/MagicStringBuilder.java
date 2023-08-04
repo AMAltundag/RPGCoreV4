@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.util.fontmagic;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import net.md_5.bungee.api.ChatColor;
@@ -10,27 +11,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/*
- * todo get rid of font hack string builder
- */
 public class MagicStringBuilder {
 
-    private static Pattern COLOR_STRIP = Pattern.compile("(?i)§[0-9A-F]");
+    private static final Pattern COLOR_STRIP = Pattern.compile("(?i)§[0-9A-F]");
 
     // already compiled parts
-    private List<BaseComponent> compiled = new ArrayList<>();
+    private List<BaseComponent> compiled;
     // which character table to utilize
-    private String charset = "generated_text_default_fixed";
+    private String charset;
     // the buffer we have currently
-    private StringBuilder internal = new StringBuilder();
+    private StringBuilder internal;
     // computed symbol length, assume accuracy
-    private int length = 0;
+    private int length;
     // multiple offsets which have to be parsed
-    private int pending_offset = 0;
+    private int pending_offset;
     // offset to enforce before compiling
-    private int final_length = -1;
+    private int final_length;
 
     public MagicStringBuilder() {
+        this.compiled = new ArrayList<>();
+        this.charset = RPGCore.inst().getResourcePackManager().aliasToReal("default_fixed");
+        this.internal = new StringBuilder();
+        this.length = 0;
+        this.pending_offset = 0;
+        this.final_length = -1;
     }
 
     /**
@@ -61,6 +65,17 @@ public class MagicStringBuilder {
     }
 
     /**
+     * Force a specific length into the backing implementation.
+     *
+     * @param length Length to force
+     */
+    public MagicStringBuilder length(int length) {
+        this.length = length;
+        this.pending_offset = 0;
+        return this;
+    }
+
+    /**
      * Change the font we are operating with.
      *
      * @param font updated font we work with
@@ -78,6 +93,17 @@ public class MagicStringBuilder {
     }
 
     /**
+     * Cause a linebreak, starting a new line and nulling the
+     * offset to zero.
+     */
+    public MagicStringBuilder linebreak() {
+        shiftToExact(0);
+        split();
+        this.internal.append("\n");
+        return this;
+    }
+
+    /**
      * Append text into the given workspace
      *
      * @param text the text to be rendered
@@ -89,7 +115,6 @@ public class MagicStringBuilder {
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
-
         return this;
     }
 
@@ -155,7 +180,7 @@ public class MagicStringBuilder {
         // make sure we can retreat to our page
         String current_font = this.charset;
         // insert the text we are awaiting here
-        font("generated_text_" + offset);
+        font(RPGCore.inst().getResourcePackManager().aliasToReal(offset));
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
@@ -202,7 +227,7 @@ public class MagicStringBuilder {
         // make sure we can retreat to our page
         String current_font = this.charset;
         // insert the text we are awaiting here
-        font("generated_text_" + offset);
+        font(RPGCore.inst().getResourcePackManager().aliasToReal(offset));
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
@@ -246,7 +271,6 @@ public class MagicStringBuilder {
      * @param color dyes the appended component
      */
     public MagicStringBuilder append(IndexedTexture text, ChatColor color) {
-
         // flush the offset that lays on our buffer
         split();
         // make sure we can retreat to our page
@@ -342,7 +366,7 @@ public class MagicStringBuilder {
         BaseComponent[] compiled = compile();
         // clear out any data we have
         this.compiled = new ArrayList<>();
-        this.charset = "generated_text_default_fixed";
+        this.charset = RPGCore.inst().getResourcePackManager().aliasToReal("default_fixed");
         this.internal = new StringBuilder();
         this.length = 0;
         this.pending_offset = 0;

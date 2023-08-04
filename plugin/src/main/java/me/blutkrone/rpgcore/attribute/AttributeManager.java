@@ -15,10 +15,10 @@ import java.util.Map;
  * Manages attributes on the server, do note that despite everyone
  * having access to all attributes they aren't obliged to utilize
  * them.
- * <p>
+ * <br>
  * Under no circumstances should an attribute be EVER removed after
  * it has been created!
- * <p>
+ * <br>
  *
  * @see AttributeCollection interface needed to hold attributes
  */

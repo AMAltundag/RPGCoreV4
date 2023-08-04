@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * The root class of a skill, containing all things that
  * are necessary for a single skill.
- * <p>
+ * <br>
  * This is an immutable reflection of the matching editor
  * class, the constructor is intentionally hidden to stop
  * unwanted constructor access.

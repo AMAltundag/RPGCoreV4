@@ -3,11 +3,16 @@ package me.blutkrone.rpgcore.node;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.editor.index.EditorIndex;
 import me.blutkrone.rpgcore.editor.root.node.*;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.node.impl.*;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeWorld;
+import me.blutkrone.rpgcore.quest.CoreQuest;
+import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskVisit;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,6 +27,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NodeManager implements Listener {
@@ -61,9 +67,29 @@ public class NodeManager implements Listener {
             e.printStackTrace();
         }
 
-        // trigger all nodes known on the server
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
+            // trigger all nodes known on the server
             nodes_by_world.forEach((id, world) -> world.tick());
+            // update the quests that need us to visit a node
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
+                if (core_player != null) {
+                    NodeWorld node_world = getNodeWorld(player.getWorld());
+                    if (node_world != null) {
+                        Location location = player.getLocation();
+                        for (String id : core_player.getActiveQuestIds()) {
+                            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+                            AbstractQuestTask task = quest.getCurrentTask(core_player);
+                            if (task instanceof CoreQuestTaskVisit) {
+                                List<NodeActive> nodes = node_world.getNodesNear(location.getBlockX(), location.getBlockY(), location.getBlockZ(), ((CoreQuestTaskVisit) task).getDistance());
+                                for (NodeActive node : nodes) {
+                                    task.updateQuest(core_player, node.getRawNode());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }, 1, 60);
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());

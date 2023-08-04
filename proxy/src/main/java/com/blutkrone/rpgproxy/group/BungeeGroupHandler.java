@@ -419,7 +419,7 @@ public class BungeeGroupHandler implements Listener {
     /*
      * Disband the party if the party only has one player left
      * in it.
-     * <p>
+     * <br>
      * This will NOT broadcast the changes performed.
      *
      * @param party The party to disband
@@ -451,7 +451,7 @@ public class BungeeGroupHandler implements Listener {
     /*
      * Disbands a party, this happens automatically should there only
      * be one player left in the party.
-     * <p>
+     * <br>
      * This will NOT broadcast the changes performed.
      *
      * @param party The party to disband

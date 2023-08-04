@@ -2,7 +2,8 @@ package me.blutkrone.rpgcore.menu;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
-import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.minimap.v2.MapAnchor;
+import me.blutkrone.rpgcore.minimap.v2.MapInfo;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.util.collection.TreeGraph;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -130,20 +132,15 @@ public class PlayerMenu extends AbstractCoreMenu {
             RPGCore.inst().getHUDManager().getEquipMenu().open(player);
         } else if ("cartography".equalsIgnoreCase(action)) {
             // map of the current area
-            NavigationMenu.Cartography cartography = new NavigationMenu.Cartography(player.getLocation());
-            CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-            if (core_player != null) {
-                // grab the markers on the map
-                List<MapMarker> markers = RPGCore.inst().getMinimapManager()
-                        .getMarkersOf(player, core_player);
-                // track the markers on the map
-                for (MapMarker marker : markers) {
-                    if (marker.getLocation().distance(player.getLocation()) <= marker.distance) {
-                        cartography.addMarker(marker);
-                    }
+            MapAnchor anchor = RPGCore.inst().getMinimapManager().getAnchorNearby(player);
+            if (anchor != null) {
+                List<MapInfo> maps = new ArrayList<>();
+                for (String id : anchor.path) {
+                    maps.add(RPGCore.inst().getMinimapManager().getMapInfo(id));
                 }
+                NavigationMenu.Cartography cartography = new NavigationMenu.Cartography(maps);
+                cartography.finish(player);
             }
-            cartography.finish(player);
         } else if ("logout".equalsIgnoreCase(action)) {
             // logout of current character
             RPGCore.inst().getEntityManager().unregister(player.getUniqueId());

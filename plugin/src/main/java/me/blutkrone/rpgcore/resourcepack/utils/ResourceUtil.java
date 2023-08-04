@@ -42,6 +42,25 @@ public class ResourceUtil {
     }
 
     /**
+     * Create an exact copy of an image with transparency.
+     *
+     * @param image the image to copy
+     * @return the copied image with an opacity multiplier
+     */
+    public static BufferedImage imageCopyOpacity(BufferedImage image, double opacity) {
+        BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                int argb = image.getRGB(x, y);
+                int alpha = (int) (((0xFF000000 & argb) >> 24) * opacity);
+                int rgb = image.getRGB(x, y) & 0xFFFFFF;
+                copy.setRGB(x, y, rgb | (alpha << 24));
+            }
+        }
+        return copy;
+    }
+
+    /**
      * Generate a sliced version of a font, where each symbol has a padding
      * on the top/bottom.
      *

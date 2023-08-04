@@ -310,24 +310,24 @@ public final class Matching {
         /**
          * Ask users if they want to participate in dungeon, fail if
          * anyone responds negatively.
-         * <p>
+         * <br>
          * Timeout of 30 seconds
          */
         ASKING,
         /**
          * Verify if user is ready to transfer, fail if anyone responds
          * negatively.
-         * <p>
+         * <br>
          * Timeout of 10 seconds
          */
         VERIFY,
         /**
          * Request players to depart their server and join the dungeon
          * instance.
-         * <p>
+         * <br>
          * Cut-off point, match cannot fail anymore. The match will simply
          * happen without the other players.
-         * <p>
+         * <br>
          * Timeout of 10 seconds
          */
         DEPART,

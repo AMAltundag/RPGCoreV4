@@ -1,10 +1,12 @@
 package me.blutkrone.rpgcore.editor.bundle.item;
 
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.constraint.reference.index.ItemConstraint;
+import me.blutkrone.rpgcore.editor.constraint.reference.other.NodeConstraint;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +22,9 @@ public class EditorItemWithQuantity implements IEditorBundle {
     @EditorNumber(name = "Quantity", minimum = 1.0)
     @EditorTooltip(tooltip = "Rounded down to the nearest integer.")
     public double quantity = 0.0d;
+    @EditorList(name = "Gathering", constraint = NodeConstraint.class)
+    @EditorTooltip(tooltip = {"Nodes that are related to where to find this item."})
+    public List<String> gathering_area = new ArrayList<>();
 
     public EditorItemWithQuantity() {
     }
@@ -44,6 +49,8 @@ public class EditorItemWithQuantity implements IEditorBundle {
         instruction.add("Item With Quantity");
         instruction.add("Check if at-least the given quantity of the item");
         instruction.add("Is available to use.");
+        instruction.add("");
+        instruction.add("Gathering area is only relevant for quest hints.");
         return instruction;
     }
 }

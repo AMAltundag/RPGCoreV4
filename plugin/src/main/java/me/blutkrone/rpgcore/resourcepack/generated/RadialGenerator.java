@@ -43,14 +43,14 @@ public class RadialGenerator {
                     while (current < current_radial.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = current_radial.getSubimage(current, 0, Math.min(128, current_radial.getWidth() - current), current_radial.getHeight());
-                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "radial_" + name, slice.getWidth(), slice, offset));
+                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "radial_" + name, slice, offset));
                         // move our pointer ahead
                         current += Math.min(128, current_radial.getWidth());
                     }
                     output.put("radial_" + name + "_" + ((int) i), IndexedTexture.GeneratedCompoundTexture.build(pooled));
                 } else {
                     // track the generated image
-                    output.put("radial_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "radial_" + name, current_radial.getWidth(), current_radial, offset));
+                    output.put("radial_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "radial_" + name, current_radial, offset));
                 }
             }
         } catch (IOException e) {

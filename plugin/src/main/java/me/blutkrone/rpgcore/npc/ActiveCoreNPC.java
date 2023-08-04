@@ -18,7 +18,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -135,9 +134,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
             equipment.queue(EquipmentSlot.OFF_HAND, this.template.getOffhand());
         }
         equipment.flush();
-        // create a hologram for the NPC name
-        hologram().spawn(player, location());
-        hologram().mount(player, this.id());
+        // deploy an updated title
         hologram().message(player, describe(player), true, false);
     }
 
@@ -173,21 +170,6 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
         MagicStringBuilder msb = new MagicStringBuilder();
 
-        // retrieve the description for the mob
-        List<String> contents = RPGCore.inst().getLanguageManager().getTranslationList(template.getNameLC());
-        // if we got a header, draw that as the background
-        if (rpm.textures().containsKey(contents.get(0))) {
-            String header = contents.remove(0);
-            IndexedTexture background_texture = RPGCore.inst().getResourcePackManager().texture(header);
-            msb.shiftCentered(0, background_texture.width).append(background_texture);
-        }
-        // draw remaining lines backwards
-        Collections.reverse(contents);
-        for (int i = 0; i < contents.size() && i < 24; i++) {
-            msb.shiftCentered(0, Utility.measure(contents.get(i)));
-            msb.append(contents.get(i), "nameplate_" + i);
-        }
-
         // show info symbols for quest offers
         IndexedTexture texture = null;
         if (template.getQuestRewardOffer(core_player) != null) {
@@ -205,12 +187,30 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
                 }
             }
         }
-
-        // make sure we generated a texture
         if (texture != null) {
             msb.shiftCentered(0, texture.width);
             msb.append(texture);
         }
+
+        // retrieve the description for the mob
+        List<String> contents = RPGCore.inst().getLanguageManager().getTranslationList(template.getNameLC());
+
+        // if we got a header, draw that as the background
+        if (rpm.textures().containsKey(contents.get(0))) {
+            String header = contents.remove(0);
+            IndexedTexture background_texture = RPGCore.inst().getResourcePackManager().texture(header);
+            msb.shiftCentered(0, background_texture.width).append(background_texture);
+        }
+
+        // draw remaining lines backwards
+        for (String content : contents) {
+            msb.shiftCentered(0, Utility.measure(content));
+            msb.append(content).linebreak();
+        }
+
+        // separate a bit from the mounted entity
+        msb.linebreak();
+        msb.linebreak();
 
         return msb.shiftToExact(-2).compile();
     }

@@ -34,7 +34,7 @@ public class CortexGenerator {
                     while (w < bi.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_small", slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (36 * i)));
+                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_small", slice, MENU_VERTICAL_OFFSET - (36 * i)));
                         // move our pointer ahead
                         w += Math.min(128, bi.getWidth());
                     }
@@ -66,7 +66,7 @@ public class CortexGenerator {
                     while (w < bi.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_medium", slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (54 * i)));
+                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_medium", slice, MENU_VERTICAL_OFFSET - (54 * i)));
                         // move our pointer ahead
                         w += Math.min(128, bi.getWidth());
                     }
@@ -98,7 +98,7 @@ public class CortexGenerator {
                     while (w < bi.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_large", slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (54 * i)));
+                        sliced.add(new IndexedTexture.GeneratedTexture(c++, "cortex_large", slice, MENU_VERTICAL_OFFSET - (54 * i)));
                         // move our pointer ahead
                         w += Math.min(128, bi.getWidth());
                     }

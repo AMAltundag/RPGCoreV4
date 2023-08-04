@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 /**
  * Messages with items attached to them.
- * <p>
+ * <br>
  * Mail is to be shared across the roster.
  */
 public class CoreMailTrait extends AbstractCoreTrait {

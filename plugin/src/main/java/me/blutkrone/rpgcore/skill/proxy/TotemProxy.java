@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Creates an immobile entity which can be inflicted with
  * damage. All skill logic is invoked by the creator. The
  * proxy is removed when the entity dies.
- * <p>
+ * <br>
  * A totem may be moved, which in turn can move the proxy.
  */
 public class TotemProxy extends AbstractSkillProxy {
@@ -46,7 +46,7 @@ public class TotemProxy extends AbstractSkillProxy {
      * Creates an immobile entity which can be inflicted with
      * damage. All skill logic is invoked by the creator. The
      * proxy is removed when the entity dies.
-     * <p>
+     * <br>
      * A totem may be moved, which in turn can move the proxy.
      *
      * @param context         the context the area is created within.

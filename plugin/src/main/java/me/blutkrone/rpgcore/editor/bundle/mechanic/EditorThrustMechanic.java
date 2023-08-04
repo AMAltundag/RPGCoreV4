@@ -2,6 +2,7 @@ package me.blutkrone.rpgcore.editor.bundle.mechanic;
 
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierBoolean;
 import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.skill.mechanic.AbstractCoreMechanic;
 import me.blutkrone.rpgcore.skill.mechanic.ThrustMechanic;
@@ -20,7 +21,10 @@ public class EditorThrustMechanic extends AbstractEditorMechanic {
     @EditorBundle(name = "Drag")
     @EditorTooltip(tooltip = {"High drag for slow directional change"})
     public EditorModifierNumber drag = new EditorModifierNumber();
-
+    @EditorBundle(name = "Resistible")
+    @EditorTooltip(tooltip = {"Reduce power via 'knockback_defense' on defender"})
+    public EditorModifierBoolean resistible = new EditorModifierBoolean(false);
+    
     @Override
     public AbstractCoreMechanic build() {
         return new ThrustMechanic(this);

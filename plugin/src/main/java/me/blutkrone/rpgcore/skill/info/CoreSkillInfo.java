@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * A special wrapper which can provide us with information
  * on the modifiers of a skill.
- * <p>
+ * <br>
  * Information about the binding is automatically generated, if
  * you wish for additional information the skill itself can host
  * arbitrary additional information.

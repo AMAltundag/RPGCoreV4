@@ -8,7 +8,7 @@ import me.blutkrone.rpgcore.skill.SkillContext;
 /**
  * The skillbar of a player may occupy up to six slots, and
  * each slot is associated with one skill.
- * <p>
+ * <br>
  * The progress of casting a skill is an activity, hence it
  * will overlap with other activities - the skillbar should
  * not accept requests while there is a pending activity.

@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * An organisation annotation, all following editor annotations
  * are to going to be categorized underneath it.
- * <p>
+ * <br>
  * The object to bundle must not necessarily be editable.
  */
 @Retention(RetentionPolicy.RUNTIME)

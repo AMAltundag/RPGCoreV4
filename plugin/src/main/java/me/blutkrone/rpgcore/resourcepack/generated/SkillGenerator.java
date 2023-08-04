@@ -25,14 +25,14 @@ public class SkillGenerator {
                 String name = candidate.getName();
                 name = name.substring(0, name.indexOf("."));
                 // basic skillbar texture
-                textures.put("skillbar_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar", bi.getWidth(), bi, offset));
+                textures.put("skillbar_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar", bi, offset));
                 // item lore texture
-                textures.put("skillbar_item_lore_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_item_lore", bi.getWidth(), bi, 0));
+                textures.put("skillbar_item_lore_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_item_lore", bi, 0));
                 // skillbar icon on focus
-                textures.put("skillbar_focused_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_focused", bi.getWidth(), bi, focus_offset));
+                textures.put("skillbar_focused_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_focused", bi, focus_offset));
                 // bleached texture
                 bi = bleach(bi);
-                textures.put("skillbar_bleached_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_bleached", bi.getWidth(), bi, offset));
+                textures.put("skillbar_bleached_" + name, new IndexedTexture.GeneratedTexture(c, "skillbar_bleached", bi, offset));
                 // increment the identifier
                 c += 1;
             }

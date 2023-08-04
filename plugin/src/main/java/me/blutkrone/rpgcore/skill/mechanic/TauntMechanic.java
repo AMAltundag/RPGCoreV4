@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorTauntMechanic;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import org.bukkit.entity.LivingEntity;
@@ -36,6 +37,11 @@ public class TauntMechanic extends AbstractCoreMechanic {
             if (target instanceof CoreMob) {
                 IEntityBase base = ((CoreMob) target).getBase();
                 base.enrage(source, factor, limit, focus, this.quickswap);
+
+                // track entities we enraged on minimap
+                if (context instanceof CorePlayer) {
+                    ((CorePlayer) context).trackEntityOnMinimap(((CoreMob) target));
+                }
             }
         }
     }

@@ -82,7 +82,7 @@ public abstract class AilmentTracker {
     /**
      * Update the decoration intended to assist with decor
      * hints of the ailment.
-     * <p>
+     * <br>
      * This method is automatically invoked after ticking.
      */
     public void decorate(int interval) {

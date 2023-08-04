@@ -86,8 +86,8 @@ public class SpellDamageType implements IDamageType {
         }
 
         // apply rules to gain extra damage
-        Map<DamageElement, Double> updated_damage_multi = new HashMap<>();
-        Map<DamageElement, Double> updated_damage_flat = new HashMap<>();
+        Map<DamageElement, Double> updated_damage_multi = new HashMap<>(damage_multi);
+        Map<DamageElement, Double> updated_damage_flat = new HashMap<>(damage_flat);
 
         for (DamageElement element : damage_manager.getElements()) {
             // identify how much damage we gain from other elements

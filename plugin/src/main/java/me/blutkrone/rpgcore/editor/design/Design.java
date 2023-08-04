@@ -30,7 +30,7 @@ public class Design {
      * This is a wrapper class which extracts the annotation structure from
      * a class, and translates it into a format which the editor can use to
      * build an editor for it.
-     * <p>
+     * <br>
      *
      * @param design the class whose design we want to extract.
      */

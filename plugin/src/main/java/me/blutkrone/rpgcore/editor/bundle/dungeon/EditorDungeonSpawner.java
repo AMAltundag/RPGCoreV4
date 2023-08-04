@@ -36,7 +36,7 @@ public class EditorDungeonSpawner extends AbstractEditorDungeonStructure {
     @EditorTooltip(tooltip = {"Cooldown after a bunch of monsters."})
     public double cooldown = 100;
     @EditorNumber(name = "Destroy", minimum = 0, maximum = 128)
-    @EditorTooltip(tooltip = {"De-spawn mob, relative to spawn-point"})
+    @EditorTooltip(tooltip = {"De-spawn mob, relative to spawnpoint"})
     public double despawn = 24d;
 
     @Override

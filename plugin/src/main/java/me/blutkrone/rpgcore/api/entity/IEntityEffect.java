@@ -52,7 +52,7 @@ public interface IEntityEffect {
     /**
      * Whether the effect is still valid, validity depends on the exact
      * implementation of the effect.
-     * <p>
+     * <br>
      * Examples of invalidity are context-inheriting effects where the
      * context no longer exists.
      *

@@ -5,11 +5,15 @@ import me.blutkrone.rpgcore.api.hud.IUXComponent;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
 import me.blutkrone.rpgcore.minimap.MapMarker;
-import me.blutkrone.rpgcore.minimap.MapRegion;
+import me.blutkrone.rpgcore.minimap.v2.MinimapManagerV2;
 import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -40,46 +44,71 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
     @Override
     public Snapshot prepare(CorePlayer core_player, Player bukkit_player) {
         List<MapMarker> map_marker = RPGCore.inst().getMinimapManager().getMarkersOf(bukkit_player, core_player);
-        MapRegion map_region = RPGCore.inst().getMinimapManager().getRegionOf(bukkit_player);
         Location position = bukkit_player.getLocation().clone();
-        return new Snapshot(map_marker, map_region, position);
+        return new Snapshot(map_marker, position);
     }
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, Snapshot prepared) {
+        int size = MinimapManagerV2.MINIMAP_SIZE_BLOCK;
         ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
         // where to start rendering the component
         int render_point = core_player.getSettings().screen_width - rpm.texture("static_navigator_front_N").width - 10;
         // draw the background of our navigator
         workspace.bossbar().shiftToExact(render_point);
         workspace.bossbar().append(rpm.texture("static_navigator_back"));
-
-        // draw the minimap slices on screen
-        if (prepared.map_region != null && prepared.map_region.contains(prepared.position)
-                && rpm.hasParameter("map-" + prepared.map_region.map + "-width")) {
-            // identify the middle piece
-            double relX = prepared.position.getBlockX() - prepared.map_region.x1;
-            double lenX = prepared.map_region.x2 - prepared.map_region.x1;
-            double relZ = prepared.position.getBlockZ() - prepared.map_region.z1;
-            double lenZ = prepared.map_region.z2 - prepared.map_region.z1;
-            double imgW = rpm.parameter("map-" + prepared.map_region.map + "-width").doubleValue();
-            double imgH = rpm.parameter("map-" + prepared.map_region.map + "-height").doubleValue();
-            int tileX = (int) (((int) Math.ceil(imgW / 8)) * (relX / lenX));
-            int tileY = (int) (((int) Math.ceil(imgH / 8)) * (relZ / lenZ));
-
-            // put together the minimap
-            for (int i = -4; i <= +4; i++) {
-                workspace.bossbar().shiftToExact(render_point + minimap_start_at);
-                for (int j = -4; j <= +4; j++) {
-                    try {
-                        if (NavigatorComponent.MAP_CIRCLE_TRIM.contains(i * 9 + j)) {
-                            workspace.bossbar().advance(8);
-                        } else {
-                            workspace.bossbar().append(rpm.texture(String.format("map_%s_%s_%s_%s", prepared.map_region.map, tileX + j, tileY + i, (i + 4))));
+        // dispatch request for minimap
+        if (prepared.map_anchor != null) {
+            boolean[][] layer_below = RPGCore.inst().getMinimapManager().buildMapAround(prepared.map_anchor.clone().add(0, -1, 0));
+            boolean[][] layer_equal = RPGCore.inst().getMinimapManager().buildMapAround(prepared.map_anchor);
+            boolean[][] layer_above = RPGCore.inst().getMinimapManager().buildMapAround(prepared.map_anchor.clone().add(0, +1, 0));
+            if (layer_below != null && layer_equal != null && layer_above != null) {
+                for (int i = 0; i < size; i++) {
+                    for (int j = 0; j < size; j++) {
+                        if (layer_equal[i][j]) {
+                            workspace.bossbar().shiftToExact(render_point+minimap_start_at+(j*2)).append(rpm.texture("minimap_pixel_0_" + i));
+                        } else if (layer_above[i][j]) {
+                            workspace.bossbar().shiftToExact(render_point+minimap_start_at+(j*2)).append(rpm.texture("minimap_pixel_1_" + i));
+                        } else if (layer_below[i][j]) {
+                            workspace.bossbar().shiftToExact(render_point+minimap_start_at+(j*2)).append(rpm.texture("minimap_pixel_2_" + i));
                         }
-                    } catch (Exception e) {
-                        workspace.bossbar().advance(8);
                     }
+                }
+            }
+        }
+
+        // overlay above map but below icons
+        workspace.bossbar().shiftToExact(render_point);
+        workspace.bossbar().append(rpm.texture("static_navigator_overlay"));
+
+        // render the relevant markers on the map
+        if (prepared.map_anchor != null) {
+            int start_x = prepared.map_anchor.getBlockZ() - (size/2);
+            int start_z = prepared.map_anchor.getBlockX() - (size/2);
+            int close_x = prepared.map_anchor.getBlockZ() + (size/2);
+            int close_z = prepared.map_anchor.getBlockX() + (size/2);
+            for (MapMarker marker : prepared.map_marker) {
+                IndexedTexture texture = rpm.texture("marker_" + marker.marker + "_0");
+                // marker position on an absolute space
+                int marker_x = Math.max(start_x, Math.min(close_x, marker.getLocation().getBlockZ()));
+                int marker_z = Math.max(start_z, Math.min(close_z - texture.height, marker.getLocation().getBlockX()));
+                // marker position on an relative space
+                marker_x = marker_x - start_x;
+                marker_z = marker_z - start_z;
+                // semi-transparent if Y difference is too much
+                if (Math.abs(marker.getLocation().getY() - prepared.map_anchor.getY()) <= 16d) {
+                    texture = rpm.texture("marker_" + marker.marker + "_" + marker_x);
+                } else {
+                    texture = rpm.texture("marker_transparent_" + marker.marker + "_" + marker_x);
+                }
+                // render marker at appropriate location
+                if (texture != null) {
+                    workspace.bossbar()
+                            .shiftToExact(render_point+minimap_start_at+(marker_z*2))
+                            .retreat(texture.width/2)
+                            .append(texture);
+                } else {
+                    Bukkit.getLogger().severe("Missing marker texture for: " + marker.marker);
                 }
             }
         }
@@ -88,7 +117,9 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
         workspace.bossbar().shiftToExact(render_point);
         // draw a front based on camera rotation
         float yaw = (prepared.position.getYaw() - 180f) % 360f;
-        if (yaw < 0) yaw += 360f;
+        if (yaw < 0) {
+            yaw += 360f;
+        }
         if (0 <= yaw && yaw < 22.5) {
             workspace.bossbar().append(rpm.texture("static_navigator_front_N"));
         } else if (22.5 <= yaw && yaw < 67.5) {
@@ -117,16 +148,23 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
         workspace.bossbar().append(location, "hud_navigator_text");
     }
 
-    class Snapshot {
+    static class Snapshot {
         final List<MapMarker> map_marker;
-        final MapRegion map_region;
         final Location position;
+        final Location map_anchor;
 
-        Snapshot(List<MapMarker> map_marker, MapRegion map_region, Location position) {
+        Snapshot(List<MapMarker> map_marker, Location position) {
             this.map_marker = map_marker;
-            this.map_region = map_region;
             this.position = position;
+            Block block = this.position.getBlock();
+            for (int i = 0; i < 4 && !block.getRelative(BlockFace.DOWN).getType().isSolid(); i++) {
+                block = block.getRelative(BlockFace.DOWN);
+            }
+            if (block.getRelative(BlockFace.DOWN).getType().isSolid()) {
+                this.map_anchor = block.getLocation();
+            } else {
+                this.map_anchor = null;
+            }
         }
     }
 }
-

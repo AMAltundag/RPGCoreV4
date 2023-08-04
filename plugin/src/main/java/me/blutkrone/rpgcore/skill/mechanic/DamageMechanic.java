@@ -28,9 +28,12 @@ public class DamageMechanic extends AbstractCoreMechanic {
     private Map<String, CoreModifierNumber> modifiers_always = new HashMap<>();
     // tags for the damage instance
     private List<CoreModifierString> tags_always = new ArrayList<>();
+    // knockback power
+    private CoreModifierNumber knockback;
 
     public DamageMechanic(EditorDamageMechanic editor) {
         this.type = editor.type;
+        this.knockback = editor.knockback.build();
         for (IEditorBundle bundle : editor.modifiers_always) {
             EditorAttributeAndModifier casted = (EditorAttributeAndModifier) bundle;
             this.modifiers_always.put(casted.attribute, casted.factor.build());
@@ -50,7 +53,9 @@ public class DamageMechanic extends AbstractCoreMechanic {
             RPGCore.inst().getLogger().severe("Unknown damage type: " + this.type);
             return;
         }
+
         // extract damage related things applicable to all entities
+        double knockback = this.knockback.evalAsDouble(context);
         Map<String, Double> attributes = new HashMap<>();
         Set<String> tags = new HashSet<>();
         modifiers_always.forEach((id, factor) -> {
@@ -63,6 +68,7 @@ public class DamageMechanic extends AbstractCoreMechanic {
         for (IOrigin target : targets) {
             if (target instanceof CoreEntity) {
                 DamageInteraction interaction = type.create(((CoreEntity) target), context.getCoreEntity());
+                interaction.setKnockback(knockback);
                 interaction.setSourceContext(context);
                 if (context instanceof SkillContext) {
                     interaction.setDamageBlame("skill_" + ((SkillContext) context).getSkill().getId());

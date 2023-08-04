@@ -14,10 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class EditorIndex<K, Q extends IEditorRoot<K>> {
     // directory prefix to index from
@@ -32,6 +29,8 @@ public class EditorIndex<K, Q extends IEditorRoot<K>> {
     private long next_index_timestamp;
     // version is incremented whenever something is loaded/updated
     private int version;
+    // callback when saving
+    private Consumer<Q> save_callback = null;
 
     public EditorIndex(String directory, Class<Q> editor_class, Supplier<Q> editor_factory) {
         this.directory = "editor" + File.separator + directory;

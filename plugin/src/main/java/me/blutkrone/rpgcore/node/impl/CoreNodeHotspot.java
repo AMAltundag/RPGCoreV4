@@ -2,14 +2,10 @@ package me.blutkrone.rpgcore.node.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.editor.root.node.EditorNodeHotspot;
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
 import me.blutkrone.rpgcore.node.struct.NodeData;
-import me.blutkrone.rpgcore.quest.CoreQuest;
-import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
-import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskVisit;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,18 +39,6 @@ public class CoreNodeHotspot extends AbstractNode {
         if (players.isEmpty()) {
             // drop the node should no player be nearby
             data.abandon();
-        } else {
-            // update the quests of the player
-            for (Player player : players) {
-                CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-                for (String id : core_player.getActiveQuestIds()) {
-                    CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
-                    AbstractQuestTask task = quest.getCurrentTask(core_player);
-                    if (task instanceof CoreQuestTaskVisit) {
-                        ((CoreQuestTaskVisit) task).updateQuest(core_player, super.getId());
-                    }
-                }
-            }
         }
     }
 

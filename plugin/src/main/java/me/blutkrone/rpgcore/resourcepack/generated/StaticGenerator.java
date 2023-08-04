@@ -24,7 +24,7 @@ public class StaticGenerator {
             while (current < bi.getWidth()) {
                 // slice up the texture and pool it
                 BufferedImage slice = bi.getSubimage(current, 0, Math.min(128, bi.getWidth() - current), bi.getHeight());
-                sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, table, slice.getWidth(), slice, offset));
+                sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, table, slice, offset));
                 // move our pointer ahead
                 current += Math.min(128, bi.getWidth());
             }

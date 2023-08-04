@@ -35,7 +35,7 @@ public class AttributeCollection {
      */
     public void setOverride(double override) {
         this.modifiers_constant.forEach(AttributeModifier::setExpired);
-        this.modifiers_inherited.forEach(AttributeModifier::isExpired);
+        this.modifiers_inherited.forEach(AttributeModifier::setExpired);
         this.create(override);
     }
 

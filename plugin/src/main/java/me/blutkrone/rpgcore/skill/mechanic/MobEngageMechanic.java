@@ -6,6 +6,7 @@ import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorMobEngage;
 import me.blutkrone.rpgcore.editor.bundle.selector.AbstractEditorSelector;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
+import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
@@ -81,6 +82,10 @@ public class MobEngageMechanic extends AbstractCoreMechanic {
             double focus = ((CoreEntity) picked).evaluateAttribute("RAGE_FOCUS");
             // put the rage on the given target
             base.enrage(((CoreEntity) picked).getEntity(), 1d, 1d, focus, false);
+            // track entities we enraged on minimap
+            if (picked instanceof CorePlayer) {
+                ((CorePlayer) picked).trackEntityOnMinimap(context.getCoreEntity());
+            }
         }
     }
 }

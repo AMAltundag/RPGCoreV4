@@ -6,6 +6,7 @@ import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.quest.AbstractEditorQuestTask;
 import me.blutkrone.rpgcore.editor.constraint.bundle.mono.EditorItemWithQuantityConstraint;
+import me.blutkrone.rpgcore.editor.constraint.reference.index.HotspotConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;

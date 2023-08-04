@@ -77,7 +77,7 @@ public class LoreGenerator {
         while (current < bi.getWidth()) {
             // slice up the texture and pool it
             BufferedImage slice = bi.getSubimage(current, 0, Math.min(128, bi.getWidth() - current), bi.getHeight());
-            sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, "lore_design", slice.getWidth(), slice, bi.getHeight() - 1));
+            sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, "lore_design", slice, bi.getHeight() - 1));
             // move our pointer ahead
             current += Math.min(128, bi.getWidth());
         }
@@ -98,7 +98,7 @@ public class LoreGenerator {
             while (current < bi.getWidth()) {
                 // slice up the texture and pool it
                 BufferedImage slice = bi.getSubimage(current, 0, Math.min(128, bi.getWidth() - current), bi.getHeight());
-                sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, "lore_design", slice.getWidth(), slice, bi.getHeight() - 1));
+                sliced.add(new IndexedTexture.GeneratedTexture(symbol.current++, "lore_design", slice, bi.getHeight() - 1));
                 // move our pointer ahead
                 current += Math.min(128, bi.getWidth());
             }

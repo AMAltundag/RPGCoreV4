@@ -24,10 +24,10 @@ public class MapMarker {
         this.distance = section.getDouble("distance");
     }
 
-    public MapMarker(Location location, String marker, double distance) {
+    public MapMarker(Location location, String marker) {
         this.where = () -> location;
         this.marker = marker;
-        this.distance = distance;
+        this.distance = -1d;
     }
 
     public Location getLocation() {

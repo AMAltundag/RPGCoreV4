@@ -17,7 +17,7 @@ import java.util.Map;
 /*
  * Holograms received additional information.
  */
-public class Migration_0002_HologramExtraParameters extends AbstractMigration {
+public class Migration_0001_HologramExtraParameters extends AbstractMigration {
     @Override
     public void apply() {
         // deep scan of all *.rpgcore files with potential bundles

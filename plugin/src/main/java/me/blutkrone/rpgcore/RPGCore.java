@@ -26,7 +26,7 @@ import me.blutkrone.rpgcore.job.JobManager;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.level.LevelManager;
 import me.blutkrone.rpgcore.mail.MailManager;
-import me.blutkrone.rpgcore.minimap.MinimapManager;
+import me.blutkrone.rpgcore.minimap.v2.MinimapManagerV2;
 import me.blutkrone.rpgcore.mob.MobManager;
 import me.blutkrone.rpgcore.mount.MountManager;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
@@ -95,7 +95,7 @@ public final class RPGCore extends JavaPlugin {
     private DataManager data_manager;
     private ResourcePackManager resourcepack_manager;
     private HUDManager hud_manager;
-    private MinimapManager minimap_manager;
+    private MinimapManagerV2 minimap_manager;
     private ItemManager item_manager;
     private DamageManager damage_manager;
     private JobManager job_manager;
@@ -155,7 +155,7 @@ public final class RPGCore extends JavaPlugin {
         this.damage_manager = new DamageManager();
         this.resourcepack_manager = new ResourcePackManager();
         this.job_manager = new JobManager();
-        this.minimap_manager = new MinimapManager();
+        this.minimap_manager = new MinimapManagerV2();
         this.item_manager = new ItemManager();
         this.skill_manager = new SkillManager();
         this.effect_manager = new EffectManager();
@@ -293,7 +293,7 @@ public final class RPGCore extends JavaPlugin {
     /**
      * A gson implementation to provide an interface to json
      * logic.
-     * <p>
+     * <br>
      * Formats GSON in a pretty style, making it more readable.
      *
      * @return gson instance belonging to the plugin
@@ -305,7 +305,7 @@ public final class RPGCore extends JavaPlugin {
     /**
      * A gson implementation to provide an interface to json
      * logic.
-     * <p>
+     * <br>
      * Formats GSON in a ugly style, compressing file size.
      *
      * @return gson instance belonging to the plugin
@@ -394,7 +394,7 @@ public final class RPGCore extends JavaPlugin {
         return data_manager;
     }
 
-    public MinimapManager getMinimapManager() {
+    public MinimapManagerV2 getMinimapManager() {
         return minimap_manager;
     }
 

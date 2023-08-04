@@ -33,7 +33,7 @@ public class MenuGenerator {
                 while (w < bi.getWidth()) {
                     // slice up the texture and pool it
                     BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "menu_frame", slice.getWidth(), slice, MENU_VERTICAL_OFFSET));
+                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "menu_frame", slice, MENU_VERTICAL_OFFSET));
                     // move our pointer ahead
                     w += Math.min(128, bi.getWidth());
                 }

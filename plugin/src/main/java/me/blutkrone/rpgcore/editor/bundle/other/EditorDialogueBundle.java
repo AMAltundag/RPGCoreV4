@@ -18,9 +18,9 @@ import java.util.List;
 /**
  * This is a special case where-in the implementation must be available as either
  * a bundle or a root.
- * <p>
+ * <br>
  * We need the bundle in-case we want to nest dialogue
- * <p>
+ * <br>
  * We need the editor in-case we want to access the dialogue
  */
 public class EditorDialogueBundle implements IEditorBundle {

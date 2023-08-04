@@ -4,23 +4,26 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.menu.NavigationMenu;
-import me.blutkrone.rpgcore.minimap.MapMarker;
+import me.blutkrone.rpgcore.minimap.v2.MapInfo;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class SpawnInitiator implements IRosterInitiator {
 
-    private List<Spawnpoint> spawnpoints = new ArrayList<>();
+    // just apply a spawnpoint directly
+    private Supplier<Location> fixed_spawnpoint = null;
+    // allow user to pick a spawnpoint
+    private String dynamic_spawnpoint = null;
 
     public SpawnInitiator(ConfigWrapper config) {
-        config.forEachUnder("spawn-camp-choices", (path, root) -> {
-            spawnpoints.add(new Spawnpoint(root.getSection(path)));
-        });
+        if (config.isString("spawnpoint")) {
+            this.dynamic_spawnpoint = config.getString("spawnpoint");
+        } else {
+            this.fixed_spawnpoint = config.getLazyLocation("spawnpoint");
+        }
     }
 
     @Override
@@ -42,61 +45,46 @@ public class SpawnInitiator implements IRosterInitiator {
             return false;
         }
 
-        // ensure that the spawn-camp locations are valid
-        this.spawnpoints.removeIf(point -> {
-            Location where = point.getWhere();
-            return where == null || where.getWorld() == null;
-        });
-
-        if (this.spawnpoints.isEmpty()) {
-            // require at least 1 spawnpoint
-            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
-                player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'spawn-camp-choices'");
-            });
-        } else if (this.spawnpoints.size() == 1) {
-            // with 1 spawnpoint we can auto-set spawns
-            Location where = this.spawnpoints.iterator().next().getWhere();
-            player.setRespawnPosition(where);
-            player.setLoginPosition(where);
-        } else {
-            // otherwise we can pick from the menu
-            Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
-                try {
-                    NavigationMenu.SpawnCartography cartography = new NavigationMenu.SpawnCartography(player.getLocation());
-                    for (SpawnInitiator.Spawnpoint spawnpoint : this.spawnpoints) {
-                        cartography.addMarker(new MapMarker(spawnpoint.getWhere(), spawnpoint.getDescriptionLC(), 0d));
+        // check for a minimap directly
+        if (this.dynamic_spawnpoint != null) {
+            MapInfo minimap = RPGCore.inst().getMinimapManager().getMapInfo(this.dynamic_spawnpoint);
+            if (minimap != null) {
+                // allow player to pick their spawnpoint
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    try {
+                        NavigationMenu.SpawnCartography cartography = new NavigationMenu.SpawnCartography(minimap);
+                        cartography.finish(player.getEntity());
+                    } catch (Exception ex) {
+                        player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cReferenced Illegal MiniMap");
                     }
-                    cartography.finish(player.getEntity());
-                } catch (Exception ex) {
-                    player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cReferenced Illegal MiniMap");
+                });
+            } else {
+                // linked minimap does not exist
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'spawnpoint'");
+                });
+            }
+        } else {
+            try {
+                Location location = this.fixed_spawnpoint.get();
+                if (location.getWorld() != null) {
+                    // apply a fixed spawnpoint
+                    player.setRespawnPosition(location);
+                    player.setLoginPosition(location);
+                } else {
+                    // spawnpoint doesn't exist
+                    Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                        player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'spawnpoint'");
+                    });
                 }
-            });
+            } catch (Exception e) {
+                // spawnpoint doesn't exist
+                Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
+                    player.getEntity().kickPlayer("§cYou've been kicked by: §fRPGCore\n\n§cIllegal Config: 'spawnpoint'");
+                });
+            }
         }
 
         return true;
-    }
-
-    public class Spawnpoint {
-        private Supplier<Location> where;
-        private Location where_cached;
-        private String description;
-
-        Spawnpoint(ConfigWrapper config) {
-            this.where = config.getLazyLocation("position");
-            this.description = config.getString("description");
-        }
-
-        public String getDescriptionLC() {
-            return description;
-        }
-
-        public Location getWhere() {
-            if (this.where_cached == null) {
-                this.where_cached = this.where.get();
-                this.where = null;
-            }
-
-            return this.where_cached;
-        }
     }
 }

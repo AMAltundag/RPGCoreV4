@@ -10,6 +10,7 @@ import me.blutkrone.rpgcore.quest.reward.AbstractQuestReward;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
 import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -36,6 +37,11 @@ public class CoreQuestTaskLogic extends AbstractQuestTask<Object> {
                 this.actions.add(((EditorAction) action).build());
             }
         }
+    }
+
+    @Override
+    public List<Location> getHints(CorePlayer core, Player bukkit) {
+        return null; // logic cannot provide hints
     }
 
     @Override

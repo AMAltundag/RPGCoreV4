@@ -40,125 +40,13 @@ public class CoreNodeSpawner extends AbstractNode {
         this.mobs = new ArrayList<>(editor.mobs);
     }
 
-    public static void leash(UUID uuid, Location where, double leash) {
-        CoreMob mob = RPGCore.inst().getEntityManager().getMob(uuid);
-        // ignore leash while in death sequence
-        if (mob == null) {
-            return;
-        }
-        // do not leash while in death sequence
-        IEntityBase base = mob.getBase();
-        if (base == null || base.isInDeathSequence()) {
-            return;
-        }
-        // check how long the leash should be
-        LivingEntity handle = mob.getEntity();
-        double dist = handle.getLocation().distance(where);
-        double my_leash = leash;
-        if (mob.getBase().getRageEntity() != null) {
-            my_leash = my_leash * 1.5d;
-        }
-        // update force teleport tracking
-        if (dist < my_leash) {
-            return;
-        }
-        // reset the creature since the leash kicked in
-        mob.getHealth().recoverBy(mob.getHealth().getSnapshotMaximum());
-        mob.getBase().resetRage();
-        // decide on a location to retreat to
-        Location home = computeRandomSpawnpoint(handle.getWorld(), where, 8d, 6);
-        if (home == null) {
-            home = where;
-        }
-        // move back to valid spawnpoint
-        if (dist >= 24d) {
-            // too far away, just teleport back
-            handle.teleport(home);
-        } else {
-            // walk request, if failed we can teleport
-            if (!mob.getBase().walkTo(home, 1d)) {
-                handle.teleport(home);
-            }
-        }
-    }
-
-    public static List<UUID> spawn(int count, List<String> mobs, Location where, int level, double leash) {
-        List<UUID> output = new ArrayList<>();
-        World world = where.getWorld();
-
-        if (count <= 1) {
-            // roll a random mob to spawn
-            String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
-            CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
-            // track the mobs for respawning
-            where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
-            CoreMob spawned = creature.spawn(where, level);
-            if (spawned != null) {
-                if (leash > 0d) {
-                    spawned.setStrollLeash(leash, where);
-                }
-                output.add(spawned.getUniqueId());
-            }
-        } else {
-            // spawn a pack of mobs at the location
-            for (int i = 0; i < count; i++) {
-                // grab a random position to spawn from
-                Location spawnpoint = computeRandomSpawnpoint(world, where, 6d, 4);
-                if (spawnpoint != null) {
-                    // roll a random mob to spawn
-                    String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
-                    CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
-                    // track the mobs for respawning
-                    where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
-                    CoreMob spawned = creature.spawn(where, level);
-                    if (spawned != null) {
-                        if (leash > 0d) {
-                            spawned.setStrollLeash(leash, where);
-                        }
-                        output.add(spawned.getUniqueId());
-                    }
-                }
-            }
-        }
-
-        return output;
-    }
-
-    private static Location computeRandomSpawnpoint(World world, Location around, double spread, int attempts) {
-        around = around.clone().add(0d, spread / 3d, 0d);
-
-        for (int i = 0; i < attempts; i++) {
-            // throw a ray-cast down at an angle to find a spawn position
-            Vector v = new Vector(Math.random() * 2 - 1, Math.random() * -1d, Math.random() * 2 - 1).normalize();
-            RayTraceResult hit = world.rayTraceBlocks(around, v, spread, FluidCollisionMode.NEVER, true);
-            if (hit == null) {
-                continue;
-            }
-            if (hit.getHitBlock() == null) {
-                continue;
-            }
-            if (hit.getHitBlockFace() != BlockFace.UP) {
-                continue;
-            }
-            // ensure there is space above the block
-            Block block = hit.getHitBlock();
-            if (!block.getRelative(0, 1, 0).isPassable()) {
-                continue;
-            }
-            if (!block.getRelative(0, 2, 0).isPassable()) {
-                continue;
-            }
-            if (!block.getRelative(0, 3, 0).isPassable()) {
-                continue;
-            }
-            // we can spawn a mob at this location
-            Location spawnpoint = block.getLocation();
-            spawnpoint.add(0.5d, 1d, 0.5d);
-            // offer the location
-            return spawnpoint;
-        }
-
-        return null;
+    /**
+     * What mobs can be spawned by this node.
+     *
+     * @return Mobs that can be spawned.
+     */
+    public List<String> getMobs() {
+        return mobs;
     }
 
     @Override
@@ -212,6 +100,153 @@ public class CoreNodeSpawner extends AbstractNode {
     @Override
     public void left(World world, NodeActive active, Player player) {
 
+    }
+
+    /**
+     * Apply the leashing rule on the mob.
+     *
+     * @param uuid The mob who we want leashed
+     * @param where Where to leash it to
+     * @param leash Distance to apply leash at
+     */
+    public static void leash(UUID uuid, Location where, double leash) {
+        CoreMob mob = RPGCore.inst().getEntityManager().getMob(uuid);
+        // ignore leash while in death sequence
+        if (mob == null) {
+            return;
+        }
+        // do not leash while in death sequence
+        IEntityBase base = mob.getBase();
+        if (base == null || base.isInDeathSequence()) {
+            return;
+        }
+        // check how long the leash should be
+        LivingEntity handle = mob.getEntity();
+        double dist = handle.getLocation().distance(where);
+        double my_leash = leash;
+        if (mob.getBase().getRageEntity() != null) {
+            my_leash = my_leash * 1.5d;
+        }
+        // update force teleport tracking
+        if (dist < my_leash) {
+            return;
+        }
+        // reset the creature since the leash kicked in
+        mob.getHealth().recoverBy(mob.getHealth().getSnapshotMaximum());
+        mob.getBase().resetRage();
+        // decide on a location to retreat to
+        Location home = computeRandomSpawnpoint(handle.getWorld(), where, 8d, 6);
+        if (home == null) {
+            home = where;
+        }
+        // move back to valid spawnpoint
+        if (dist >= 24d) {
+            // too far away, just teleport back
+            handle.teleport(home);
+        } else {
+            // walk request, if failed we can teleport
+            if (!mob.getBase().walkTo(home, 1d)) {
+                handle.teleport(home);
+            }
+        }
+    }
+
+    /**
+     * Spawn a group of mobs at the given location
+     *
+     * @param count How many to spawn
+     * @param mobs What mobs that can spawn
+     * @param where Where they will spawn at
+     * @param level Level to spawn mobs at
+     * @param leash Distance of the leash they are bound by
+     * @return Mobs that were spawned
+     */
+    public static List<UUID> spawn(int count, List<String> mobs, Location where, int level, double leash) {
+        List<UUID> output = new ArrayList<>();
+        World world = where.getWorld();
+
+        if (count <= 1) {
+            // roll a random mob to spawn
+            String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
+            CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
+            // track the mobs for respawning
+            where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
+            CoreMob spawned = creature.spawn(where, level);
+            if (spawned != null) {
+                if (leash > 0d) {
+                    spawned.setStrollLeash(leash, where);
+                }
+                output.add(spawned.getUniqueId());
+            }
+        } else {
+            // spawn a pack of mobs at the location
+            for (int i = 0; i < count; i++) {
+                // grab a random position to spawn from
+                Location spawnpoint = computeRandomSpawnpoint(world, where, 6d, 4);
+                if (spawnpoint != null) {
+                    // roll a random mob to spawn
+                    String mob_id = mobs.get(ThreadLocalRandom.current().nextInt(mobs.size()));
+                    CoreCreature creature = RPGCore.inst().getMobManager().getIndex().get(mob_id);
+                    // track the mobs for respawning
+                    where = where.clone().setDirection(new Vector(Math.random() * 2 - 1, 0d, Math.random() * 2 - 1));
+                    CoreMob spawned = creature.spawn(where, level);
+                    if (spawned != null) {
+                        if (leash > 0d) {
+                            spawned.setStrollLeash(leash, where);
+                        }
+                        output.add(spawned.getUniqueId());
+                    }
+                }
+            }
+        }
+
+        return output;
+    }
+
+    /*
+     * Find an appropriate spawnpoint for the mobs around the given location.
+     *
+     * @param world What world to spawn in
+     * @param around Where to spawn around
+     * @param spread Maximum distance away from point
+     * @param attempts How many attempts to find spawnpoint
+     * @return An appropraite spawnpoint for the mob
+     */
+    private static Location computeRandomSpawnpoint(World world, Location around, double spread, int attempts) {
+        around = around.clone().add(0d, spread / 3d, 0d);
+
+        for (int i = 0; i < attempts; i++) {
+            // throw a ray-cast down at an angle to find a spawn position
+            Vector v = new Vector(Math.random() * 2 - 1, Math.random() * -1d, Math.random() * 2 - 1).normalize();
+            RayTraceResult hit = world.rayTraceBlocks(around, v, spread, FluidCollisionMode.NEVER, true);
+            if (hit == null) {
+                continue;
+            }
+            if (hit.getHitBlock() == null) {
+                continue;
+            }
+            if (hit.getHitBlockFace() != BlockFace.UP) {
+                continue;
+            }
+            // ensure there is space above the block
+            Block block = hit.getHitBlock();
+            if (!block.getRelative(0, 1, 0).isPassable()) {
+                continue;
+            }
+            if (!block.getRelative(0, 2, 0).isPassable()) {
+                continue;
+            }
+            if (!block.getRelative(0, 3, 0).isPassable()) {
+                continue;
+            }
+            // we can spawn a mob at this location
+            Location spawnpoint = block.getLocation();
+            spawnpoint.add(0.5d, 1d, 0.5d);
+            // offer the location
+            return spawnpoint;
+        }
+
+        return null;
     }
 
     private class MobData extends NodeData {

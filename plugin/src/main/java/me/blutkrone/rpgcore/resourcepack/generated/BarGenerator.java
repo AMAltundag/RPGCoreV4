@@ -54,14 +54,14 @@ public class BarGenerator {
                     while (current < current_bar.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = current_bar.getSubimage(current, 0, Math.min(128, current_bar.getWidth() - current), current_bar.getHeight());
-                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "bar_" + name, slice.getWidth(), slice, offset));
+                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "bar_" + name, slice, offset));
                         // move our pointer ahead
                         current += Math.min(128, current_bar.getWidth());
                     }
                     output.put("bar_" + name + "_" + ((int) i), IndexedTexture.GeneratedCompoundTexture.build(pooled));
                 } else {
                     // track the generated image
-                    output.put("bar_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "bar_" + name, current_bar.getWidth(), current_bar, offset));
+                    output.put("bar_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "bar_" + name, current_bar, offset));
                 }
             }
         } catch (IOException e) {

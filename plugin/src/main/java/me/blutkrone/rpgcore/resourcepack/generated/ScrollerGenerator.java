@@ -44,7 +44,7 @@ public class ScrollerGenerator {
             while (w < bi.getWidth()) {
                 // slice up the texture and pool it
                 BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                sliced.add(new IndexedTexture.GeneratedTexture(c++, "menu_scroller_frame_" + id, slice.getWidth(), slice, MENU_VERTICAL_OFFSET));
+                sliced.add(new IndexedTexture.GeneratedTexture(c++, "menu_scroller_frame_" + id, slice, MENU_VERTICAL_OFFSET));
                 // move our pointer ahead
                 w += Math.min(128, bi.getWidth());
             }
@@ -78,7 +78,7 @@ public class ScrollerGenerator {
                 while (w < bi.getWidth()) {
                     // slice up the texture and pool it
                     BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "pointer_" + id, slice.getWidth(), slice, (int) (MENU_VERTICAL_OFFSET - 41 - (ratio * spacing))));
+                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "pointer_" + id, slice, (int) (MENU_VERTICAL_OFFSET - 41 - (ratio * spacing))));
                     // move our pointer ahead
                     w += Math.min(128, bi.getWidth());
                 }
@@ -107,7 +107,7 @@ public class ScrollerGenerator {
                 while (w < bi.getWidth()) {
                     // slice up the texture and pool it
                     BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "scroller_highlight", slice.getWidth(), slice, MENU_VERTICAL_OFFSET - 25 - 18 * i));
+                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "scroller_highlight", slice, MENU_VERTICAL_OFFSET - 25 - 18 * i));
                     // move our pointer ahead
                     w += Math.min(128, bi.getWidth());
                 }

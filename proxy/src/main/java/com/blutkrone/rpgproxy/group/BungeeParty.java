@@ -168,7 +168,7 @@ public class BungeeParty {
     /**
      * Remove a player from the party, do note that if the party
      * has only one player left it should dissolve.
-     * <p>
+     * <br>
      * Should it be the leader who is leaving, the oldest player
      * in the party is to be promoted.
      *

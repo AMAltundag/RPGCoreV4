@@ -95,7 +95,7 @@ public interface IGroupHandler {
     /**
      * Check if a player is queued, do note that there is only
      * one uniform queue that players may access.
-     * <p>
+     * <br>
      * This is a best effort and may not be accurate.
      *
      * @param player Who to check

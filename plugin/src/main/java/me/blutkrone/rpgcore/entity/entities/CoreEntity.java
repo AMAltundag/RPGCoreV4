@@ -451,7 +451,7 @@ public class CoreEntity implements IContext, IOrigin {
 
     /**
      * Generate a context for the given skill.
-     * <p>
+     * <br>
      * There are the following causes to create a skill context:
      * <ul>
      * <li>Used the skillbar to cast a skill</li>
@@ -489,7 +489,7 @@ public class CoreEntity implements IContext, IOrigin {
     /**
      * Resource serving as health, cannot recover after reaching zero, health
      * is consumed after surface level resources were processed first.
-     * <p>
+     * <br>
      * Can be reserved by a skill with a permanent effect.
      *
      * @return health resource.
@@ -500,7 +500,7 @@ public class CoreEntity implements IContext, IOrigin {
 
     /**
      * Used by skills to pay a certain cost.
-     * <p>
+     * <br>
      * Can be reserved by a skill with a permanent effect.
      *
      * @return mana resource.

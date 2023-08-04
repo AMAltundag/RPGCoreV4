@@ -1,11 +1,16 @@
 package me.blutkrone.rpgcore.quest.task.impl;
 
+import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.item.EditorItemWithQuantity;
 import me.blutkrone.rpgcore.editor.bundle.quest.task.EditorQuestTaskCollect;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.node.struct.NodeActive;
+import me.blutkrone.rpgcore.node.struct.NodeWorld;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,14 +21,43 @@ public class CoreQuestTaskCollect extends AbstractQuestTask<Object> {
 
     // what items need to be delivered
     private Map<String, Integer> items = new HashMap<>();
+    // where we can find a certain item
+    private Map<String, List<String>> where_to_find = new HashMap<>();
 
     public CoreQuestTaskCollect(CoreQuest quest, EditorQuestTaskCollect editor) {
         super(quest, editor);
 
         for (IEditorBundle bundle : editor.demand) {
             EditorItemWithQuantity demand = (EditorItemWithQuantity) bundle;
-            this.items.merge(demand.item, ((int) demand.quantity), (a, b) -> a + b);
+            this.items.merge(demand.item, ((int) demand.quantity), Integer::sum);
+            this.where_to_find.put(demand.item, new ArrayList<>(demand.gathering_area));
         }
+    }
+
+    @Override
+    public List<Location> getHints(CorePlayer core, Player bukkit) {
+        List<Location> output = new ArrayList<>();
+
+        NodeWorld node_world = RPGCore.inst().getNodeManager().getNodeWorld(bukkit.getWorld());
+
+        // where items we are missing can be gathered
+        if (node_world != null) {
+            Map<String, Integer> carried = core.getSnapshotForQuestItems();
+
+            for (Map.Entry<String, Integer> demand : this.items.entrySet()) {
+                int offer = carried.getOrDefault(demand.getKey(), 0);
+                if (demand.getValue() > offer) {
+                    List<String> where_to_find = this.where_to_find.get(demand.getKey());
+                    for (String node_type : where_to_find) {
+                        for (NodeActive node : node_world.getNodesOfType(node_type)) {
+                            output.add(new Location(bukkit.getWorld(), node.getX(), node.getY(), node.getZ()));
+                        }
+                    }
+                }
+            }
+        }
+
+        return output;
     }
 
     @Override

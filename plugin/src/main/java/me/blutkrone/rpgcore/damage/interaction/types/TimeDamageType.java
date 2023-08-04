@@ -11,7 +11,7 @@ import me.blutkrone.rpgcore.entity.entities.CoreEntity;
  * To accommodate for performance issues, a DOT is unaffected by conversion
  * and partially the element scaling. Please handle that scaling before a
  * DOT instance is created.
- * <p>
+ * <br>
  * <ul>
  * <li>DOT_TAKEN_MULTIPLIER (Multiplier, Defender)</li>
  * </ul>

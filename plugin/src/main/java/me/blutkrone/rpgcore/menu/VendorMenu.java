@@ -187,7 +187,7 @@ public class VendorMenu extends AbstractCoreMenu {
      * Purchase this item, if maximum is enabled we buy up
      * to a full stack of the item. Unstackable items will
      * still only buy one copy.
-     * <p>
+     * <br>
      * This will directly consume the cost and give the item
      * to the player. Excess will be mailed.
      *

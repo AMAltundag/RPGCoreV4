@@ -23,7 +23,6 @@ import me.blutkrone.rpgcore.item.modifier.CoreModifier;
 import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.level.LevelManager;
-import me.blutkrone.rpgcore.minimap.MapMarker;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.passive.CorePassiveNode;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
@@ -55,9 +54,6 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
 
     // settings customizable by player
     private SettingsMenu.Settings settings = new SettingsMenu.Settings();
-
-    // a listing of temporary map markers
-    private Map<String, MapMarker> map_markers = new HashMap<>();
 
     // a skillbar to process skill inputs
     private OwnedSkillbar skillbar;
@@ -149,9 +145,12 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
     // snapshot of known display name
     private String snapshot_displayname;
 
+    // memory for entities we engaged with recently
+    private Map<UUID, Integer> track_on_minimap = new HashMap<>();
+
     public CorePlayer(Player player, EntityProvider provider, int character) {
         super(player, provider);
-        this.getMyTags().add("PLAYER");
+        this.getMyTags().add("player");
 
         // initialize the relevant skillbar
         this.skillbar = new OwnedSkillbar(this);
@@ -159,13 +158,45 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
         this.bukkit_tasks.add(new PlayerFocusTask(this).runTaskTimer(RPGCore.inst(), 1, 5));
         // task to handle death in grave
         this.bukkit_tasks.add((this.grave_task = new PlayerGraveTask(this)).runTaskTimer(RPGCore.inst(), 1, 1));
-        // snapshot for attributes task
+        // snapshot for complex attributes task
         this.bukkit_tasks.add(new SnapshotTask(this).runTaskTimer(RPGCore.inst(), 1, 20));
 
         // the character which we represent
         this.character = character;
         // snapshot name of player
         this.snapshot_displayname = player.getDisplayName();
+    }
+
+    /**
+     * Retrieve all entities we track on our minimap.
+     *
+     * @return Entities to track on minimap.
+     */
+    public List<CoreEntity> getEntitiesOnMinimap() {
+        List<CoreEntity> tracked = new ArrayList<>();
+        this.track_on_minimap.entrySet().removeIf(entry -> {
+            if (entry.getValue() < RPGCore.inst().getTimestamp()) {
+                return true;
+            }
+
+            CoreEntity entity = RPGCore.inst().getEntityManager().getEntity(entry.getKey());
+            if (entity == null || entity.isInvalid()) {
+                return true;
+            }
+
+            tracked.add(entity);
+            return false;
+        });
+        return tracked;
+    }
+
+    /**
+     * Entities that should be tracked on the minimap.
+     *
+     * @param entity Who we want to track.
+     */
+    public void trackEntityOnMinimap(CoreEntity entity) {
+        this.track_on_minimap.put(entity.getUniqueId(), RPGCore.inst().getTimestamp()+600);
     }
 
     /**
@@ -626,7 +657,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      */
     public Map<String, Integer> getSnapshotForQuestItems() {
         // update the cache if necessary
-        if (System.currentTimeMillis() + 2000L > this.quest_items_timestamp || this.quest_items_snapshot == null) {
+        if (System.currentTimeMillis() + 3000L > this.quest_items_timestamp || this.quest_items_snapshot == null) {
             Bukkit.getScheduler().runTask(RPGCore.inst(), () -> {
                 Map<String, Integer> quantified = new HashMap<>();
                 for (ItemStack item : this.getEntity().getInventory().getContents()) {
@@ -1013,7 +1044,7 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      * Define the login position, used to make sure that delayed
      * spawn position rules can be applied properly. Do note that
      * this value is only processed once.
-     * <p>
+     * <br>
      * <ul>
      * <li>Player picks spawnpoint from menu</li>
      * <li>last known location of the player</li>
@@ -1053,15 +1084,6 @@ public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataI
      */
     public OwnedSkillbar getSkillbar() {
         return skillbar;
-    }
-
-    /**
-     * Retrieve all personal map markers on the entity.
-     *
-     * @return markers on the map.
-     */
-    public Map<String, MapMarker> getMapMarkers() {
-        return map_markers;
     }
 
     /**

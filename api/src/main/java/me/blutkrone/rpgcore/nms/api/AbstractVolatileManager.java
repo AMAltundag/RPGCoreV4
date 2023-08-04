@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.nms.api;
 
+import me.blutkrone.rpgcore.nms.api.block.ChunkOutline;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
@@ -8,6 +9,7 @@ import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
@@ -25,7 +27,7 @@ import java.util.List;
  * A uniform interface to access volatile code implementation, such as
  * nms code which isn't considered API or general functionality which
  * requires distinct implementations from other versions.
- * <p>
+ * <br>
  * While minor deviations may exist across the implementation, there
  * should be a best-effort at maintaining consistent behaviour.
  */
@@ -72,6 +74,15 @@ public abstract class AbstractVolatileManager {
     public JavaPlugin getPlugin() {
         return plugin;
     }
+
+    /**
+     * A chunk outline is intended to trace out the shape of a chunk, the
+     * shape being whether a block is occupied by a solid or not.
+     *
+     * @param chunk The chunk we want to outline
+     * @return The outlined chunk
+     */
+    public abstract ChunkOutline getChunkOutline(Chunk chunk);
 
     /**
      * Deploy a chat message to the given players.

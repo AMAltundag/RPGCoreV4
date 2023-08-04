@@ -40,7 +40,7 @@ public enum ItemType {
     /**
      * LMB: Nothing
      * RMB: Nothing
-     * <p>
+     * <br>
      * Auto recovering projectile for off-hand, item must be an arrow.
      */
     QUIVER,
@@ -48,7 +48,7 @@ public enum ItemType {
     /**
      * LMB: Nothing
      * RMB: Active blocking behaviour
-     * <p>
+     * <br>
      * Active blocking shield for off-hand, item must be a shield.
      */
     SHIELD,

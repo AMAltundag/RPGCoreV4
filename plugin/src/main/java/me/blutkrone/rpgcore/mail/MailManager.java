@@ -71,7 +71,7 @@ public class MailManager {
 
     /**
      * Claim the attachment of a mail.
-     * <p>
+     * <br>
      * Assuming that the player has space in their inventory, we
      * can assume the attachment was claimed successfully.
      *

@@ -14,7 +14,7 @@ import java.util.*;
  * The passive tree is a special case compared to other editor
  * related elements, we did partially off-load the editor into
  * the actual passive menu as to not write positions per hand.
- * <p>
+ * <br>
  */
 public class CorePassiveTree {
 

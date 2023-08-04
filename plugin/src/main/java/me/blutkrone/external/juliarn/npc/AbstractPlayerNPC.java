@@ -211,6 +211,9 @@ public abstract class AbstractPlayerNPC {
                 }, this.pool.getTabListRemoveTicks());
             }
 
+            this.hologram().spawn(player, this.location());
+            this.hologram().mount(player, this.id());
+
             Bukkit.getPluginManager().callEvent(new PlayerNPCShowEvent(player, this));
         }, 10L);
     }
@@ -312,9 +315,9 @@ public abstract class AbstractPlayerNPC {
      * Modifier to handle teleportation
      *
      * @return modifier that can manipulate the NPC
+     * @see #hologram() must be updated if teleported
      */
     public TeleportModifier teleport() {
         return new TeleportModifier(this);
     }
-
 }

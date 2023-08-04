@@ -4,8 +4,11 @@
       <w>blutkrone</w>
       <w>chestplate</w>
       <w>cooldown</w>
+      <w>knockback</w>
       <w>mainhand</w>
+      <w>resourcepack</w>
       <w>rpgcore</w>
+      <w>spawnpoint</w>
     </words>
   </dictionary>
 </component>

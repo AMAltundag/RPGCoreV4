@@ -28,7 +28,7 @@ import java.util.UUID;
 
 /**
  * A manager for all dungeon specific logic.
- * <p>
+ * <br>
  * todo: proper dungeon entrance, testing
  */
 public class DungeonManager implements Listener {

@@ -22,7 +22,7 @@ import java.util.Map;
  * Switch between blocks depending on the condition
  * that was met, if no condition is met it will be
  * air instead.
- * <p>
+ * <br>
  * Hint: Use a command block trigger for block-replace
  */
 public class BlockStructure extends AbstractDungeonStructure<Boolean> {

@@ -72,11 +72,11 @@ public interface IEntityBase {
     /**
      * Even with multiple death routines queried, only one will be
      * invoked.
-     * <p>
+     * <br>
      * If we've got a death routine, the entity will not die before
      * we've processed the routine. If no routine can be invoked, the
      * entity will die immediately.
-     * <p>
+     * <br>
      * Upon completion of the death routine, we will attempt to blame
      * the last hitter or the nearest player.
      *
@@ -176,7 +176,7 @@ public interface IEntityBase {
     /**
      * A request for the mob to enter their "death phase", should
      * we have no death phase we can instantaneously perish.
-     * <p>
+     * <br>
      * This method does nothing if called multiple times.
      *
      * @param callback response once death sequence is completed.

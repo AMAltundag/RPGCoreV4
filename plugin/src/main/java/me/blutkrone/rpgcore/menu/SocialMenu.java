@@ -25,9 +25,9 @@ import java.util.UUID;
  * A menu meant to show information in a social context, this
  * refers to things such as equipment, skills, passive tree
  * and a couple interfaces to social structures.
- * <p>
+ * <br>
  * This can also work with offline players.
- * <p>
+ * <br>
  * This works off the latest data snapshot.
  */
 public class SocialMenu extends AbstractCoreMenu {

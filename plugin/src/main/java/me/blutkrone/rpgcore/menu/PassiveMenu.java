@@ -385,6 +385,10 @@ public class PassiveMenu extends AbstractCoreMenu {
                     this.preview.add(icon);
                 }
             }
+
+            while (preview.size() <= 54) {
+                preview.add(preview.get(0));
+            }
         }
 
         /*
@@ -456,11 +460,13 @@ public class PassiveMenu extends AbstractCoreMenu {
                     // ignore other clicks
                 } else if (event.getSlot() == 44) {
                     // scroll to bottom
-                    offset = (preview.size() / 8) - 6;
+                    //offset = (int) (Math.ceil(preview.size() / 8d) - 6);
+                    offset = (int) ((preview.size() / 8) - 6);
                     getMenu().queryRebuild();
                 } else if (event.getSlot() == 53) {
                     // scroll down by one
-                    int floor = Math.max(0, (preview.size() / 8) - 6);
+                    //int floor = (int) Math.max(0, Math.ceil(preview.size() / 8d) - 6);
+                    int floor = (int) Math.max(0, (preview.size() / 8) - 6);
                     offset = Math.min(floor, offset + 1);
                     getMenu().queryRebuild();
                 } else {

@@ -10,10 +10,9 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ConfigWrapper {
@@ -26,6 +25,33 @@ public class ConfigWrapper {
 
     public ConfigurationSection getHandle() {
         return handle;
+    }
+
+    public <K> List<K> getObjectList(String path, Function<ConfigWrapper, K> constructor) {
+        List<K> output = new ArrayList<>();
+
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        for (String key : section.getKeys(false)) {
+            output.add(constructor.apply(new ConfigWrapper(section.getConfigurationSection(key))));
+        }
+
+        return output;
+    }
+
+    public <K> Map<String, K> getObjectMap(String path, Function<ConfigWrapper, K> constructor) {
+        Map<String, K> output = new HashMap<>();
+
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        for (String key : section.getKeys(false)) {
+            output.put(key, constructor.apply(new ConfigWrapper(section.getConfigurationSection(key))));
+        }
+
+        return output;
+    }
+
+    public <K> K getObject(String path, Function<ConfigWrapper, K> constructor) {
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        return constructor.apply(new ConfigWrapper(section));
     }
 
     public void forEachKey(Consumer<String> consumer) {
@@ -218,11 +244,11 @@ public class ConfigWrapper {
         if (!isSet(path))
             return null;
         String world = getString(path + ".world", "undefined");
-        double x = getDouble(path + ".x");
-        double y = getDouble(path + ".y");
-        double z = getDouble(path + ".z");
-        float pitch = (float) getDouble(path + ".pitch");
-        float yaw = (float) getDouble(path + ".yaw");
+        double x = getDouble(path + ".x", 0);
+        double y = getDouble(path + ".y", 0);
+        double z = getDouble(path + ".z", 0);
+        float pitch = (float) getDouble(path + ".pitch", 0);
+        float yaw = (float) getDouble(path + ".yaw", 0);
         return () -> new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
     }
 

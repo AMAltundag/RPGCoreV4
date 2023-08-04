@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.nms.v1_20_R1;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
+import me.blutkrone.rpgcore.nms.api.block.ChunkOutline;
 import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
@@ -23,10 +24,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.world.level.Level;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
@@ -90,6 +91,32 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
                 }
             }
         }, 1, 1);
+
+        Bukkit.getLogger().severe("not implemented (outline needs more accuracy)");
+    }
+
+    @Override
+    public ChunkOutline getChunkOutline(Chunk chunk) {
+        // retrieve NMS chunk representation
+        LevelChunk chunk_nms = ((CraftWorld) chunk.getWorld()).getHandle().getChunk(chunk.getX(), chunk.getZ());
+        LevelChunkSection[] sections = chunk_nms.getSections();
+        // identify the outline of the chunk
+        ChunkOutline outline = new ChunkOutline(chunk_nms.getHeight());
+        for (int s = 0; s < sections.length; s++) {
+            LevelChunkSection section = sections[s];
+            if (section != null && !section.hasOnlyAir()) {
+                for (int x = 0; x < 16; x++) {
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            BlockState state = section.getBlockState(x, y, z);
+                            outline.set(x, s*16+y, z, !state.isAir());
+                        }
+                    }
+                }
+            }
+        }
+        // offer up what we found
+        return outline;
     }
 
     @Override

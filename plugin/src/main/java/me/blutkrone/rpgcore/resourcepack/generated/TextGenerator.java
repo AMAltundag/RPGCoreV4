@@ -64,7 +64,7 @@ public class TextGenerator {
      * @param output_directory
      * @return
      */
-    public static Map<String, List<ResourcePackFont>> construct(File files, ResourcepackGeneratorMeasured rules, File output_directory) {
+    public static TextGeneratorResult construct(File files, ResourcepackGeneratorMeasured rules, File output_directory) {
         File[] templates = files.listFiles();
         if (templates == null) {
             throw new NullPointerException("Bad template files under " + files.getPath());
@@ -75,6 +75,7 @@ public class TextGenerator {
         for (double opacity : rules.text_opacity.values()) {
             transparencies.add((int) (100 * opacity));
         }
+
         // create template texture files
         for (Alphabet alphabet : Alphabet.REGISTERED) {
             for (Integer transparency : transparencies) {
@@ -91,24 +92,41 @@ public class TextGenerator {
             }
         }
 
-        // construct relevant fonts we want to utilize
-        Map<String, List<ResourcePackFont>> output = new HashMap<>();
-        rules.text_offset.forEach((id, offset) -> {
-            // prefix of texture path
-            int transparency = (int) (100 * rules.text_opacity.getOrDefault(id, 1d));
-            String texture_path = "generated_alphabet_" + transparency + "_";
-            // prepare a new font to be utilized
-            List<ResourcePackFont> listed = newList();
-            for (Alphabet alphabet : Alphabet.REGISTERED) {
-                String texture = "minecraft:font/" + texture_path + alphabet.texture;
-                int height = 240 + alphabet.height;
-                int ascent = offset + alphabet.ascent;
-                listed.add(new ResourcePackFont("bitmap", texture, ascent, height, alphabet.chars()));
-            }
-            // track the result we generated
-            output.put("generated_text_" + id, listed);
+        // reduce fonts by offset
+        Map<Integer, List<String>> font_by_offset = new HashMap<>();
+        rules.text_offset.forEach((font, offset) -> {
+            font_by_offset.computeIfAbsent(offset, (k -> new ArrayList<>())).add(font);
         });
 
+        TextGeneratorResult output = new TextGeneratorResult();
+        font_by_offset.forEach((offset, fonts) -> {
+            // each transparency generates one font
+            Set<Integer> opacity = new HashSet<>();
+            for (String font : fonts) {
+                opacity.add((int) (100 * rules.text_opacity.getOrDefault(font, 1d)));
+            }
+            // generate realtime fonts that we want to use
+            Map<Integer, String> transparency_to_font = new HashMap<>();
+            for (Integer transparency : opacity) {
+                String texture_path = "generated_alphabet_" + transparency + "_";
+                List<ResourcePackFont> listed = newList();
+                for (Alphabet alphabet : Alphabet.REGISTERED) {
+                    String texture = "minecraft:font/" + texture_path + alphabet.texture;
+                    int height = 240 + alphabet.height;
+                    int ascent = offset + alphabet.ascent;
+                    listed.add(new ResourcePackFont("bitmap", texture, ascent, height, alphabet.chars()));
+                }
+                // track the font we computed
+                String unique_id = "generated_font_" + UUID.randomUUID();
+                output.generated_fonts.put(unique_id, listed);
+                transparency_to_font.put(transparency, unique_id);
+            }
+            // map the generated font to the alias
+            for (String font : fonts) {
+                int transparency = (int) (100 * rules.text_opacity.getOrDefault(font, 1d));
+                output.generated_alias.put(font, transparency_to_font.get(transparency));
+            }
+        });
         return output;
     }
 
@@ -195,5 +213,15 @@ public class TextGenerator {
         }
 
         return global + 1;
+    }
+
+    /**
+     * The result when a font was generated
+     */
+    public static class TextGeneratorResult {
+        // the real fonts that were generated
+        public final Map<String, List<ResourcePackFont>> generated_fonts = new HashMap<>();
+        // alias fonts that share the identifiers
+        public final Map<String, String> generated_alias = new HashMap<>();
     }
 }

@@ -2,9 +2,11 @@ package me.blutkrone.rpgcore.editor.bundle.mechanic;
 
 import me.blutkrone.rpgcore.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
+import me.blutkrone.rpgcore.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.editor.constraint.bundle.mono.AttributeAndModifierConstraint;
 import me.blutkrone.rpgcore.editor.constraint.bundle.mono.StringModifierConstraint;
 import me.blutkrone.rpgcore.editor.constraint.other.DamageTypeConstraint;
@@ -29,6 +31,9 @@ public class EditorDamageMechanic extends AbstractEditorMechanic {
     @EditorList(name = "Tag", constraint = StringModifierConstraint.class)
     @EditorTooltip(tooltip = "Tag modifiers which apply to the damage.")
     public List<IEditorBundle> tags_always = new ArrayList<>();
+    @EditorBundle(name = "Knockback")
+    @EditorTooltip(tooltip = {"Base power, knockback attributes force multiply.", "DOT damage will never knockback."})
+    public EditorModifierNumber knockback = new EditorModifierNumber(0.35d);
 
     @Override
     public AbstractCoreMechanic build() {

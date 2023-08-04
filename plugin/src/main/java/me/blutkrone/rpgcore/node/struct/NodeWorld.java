@@ -14,15 +14,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * A construction that keeps track of nodes for a single world.
  */
 public class NodeWorld {
-    // nodes identified by their ID
-    private Map<UUID, NodeActive> node_by_id = new HashMap<>();
+    // nodes identified by their type
+    private Map<String, List<NodeActive>> node_by_type = new HashMap<>();
+    // nodes identified by their UUID
+    private Map<UUID, NodeActive> node_by_uuid = new HashMap<>();
     // node structure to ease up search
     private Map<Long, List<NodeActive>> node_by_chunk = new HashMap<>();
+    // nodes that were stored via tracking
+    private Map<String, List<NodeActive>> node_by_query = new HashMap<>();
+    private Map<UUID, List<String>> query_by_node = new HashMap<>();
+
     // name of the world we are backing up
     private String world_name;
 
@@ -37,10 +44,46 @@ public class NodeWorld {
     }
 
     /**
+     * Dispatch a query that will filter nodes and remember the result, do note
+     * that this collection will never be updated.
+     *
+     * @param id Unique ID for the query
+     * @param query How to filter the nodes
+     * @return Nodes that were filtered
+     */
+    public List<NodeActive> query(String id, Predicate<NodeActive> query) {
+        return Collections.unmodifiableList(this.node_by_query.computeIfAbsent(id, (key -> {
+            // identify nodes for query
+            List<NodeActive> output = new ArrayList<>();
+            for (NodeActive value : node_by_uuid.values()) {
+                if (query.test(value)) {
+                    output.add(value);
+                }
+            }
+            // identify node in reverse
+            for (NodeActive node : output) {
+                query_by_node.computeIfAbsent(node.getID(), (k -> new ArrayList<>())).add(key);
+            }
+
+            return output;
+        })));
+    }
+
+    /**
+     * Retrieve nodes that match a certain type.
+     *
+     * @param type Type of the node
+     * @return All nodes of that type
+     */
+    public List<NodeActive> getNodesOfType(String type) {
+        return this.node_by_type.getOrDefault(type, new ArrayList<>());
+    }
+
+    /**
      * Reset node data of every active node.
      */
     public void reset() {
-        for (NodeActive node : this.node_by_id.values()) {
+        for (NodeActive node : this.node_by_uuid.values()) {
             NodeData data = node.getData();
             if (data != null) {
                 data.abandon();
@@ -52,9 +95,9 @@ public class NodeWorld {
     /**
      * Request a tick on every node present on this world, provided
      * that the world associated with it is loaded.
-     * <p>
+     * <br>
      * This still happens, even without players in the world.
-     * <p>
+     * <br>
      * Execution is threaded, no assurance is made about when the
      * execution will finish.
      */
@@ -65,7 +108,7 @@ public class NodeWorld {
             return;
         }
         // create a snapshot on our main-thread
-        Map<UUID, NodeActive> snapshot = new HashMap<>(this.node_by_id);
+        Map<UUID, NodeActive> snapshot = new HashMap<>(this.node_by_uuid);
         List<Player> players = new ArrayList<>(world.getPlayers());
 
         // asynchronous await to feed back our data
@@ -105,14 +148,16 @@ public class NodeWorld {
     public void create(int x, int y, int z, String node) {
         // create an identifier that isn't in use
         UUID uuid = UUID.randomUUID();
-        while (this.node_by_id.containsKey(uuid)) {
+        while (this.node_by_uuid.containsKey(uuid)) {
             uuid = UUID.randomUUID();
         }
         // track the node which we are using
         NodeActive active_node = new NodeActive(uuid, x, y, z, node);
-        this.node_by_id.put(uuid, active_node);
+        this.node_by_uuid.put(uuid, active_node);
         long id = (((long) ((x >> 4))) << 32) | (z >> 4) & 0xFFFFFFFFL;
         this.node_by_chunk.computeIfAbsent(id, (k -> new ArrayList<>()))
+                .add(active_node);
+        this.node_by_type.computeIfAbsent(node, (k -> new ArrayList<>()))
                 .add(active_node);
         // identify where to dump the node
         File file = FileUtil.file("editor/node/" + this.world_name, uuid + ".rpgcore");
@@ -134,15 +179,18 @@ public class NodeWorld {
      * @return true if we could register
      */
     public boolean register(NodeActive active) {
-        if (this.node_by_id.containsKey(active.getID())) {
+        if (this.node_by_uuid.containsKey(active.getID())) {
             return false;
         }
 
         // register node by the ID
-        this.node_by_id.put(active.getID(), active);
-        // register node by the quick-search
+        this.node_by_uuid.put(active.getID(), active);
+        // register node by the chunk
         long id = (((long) ((active.getX() >> 4))) << 32) | (active.getZ() >> 4) & 0xFFFFFFFFL;
         this.node_by_chunk.computeIfAbsent(id, (k -> new ArrayList<>())).add(active);
+        // register node by the type
+        this.node_by_type.computeIfAbsent(active.getRawNode(), (k -> new ArrayList<>()))
+                .add(active);
         // inform about successful registration
         return true;
     }
@@ -190,15 +238,27 @@ public class NodeWorld {
      */
     public void destruct(UUID uuid) {
         // drop the node from the ID
-        NodeActive removed = this.node_by_id.remove(uuid);
+        NodeActive removed = this.node_by_uuid.remove(uuid);
         if (removed == null) {
             return;
+        }
+        // drop node from the type index
+        List<NodeActive> nodes_by_type = this.node_by_type.get(removed.getRawNode());
+        if (nodes_by_type != null) {
+            nodes_by_type.remove(removed);
         }
         // drop the node from the chunk index
         long id = (((long) ((removed.getX() >> 4))) << 32) | ((removed.getZ() >> 4)) & 0xFFFFFFFFL;
         List<NodeActive> nodes = this.node_by_chunk.get(id);
         if (nodes != null) {
             nodes.remove(removed);
+        }
+        // drop node from query results
+        List<String> queried = this.query_by_node.remove(uuid);
+        if (queried != null) {
+            for (String query : queried) {
+                this.node_by_query.get(query).remove(removed);
+            }
         }
         // clean the data of the node
         NodeData data = removed.getData();
@@ -228,6 +288,6 @@ public class NodeWorld {
             return null;
         }
         String uuid = metadata.get(0).asString();
-        return this.node_by_id.get(UUID.fromString(uuid));
+        return this.node_by_uuid.get(UUID.fromString(uuid));
     }
 }

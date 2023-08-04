@@ -45,7 +45,7 @@ public class EntityResource {
     /**
      * Tank the given amount with the resource, reducing the remaining
      * resource and returning how much it could NOT tank.
-     * <p>
+     * <br>
      * If the amount is less-equal zero, nothing happens.
      *
      * @param amount damage to take from resource
@@ -95,7 +95,7 @@ public class EntityResource {
     /**
      * Recover the resource on the entity, do note that if the remaining resource
      * is zero it cannot be recovered at all and will be removed soon.
-     * <p>
+     * <br>
      * If the amount is less-equal zero, nothing happens.
      *
      * @param amount the amount to recover by

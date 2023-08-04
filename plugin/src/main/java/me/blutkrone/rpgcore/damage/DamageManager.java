@@ -13,6 +13,7 @@ import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.damage.interaction.types.SpellDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.TimeDamageType;
 import me.blutkrone.rpgcore.damage.interaction.types.WeaponDamageType;
+import me.blutkrone.rpgcore.damage.splash.DamageIndicatorHandling;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
@@ -24,6 +25,7 @@ import me.blutkrone.rpgcore.skill.trigger.CoreWardBreakTrigger;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.EntityEffect;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -34,6 +36,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +55,8 @@ public final class DamageManager implements Listener {
     private Map<String, DamageElement> damage_elements = new HashMap<>();
     // ailments are secondary effects of non-DOT damage
     private List<AbstractAilment> ailments = new ArrayList<>();
+    // handling for damage indicators
+    private DamageIndicatorHandling indicator = new DamageIndicatorHandling();
 
     public DamageManager() {
         damage_types.put("WEAPON", new WeaponDamageType());
@@ -89,6 +94,15 @@ public final class DamageManager implements Listener {
     }
 
     /**
+     * Damage indicator handling.
+     *
+     * @return Damage indicator handling.
+     */
+    public DamageIndicatorHandling getIndicator() {
+        return indicator;
+    }
+
+    /**
      * Process a damage interaction.
      *
      * @param interaction Interaction.
@@ -105,6 +119,7 @@ public final class DamageManager implements Listener {
         if (!interaction.getDefender().isAllowTarget()) {
             return;
         }
+
         // no damage dealt while source is untargetable
         if (interaction.getAttacker() != null && !interaction.getAttacker().isAllowTarget()) {
             return;
@@ -116,6 +131,16 @@ public final class DamageManager implements Listener {
             // invoked final death sequence
             if (base.isInDeathSequence()) {
                 return;
+            }
+        }
+
+        // players should track relevant entities
+        if (interaction.getAttacker() instanceof CorePlayer) {
+            ((CorePlayer) interaction.getAttacker()).trackEntityOnMinimap(interaction.getDefender());
+        }
+        if (interaction.getDefender() instanceof CorePlayer) {
+            if (interaction.getAttacker() != null) {
+                ((CorePlayer) interaction.getDefender()).trackEntityOnMinimap(interaction.getAttacker());
             }
         }
 
@@ -175,6 +200,28 @@ public final class DamageManager implements Listener {
         for (DamageElement element : getElements()) {
             double damage = Math.max(0d, interaction.getDamage(element) * interaction.getMultiplier());
             interaction.setDamage(element, damage);
+        }
+
+        // show an indicator for damage dealt
+        if (interaction.getAttacker() != null) {
+            // find who is to be blamed for the damage
+            CoreEntity attacker = interaction.getAttacker();
+            if (attacker instanceof CoreMob) {
+                while (attacker.getParent() != null) {
+                    UUID parent = attacker.getParent();
+                    CoreEntity candidate = RPGCore.inst().getEntityManager().getEntity(parent);
+                    if (candidate != null) {
+                        attacker = candidate;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            // append a damage indicator to our collection
+            if (attacker instanceof CorePlayer) {
+                getIndicator().indicate(((CorePlayer) attacker), interaction);
+            }
         }
 
         // if mob got a barrier phase absorb that
@@ -275,10 +322,45 @@ public final class DamageManager implements Listener {
             }
         }
 
-        // zero damage inflicted for vanilla hurt effect
-        interaction.getDefender().getEntity().damage(0d);
-        // inform skills about the damage inflicted
+        // show entity hurt effect
+        interaction.getDefender().getEntity().playEffect(EntityEffect.HURT);
 
+        // apply an appropriate degree of knockback
+        if (interaction.getKnockback() > 0d
+                && interaction.getAttacker() != null
+                && !(interaction.getType() instanceof TimeDamageType)) {
+            double knockback = interaction.getKnockback();
+            // scale knockback with defense of defender
+            double defense = interaction.evaluateAttribute("knockback_defense", interaction.getDefender());
+            if (defense < 0) {
+                knockback = knockback * Math.sqrt(1d + (defense * -1));
+            } else {
+                knockback = knockback * (1d / (1d+defense));
+            }
+            // scale knockback with strength of attacker
+            double strength = interaction.evaluateAttribute("knockback_strength", interaction.getAttacker());
+            if (strength > 0) {
+                knockback = knockback * Math.sqrt(1d + defense);
+            } else {
+                knockback = knockback * (1d / (1d+(-1 * defense)));
+            }
+            // scale knockback by distance
+            LivingEntity attacker = interaction.getAttacker().getEntity();
+            LivingEntity defender = interaction.getDefender().getEntity();
+            if (attacker != null && defender != null) {
+                Vector attacker_pos = attacker.getLocation().toVector();
+                Vector defender_pos = defender.getLocation().toVector();
+                double dist_factor = Math.sqrt(Math.max(0d, attacker_pos.distance(defender_pos)-2d));
+
+                Vector velocity = defender.getVelocity();
+                Vector dir = defender_pos.subtract(attacker_pos);
+                dir.add(new Vector(0, 0.5d, 0));
+                velocity.add(dir.multiply(knockback / (1d+dist_factor)));
+                defender.setVelocity(velocity);
+            }
+        }
+
+        // inform skills about the damage inflicted
         RPGCore.inst().getLogger().info("not implemented (dealt damage trigger)");
         RPGCore.inst().getLogger().info("not implemented (took damage trigger)");
     }
@@ -394,6 +476,7 @@ public final class DamageManager implements Listener {
             }
 
             double attack_power = 1d;
+            double knockback = 0.25d;
 
             // retrieve relevant entities that we are using
             Entity vanilla_attacker = ((EntityDamageByEntityEvent) e).getDamager();
@@ -405,12 +488,16 @@ public final class DamageManager implements Listener {
                 if (vanilla_attacker instanceof Player) {
                     attack_power = ((Player) vanilla_attacker).getAttackCooldown();
                     attack_power = attack_power * attack_power;
+                    if (((Player) vanilla_attacker).isSprinting()) {
+                        knockback = 0.45;
+                    }
                 }
             } else if (vanilla_attacker instanceof Projectile) {
                 ProjectileSource shooter = ((Projectile) vanilla_attacker).getShooter();
                 if (shooter instanceof LivingEntity) {
                     attacker = RPGCore.inst().getEntityManager().getEntity(((LivingEntity) shooter).getUniqueId());
                     defender = RPGCore.inst().getEntityManager().getEntity(vanilla_defender.getUniqueId());
+                    knockback = 0.15;
                 }
             }
 
@@ -418,6 +505,7 @@ public final class DamageManager implements Listener {
             if (attacker != null && defender != null) {
                 // inflict weapon type damage on the entity
                 DamageInteraction interaction = getType("WEAPON").create(defender, attacker);
+                interaction.setKnockback(knockback);
                 interaction.setDamageBlame("autoattack");
                 interaction.setMultiplier(attack_power);
                 damage(interaction);

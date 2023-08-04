@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class Migration_0000_DeleteBadJSON  extends AbstractMigration {
+public class Migration_CORE_DeleteBadJSON extends AbstractMigration {
 
     @Override
     public void apply() {

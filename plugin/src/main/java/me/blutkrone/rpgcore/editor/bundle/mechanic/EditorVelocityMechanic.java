@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorBundle;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
+import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierBoolean;
 import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
 import me.blutkrone.rpgcore.editor.constraint.bundle.multi.SelectorConstraint;
 import me.blutkrone.rpgcore.skill.mechanic.AbstractCoreMechanic;
@@ -26,6 +27,9 @@ public class EditorVelocityMechanic extends AbstractEditorMechanic {
     @EditorList(name = "Anchor", constraint = SelectorConstraint.class)
     @EditorTooltip(tooltip = {"Origin of the velocity change."})
     public List<IEditorBundle> anchor = new ArrayList<>();
+    @EditorBundle(name = "Resistible")
+    @EditorTooltip(tooltip = {"Reduce power via 'knockback_defense' on defender"})
+    public EditorModifierBoolean resistible = new EditorModifierBoolean(false);
 
     @Override
     public AbstractCoreMechanic build() {

@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.editor.bundle.npc;
 
 import me.blutkrone.rpgcore.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
-import me.blutkrone.rpgcore.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.other.LanguageConstraint;
@@ -18,17 +17,10 @@ import java.util.List;
 
 public class EditorTravelTrait extends AbstractEditorNPCTrait {
 
-    @EditorCategory(info = "Crafter", icon = Material.CRAFTING_TABLE)
-
+    @EditorCategory(info = "Travel", icon = Material.CRAFTING_TABLE)
     @EditorWrite(name = "Minimap", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {"Allows to pick a location within the given minimap."})
+    @EditorTooltip(tooltip = {"Shows a minimap, allowing to travel within", "Navigation cannot go 'back' beyond this."})
     public String minimap = "nothingness";
-    @EditorWrite(name = "Currency", constraint = StringConstraint.class)
-    @EditorTooltip(tooltip = {"Only bank-able items can be used as currency", "Any denomination can be used"})
-    public String currency = "undefined";
-    @EditorNumber(name = "Multiplier")
-    @EditorTooltip(tooltip = {"Multiplies with distance to build cost."})
-    public double multiplier = 1.0;
 
     @EditorCategory(info = "Cortex", icon = Material.FURNACE)
     @EditorWrite(name = "Icon", constraint = LanguageConstraint.class)
@@ -63,8 +55,11 @@ public class EditorTravelTrait extends AbstractEditorNPCTrait {
     public List<String> getInstruction() {
         List<String> instruction = new ArrayList<>();
         instruction.add("Travel Trait");
-        instruction.add("If you leave currency undefined, travel will be free.");
-        instruction.add("Travel locations are pulled from minimap.yml");
+        instruction.add("This will open the minimap, and allow users to travel to");
+        instruction.add("The location of their choice. The 'back' button will not");
+        instruction.add("Retreat beyond the original map you set here.");
+        instruction.add("");
+        instruction.add("§cWill not show if minimap does not exist!");
         return instruction;
     }
 

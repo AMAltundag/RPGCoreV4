@@ -37,14 +37,14 @@ public class OrbGenerator {
                     while (current < current_orb.getWidth()) {
                         // slice up the texture and pool it
                         BufferedImage slice = current_orb.getSubimage(current, 0, Math.min(128, current_orb.getWidth() - current), current_orb.getHeight());
-                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "orb_" + name, slice.getWidth(), slice, offset));
+                        pooled.add(new IndexedTexture.GeneratedTexture(c++, "orb_" + name, slice, offset));
                         // move our pointer ahead
                         current += Math.min(128, current_orb.getWidth());
                     }
                     output.put("orb_" + name + "_" + ((int) i), IndexedTexture.GeneratedCompoundTexture.build(pooled));
                 } else {
                     // track the generated image
-                    output.put("orb_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "orb_" + name, current_orb.getWidth(), current_orb, offset));
+                    output.put("orb_" + name + "_" + ((int) i), new IndexedTexture.GeneratedTexture(c++, "orb_" + name, current_orb, offset));
                 }
             }
         } catch (IOException e) {

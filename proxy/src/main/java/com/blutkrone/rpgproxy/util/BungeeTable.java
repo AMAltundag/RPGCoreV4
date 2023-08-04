@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * A utility meant to organize BungeeCord sub-channels for RPGCore.
- * <p>
+ * <br>
  * The table used by the proxy should always be in sync with the
  * table used by the server.
  */

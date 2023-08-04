@@ -43,7 +43,7 @@ public abstract class AbstractAilment {
      * Should the entity have no tracker for the given ailment, this method
      * will create one for them. We may abandon a tracker once it no longer
      * has any active ailment.
-     * <p>
+     * <br>
      * This method is not allowed to fail.
      *
      * @param holder who will hold the tracker.

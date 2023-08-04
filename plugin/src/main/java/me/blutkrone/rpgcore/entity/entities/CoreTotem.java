@@ -7,7 +7,7 @@ import org.bukkit.entity.LivingEntity;
  * This is used purely for identification purpose, a totem by
  * itself will do nothing. A totem can invoke logic, and reset
  * that logic upon death.
- * <p>
+ * <br>
  * Please ensure that whenever this instance is created, a
  * parent-child relationship is established.
  */

@@ -33,7 +33,9 @@ public final class DamageInteraction {
     // blame generated for the skill
     private String damage_blame = "unknown";
     // multiplier to the damage inflicted
-    private double multiplier;
+    private double multiplier = 1d;
+    // knockback power applying to damage
+    private double knockback_power;
 
     /**
      * An interaction holding information about damage.
@@ -48,6 +50,26 @@ public final class DamageInteraction {
         this.type = type;
         this.defender = defender;
         this.attacker = attacker;
+    }
+
+    /**
+     * The intensity of the knockback, note that no knockback is
+     * to be applied if we are damage over time.
+     *
+     * @return Knockback power.
+     */
+    public double getKnockback() {
+        return knockback_power;
+    }
+
+    /**
+     * The intensity of the knockback, note that no knockback is
+     * to be applied if we are damage over time.
+     *
+     * @param knockback_power Updated knockback
+     */
+    public void setKnockback(double knockback_power) {
+        this.knockback_power = knockback_power;
     }
 
     /**

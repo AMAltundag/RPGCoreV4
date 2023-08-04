@@ -31,7 +31,7 @@ public class HologramGenerator {
                 while (w < bi.getWidth()) {
                     // slice up the texture and pool it
                     BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "hologram_texture", slice.getWidth(), slice, slice.getHeight()));
+                    sliced.add(new IndexedTexture.GeneratedTexture(c++, "hologram_texture", slice, slice.getHeight()));
                     // move our pointer ahead
                     w += Math.min(128, bi.getWidth());
                 }

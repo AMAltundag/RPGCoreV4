@@ -61,9 +61,9 @@ public class DamageElement {
 
     /**
      * Read from the defender
-     * <p>
+     * <br>
      * Summed with penetration
-     * <p>
+     * <br>
      * Multiplier group A
      *
      * @return offsets penetration
@@ -74,9 +74,9 @@ public class DamageElement {
 
     /**
      * Read from the attacker
-     * <p>
+     * <br>
      * Summed with resistance
-     * <p>
+     * <br>
      * Multiplier group A
      *
      * @return offsets resistance
@@ -87,9 +87,9 @@ public class DamageElement {
 
     /**
      * Read from the defender
-     * <p>
+     * <br>
      * Caps maximum resistance
-     * <p>
+     * <br>
      * No lower limit applied
      *
      * @return upper limit on resistance
@@ -100,7 +100,7 @@ public class DamageElement {
 
     /**
      * Read from the attacker
-     * <p>
+     * <br>
      * Multiplier group B
      *
      * @return damage multiplier
@@ -111,9 +111,9 @@ public class DamageElement {
 
     /**
      * Read from defender
-     * <p>
+     * <br>
      * Transforms any damage taken to this element
-     * <p>
+     * <br>
      * Applies during resistance calculation
      *
      * @return other elements taken as this element
@@ -124,11 +124,11 @@ public class DamageElement {
 
     /**
      * Read from attacker
-     * <p>
+     * <br>
      * Damage not of this element is gained as extra damage
-     * <p>
+     * <br>
      * Original element is not reduced
-     * <p>
+     * <br>
      * Only affects multipliers and flat damage
      *
      * @return extra damage based on other elements
@@ -139,7 +139,7 @@ public class DamageElement {
 
     /**
      * Read from defender
-     * <p>
+     * <br>
      * Multiplier group C
      *
      * @return multiplies damage taken
@@ -150,7 +150,7 @@ public class DamageElement {
 
     /**
      * Read from attacker
-     * <p>
+     * <br>
      * Modifier that lowers the range of maximum damage.
      *
      * @return % that lowers range of damage dealt
@@ -161,12 +161,17 @@ public class DamageElement {
 
     /**
      * Read from attacker
-     * <p>
+     * <br>
      * Modifier that raises the range of maximum damage.
      *
      * @return % that raises range of damage dealt
      */
     public String getMaximumRange() {
         return maximum_range;
+    }
+
+    @Override
+    public String toString() {
+        return this.id;
     }
 }

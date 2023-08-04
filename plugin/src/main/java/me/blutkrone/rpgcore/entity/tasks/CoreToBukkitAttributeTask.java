@@ -5,6 +5,7 @@ import me.blutkrone.rpgcore.util.Utility;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -60,6 +61,12 @@ public class CoreToBukkitAttributeTask extends BukkitRunnable {
             }
 
             last_move_speed = move_speed;
+        }
+
+        // fixate bukkit resources that are backend only
+        if (bukkit_entity instanceof Player) {
+            ((Player) bukkit_entity).setFoodLevel(20);
+            ((Player) bukkit_entity).setHealth(20d);
         }
     }
 }

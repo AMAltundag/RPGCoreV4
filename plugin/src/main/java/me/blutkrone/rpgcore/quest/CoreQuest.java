@@ -49,6 +49,8 @@ public class CoreQuest {
     private String reward_npc;
     // what icon to hint quest with
     private String symbol;
+    // iteration of quest
+    private int iteration;
 
     public CoreQuest(String id, EditorQuest editor) {
         this.id = id;
@@ -72,6 +74,17 @@ public class CoreQuest {
         this.abandon_quests.addAll(editor.abandon_quest);
         this.reward_npc = editor.npc_rewards;
         this.symbol = editor.symbol;
+        this.iteration = (int) editor.iteration;
+    }
+
+    /**
+     * A quest iteration can be used to tell apart changes within an existing
+     * quest and resetting the progress within that quest.
+     *
+     * @return Current quest iteration
+     */
+    public int getIteration() {
+        return iteration;
     }
 
     /**
@@ -185,7 +198,7 @@ public class CoreQuest {
      * Quest flow optimization, by opening a relevant suggested menu. Please do
      * note that this will close the current menu to force open another, with a
      * brief delay.
-     * <p>
+     * <br>
      * Quick transition can be invoked in following cases:
      * <ul>
      * <li>the player accepted a quest</li>
@@ -227,7 +240,7 @@ public class CoreQuest {
     /**
      * Complete this quest, this will ignore the actual progress
      * within the quest.
-     * <p>
+     * <br>
      * Call this after finishing all tasks and having claimed
      * the rewards!
      *

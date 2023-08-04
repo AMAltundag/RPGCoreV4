@@ -76,8 +76,6 @@ public class ResourcePackManager implements Listener {
             = FileUtil.directory("resourcepack/generated/sound");
     private static final File INPUT_TEXT
             = FileUtil.directory("resourcepack/generated/text");
-    private static final File INPUT_MINIMAP
-            = FileUtil.directory("resourcepack/generated/minimap");
     private static final File INPUT_MENU
             = FileUtil.directory("resourcepack/generated/menu");
     private static final File INPUT_MARKER
@@ -152,6 +150,7 @@ public class ResourcePackManager implements Listener {
     // index of all font-textures we got
     private Map<String, IndexedTexture.ConfigTexture> indexed_fonts = new HashMap<>();
     private Map<String, Double> indexed_parameter = new HashMap<>();
+    private Map<String, String> indexed_alias = new HashMap<>();
     // base-line for symbol size tracking
     private Map<Character, Integer> chars_measurement = null;
     // cache of frequent requests
@@ -186,7 +185,8 @@ public class ResourcePackManager implements Listener {
                     String symbol = bois.readUTF();
                     String table = bois.readUTF();
                     int width = bois.readInt();
-                    this.indexed_fonts.put(id, new IndexedTexture.ConfigTexture(symbol, table, width));
+                    int height = bois.readInt();
+                    this.indexed_fonts.put(id, new IndexedTexture.ConfigTexture(symbol, table, width, height));
                 }
 
                 total = bois.readInt();
@@ -195,9 +195,16 @@ public class ResourcePackManager implements Listener {
                     double value = bois.readDouble();
                     this.indexed_parameter.put(id, value);
                 }
+
+                total = bois.readInt();
+                for (int i = 0; i < total; i++) {
+                    String alias_font = bois.readUTF();
+                    String real_font = bois.readUTF();
+                    this.indexed_alias.put(alias_font, real_font);
+                }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().severe("Could not parse indexed resourcepack parameters!");
         }
 
         // deal with resourcepack related events
@@ -235,6 +242,21 @@ public class ResourcePackManager implements Listener {
         g.drawImage(bi, 0, 0, null);
         g.dispose();
         return b;
+    }
+
+    /**
+     * Translate an alias font to a real font.
+     *
+     * @param alias_font The alias font to look up
+     * @return The real font backing the alias font
+     */
+    public String aliasToReal(String alias_font) {
+        String real_font = this.indexed_alias.get(alias_font);
+        if (real_font == null) {
+            throw new IllegalArgumentException("The font " + alias_font + " is an unregistered alias!");
+        }
+
+        return real_font;
     }
 
     /**
@@ -324,6 +346,7 @@ public class ResourcePackManager implements Listener {
         Map<String, IndexedTexture> indexed_fonts = new HashMap<>();
         Map<String, IndexedTexture> self_indexed = new HashMap<>();
         Map<String, Double> indexed_parameter = new HashMap<>();
+        Map<String, String> indexed_alias = new HashMap<>();
 
         // worker jobs to create the resourcepack
         ResourcePackThreadWorker worker = new ResourcePackThreadWorker();
@@ -335,7 +358,7 @@ public class ResourcePackManager implements Listener {
             FileUtils.deleteDirectory(WORKSPACE_WORKING);
             // Copy the template into our working directory
             FileUtils.copyDirectory(TEMPLATE, WORKSPACE_WORKING);
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Preparing the working space in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -344,7 +367,7 @@ public class ResourcePackManager implements Listener {
             TextGenerator.measurement(INPUT_TEXT).forEach((c, len) -> {
                 indexed_parameter.put("char_length_" + ((int) c), 0d + len);
             });
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Processed font measurements in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -409,7 +432,7 @@ public class ResourcePackManager implements Listener {
             // save the joined layers on the disk
             ImageIO.write(joined1, "png", new File(OUTPUT_ARMOR, "leather_layer_1.png"));
             ImageIO.write(joined2, "png", new File(OUTPUT_ARMOR, "leather_layer_2.png"));
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Processed shader armors in %sms", clock.loop()));
 
         });
@@ -434,7 +457,7 @@ public class ResourcePackManager implements Listener {
             }
             // register the sounds we have added
             ResourceUtil.saveToDisk(sounds, WORKSPACE_SOUND_FILE, do_compression);
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Processed audio files in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -447,92 +470,53 @@ public class ResourcePackManager implements Listener {
                 filename = filename.substring(0, filename.length() - 5);
                 fonts.put(filename, ResourceUtil.workingLoadFont(font_file));
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Loading pre-existing fonts in %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
             clock.loop();
+            // compute all custom fonts with vertical offsets
+            TextGenerator.TextGeneratorResult result = TextGenerator.construct(INPUT_TEXT, rules, OUTPUT_FONT);
             // prepare the respective font rendering pages
-            TextGenerator.construct(INPUT_TEXT, rules, OUTPUT_FONT)
-                    .forEach((id, list) -> {
-                        fonts.computeIfAbsent(id, (k -> new ArrayList<>())).addAll(list);
-                    });
-            // Notify about what've done
+            result.generated_fonts.forEach((id, list) -> {
+                fonts.computeIfAbsent(id, (k -> new ArrayList<>())).addAll(list);
+            });
+            // keep track of the alias mappings
+            indexed_alias.putAll(result.generated_alias);
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Loading fonts with special offsets %sms", clock.loop()));
         });
         worker.add(true, () -> {
             // reset the clock used to measure time
             clock.loop();
-            int minimap_slice = 0;
-            int map_keying = 0;
-            // prepare the maps we are going to work with
-            for (File file : FileUtil.buildAllFiles(INPUT_MINIMAP)) {
-                // identify the texture we will be using
-                String map = file.getName();
-                map = map.substring(0, map.indexOf("."));
-                // load up the image texture we got
-                BufferedImage raw_image = ImageIO.read(file);
-                // restrain it into the texture limit
-                if (raw_image.getWidth() * raw_image.getHeight() >= 4000 * 4000)
-                    continue;
-                // needed to identify the slice to show
-                indexed_parameter.put("map-" + map + "-height", 0d + raw_image.getHeight());
-                indexed_parameter.put("map-" + map + "-width", 0d + raw_image.getWidth());
-                // pool textures by isolated atlas groups
-                for (int y = 0; y < raw_image.getHeight(); y += 128) {
-                    for (int x = 0; x < raw_image.getWidth(); x += 128) {
-                        // slice into an individual tile
-                        int w = Math.min(x + 128, raw_image.getWidth()) - x;
-                        int h = Math.min(y + 128, raw_image.getHeight()) - y;
-                        BufferedImage tile = raw_image.getSubimage(x, y, w, h);
-                        // enforce exact tile size of 128x128 pixels
-                        if (tile.getWidth() != 128 || tile.getHeight() != 128) {
-                            BufferedImage upscale = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
-                            for (int i = 0; i < 128; i++) {
-                                for (int j = 0; j < 128; j++) {
-                                    if (i < tile.getWidth() && j < tile.getHeight()) {
-                                        upscale.setRGB(i, j, tile.getRGB(i, j));
-                                    } else {
-                                        upscale.setRGB(i, j, 0xFF000000);
-                                    }
-                                }
-                            }
-                            tile = upscale;
-                        }
-                        // supply the texture file to operate with
-                        File output = FileUtil.file(OUTPUT_FONT, "minimap_" + minimap_slice + ".png");
-                        ImageIO.write(tile, "png", output);
-                        // symbols used by the generated font entries
-                        List<String> symbols = new ArrayList<>();
-                        for (int i = 0; i < 16; i++) {
-                            StringBuilder sb = new StringBuilder();
-                            for (int j = 0; j < 16; j++) {
-                                sb.append((char) (256 + (i * 16 + j)));
-                            }
-                            symbols.add(sb.toString());
-                        }
-                        // register to RP and offer an access-point
-                        for (int offset = 0; offset < 14; offset++) {
-                            // register to the resourcepack
-                            List<ResourcePackFont> font = fonts.computeIfAbsent("minimap_" + ++map_keying + "_" + offset, (k -> TextGenerator.newList()));
-                            font.add(new ResourcePackFont("bitmap", "minecraft:font/minimap_" + minimap_slice + ".png", 0 - (offset * 8) - rules.minimap_offset + 4, 8, symbols));
-                            // allow the user to retrieve the generated entries
-                            for (int dY = 0; dY < 16; dY++) {
-                                for (int dX = 0; dX < 16; dX++) {
-                                    String id = "map_" + map + "_" + (dX + x / 8) + "_" + (dY + y / 8) + "_" + offset;
-                                    self_indexed.put(id, new IndexedTexture.StaticTexture(
-                                            (char) (256 + (dY * 16 + dX)), "minimap_" + map_keying + "_" + offset, 8));
-                                }
-                            }
-                        }
+            // generate the pixel used by the minimap
+            int counter = 0;
+            for (int j = 0; j < 3; j++) {
+                BufferedImage minimap_pixel = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
+                if (j == 0) {
+                    minimap_pixel.setRGB(0, 0, 0xFFFFFFFF);
+                    minimap_pixel.setRGB(1, 0, 0xFFFFFFFF);
+                    minimap_pixel.setRGB(0, 1, 0xFFFFFFFF);
+                    minimap_pixel.setRGB(1, 1, 0xFFFFFFFF);
+                } else if (j == 1) {
+                    minimap_pixel.setRGB(0, 0, 0x40FFFFFF);
+                    minimap_pixel.setRGB(1, 0, 0x40FFFFFF);
+                    minimap_pixel.setRGB(0, 1, 0x40FFFFFF);
+                    minimap_pixel.setRGB(1, 1, 0x40FFFFFF);
+                } else if (j == 2) {
+                    minimap_pixel.setRGB(0, 0, 0x20FFFFFF);
+                    minimap_pixel.setRGB(1, 0, 0x20FFFFFF);
+                    minimap_pixel.setRGB(0, 1, 0x20FFFFFF);
+                    minimap_pixel.setRGB(1, 1, 0x20FFFFFF);
+                }
 
-                        // increment the resourcepack addressing
-                        minimap_slice += 1;
-                    }
+                for (int i = 0; i <= 48; i++) {
+                    IndexedTexture.GeneratedTexture generated = new IndexedTexture.GeneratedTexture((char) (256 + counter++), "minimap_pixel", minimap_pixel, rules.navigator_offset - 7 - i*2);
+                    indexed_fonts.put("minimap_pixel_" + j + "_" + i, generated);
                 }
             }
-
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Generated 'maps' font textures in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -543,7 +527,7 @@ public class ResourcePackManager implements Listener {
             indexed_fonts.putAll(MenuGenerator.construct(INPUT_MENU));
             RPGCore.inst().getLogger().info(String.format("Generated 'menu' font textures in %sms", clock.loop()));
             // marker textures for the compass
-            indexed_fonts.putAll(MarkerGenerator.construct(INPUT_MARKER, rules.marker_offset));
+            indexed_fonts.putAll(MarkerGenerator.construct(INPUT_MARKER, rules));
             RPGCore.inst().getLogger().info(String.format("Generated 'markers' font textures in %sms", clock.loop()));
             // status effect icons for self
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "self_upper", rules.status_self_upper_offset));
@@ -584,6 +568,7 @@ public class ResourcePackManager implements Listener {
             indexed_fonts.putAll(StatusGenerator.construct(INPUT_STATUS, "item_lore", 0));
             // basic interface components to be rendered
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "navigator_back.png"), "interface_base", rules.navigator_offset, interface_base_space));
+            indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "navigator_overlay.png"), "interface_base", rules.navigator_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "navigator_front_N.png"), "interface_base", rules.navigator_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "navigator_front_S.png"), "interface_base", rules.navigator_offset, interface_base_space));
             indexed_fonts.putAll(StaticGenerator.construct(FileUtil.file(INPUT_INTERFACE, "navigator_front_E.png"), "interface_base", rules.navigator_offset, interface_base_space));
@@ -710,7 +695,7 @@ public class ResourcePackManager implements Listener {
             clock.loop();
             // Load up items which have been specified previously already
             items.putAll(ResourceUtil.workingLoadItem(WORKSPACE_ITEM));
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Loading pre-existing items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -738,7 +723,7 @@ public class ResourcePackManager implements Listener {
                     // thorough a custom model, not requiring our dedicated generation.
                 }
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Generating texture based items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -773,7 +758,7 @@ public class ResourcePackManager implements Listener {
                     ex.printStackTrace();
                 }
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Generating bbmodel based items in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -796,7 +781,7 @@ public class ResourcePackManager implements Listener {
                 // construct the data we expect
                 ResourceUtil.saveToDisk(font_output, file, do_compression);
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Constructing the font registry in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -812,7 +797,7 @@ public class ResourcePackManager implements Listener {
                 File save_target = FileUtil.file(WORKSPACE_ITEM, entry.getKey().name().toLowerCase() + ".json");
                 ResourceUtil.saveToDisk(entry.getValue().transform(), save_target, do_compression);
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Constructing the item registry in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -824,6 +809,7 @@ public class ResourcePackManager implements Listener {
             this.indexed_fonts = new HashMap<>();
             indexed_fonts.forEach((k, v) -> this.indexed_fonts.put(k, new IndexedTexture.ConfigTexture(v)));
             this.indexed_parameter = indexed_parameter;
+            this.indexed_alias = indexed_alias;
             try {
                 // create index files if they do not exist
                 ResourcePackManager.INDEX_TEXTURE.getParentFile().mkdirs();
@@ -839,6 +825,7 @@ public class ResourcePackManager implements Listener {
                         boos.writeUTF(value.symbol);
                         boos.writeUTF(value.table);
                         boos.writeInt(value.width);
+                        boos.writeInt(value.height);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -853,12 +840,23 @@ public class ResourcePackManager implements Listener {
                         e.printStackTrace();
                     }
                 });
+                // track font aliases
+                boos.writeInt(this.indexed_alias.size());
+                this.indexed_alias.forEach((alias, real) -> {
+                    try {
+                        boos.writeUTF(alias);
+                        boos.writeUTF(real);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
                 boos.close();
                 FileUtils.writeByteArrayToFile(ResourcePackManager.INDEX_TEXTURE, stream.toByteArray());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Building font index in %sms", clock.loop()));
         });
         worker.add(true, () -> {
@@ -901,7 +899,7 @@ public class ResourcePackManager implements Listener {
                         RPGCore.inst().getLogger().info("Compressing " + processed + " of " + total + " files!");
                     }
                 }
-                // Notify about what've done
+                // Notify about what we have done
                 RPGCore.inst().getLogger().info(String.format("Image compression pass done in %sms", clock.loop()));
             }
         });
@@ -929,7 +927,7 @@ public class ResourcePackManager implements Listener {
                 FileUtils.deleteDirectory(WORKSPACE_WORKING);
             } catch (IOException ignored) {
             }
-            // Notify about what've done
+            // Notify about what we have done
             RPGCore.inst().getLogger().info(String.format("Finalizing workspace in %sms", clock.loop()));
         });
         worker.add(true, () -> {

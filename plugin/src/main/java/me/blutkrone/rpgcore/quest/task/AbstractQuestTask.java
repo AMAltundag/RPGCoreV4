@@ -4,6 +4,8 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.editor.bundle.quest.AbstractEditorQuestTask;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.quest.CoreQuest;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -22,8 +24,16 @@ public abstract class AbstractQuestTask<K> {
     public AbstractQuestTask(CoreQuest quest, AbstractEditorQuestTask editor) {
         this.quest = quest;
         this.lc_info = editor.getInfoLC();
-        this.uuid = quest.getId() + "_" + String.valueOf(editor.getUniqueId());
+        this.uuid = quest.getId() + "#" + editor.getUniqueId();
     }
+
+    /**
+     * Hint locations to indicate where the player can advance their
+     * tasks.
+     *
+     * @return Hinted locations
+     */
+    public abstract List<Location> getHints(CorePlayer core, Player bukkit);
 
     /**
      * Which quest are we under.

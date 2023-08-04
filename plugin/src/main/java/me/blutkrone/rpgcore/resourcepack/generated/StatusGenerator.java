@@ -24,7 +24,7 @@ public class StatusGenerator {
                 String name = candidate.getName();
                 name = name.substring(0, name.indexOf("."));
                 // 3 copies, one for each surface
-                textures.put("status_" + space + "_" + name, new IndexedTexture.GeneratedTexture(c, "status_" + space, bi.getWidth(), bi, offset));
+                textures.put("status_" + space + "_" + name, new IndexedTexture.GeneratedTexture(c, "status_" + space, bi, offset));
                 // increment the identifier
                 c += 1;
             }

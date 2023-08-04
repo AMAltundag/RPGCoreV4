@@ -102,7 +102,7 @@ public interface IEditorConstraint {
     /**
      * A list view can be entered via a shift-left click, instead of typing
      * all elements are instead shown in a list.
-     * <p>
+     * <br>
      *
      * @return Itemized array of all options
      */
@@ -117,7 +117,7 @@ public interface IEditorConstraint {
     /**
      * A list view can be entered via a shift-left click, instead of typing
      * all elements are instead shown in a list.
-     * <p>
+     * <br>
      * By default, this just hashes the ID and provides a random colored
      * block.
      *

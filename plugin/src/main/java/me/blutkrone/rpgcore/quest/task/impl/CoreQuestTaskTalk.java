@@ -5,10 +5,14 @@ import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.other.EditorTalk;
 import me.blutkrone.rpgcore.editor.bundle.quest.task.EditorQuestTaskTalk;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.node.struct.NodeActive;
+import me.blutkrone.rpgcore.node.struct.NodeWorld;
 import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
 import me.blutkrone.rpgcore.quest.task.AbstractQuestTask;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +36,26 @@ public class CoreQuestTaskTalk extends AbstractQuestTask<CoreNPC> {
             EditorTalk e = (EditorTalk) talk;
             this.talks.put(e.npc.toLowerCase(), e.dialogue.toLowerCase());
         }
+    }
+
+    @Override
+    public List<Location> getHints(CorePlayer core, Player bukkit) {
+        List<Location> output = new ArrayList<>();
+
+        // all npcs that we need to talk to
+        NodeWorld node_world = RPGCore.inst().getNodeManager().getNodeWorld(bukkit.getWorld());
+        if (node_world != null) {
+            talks.forEach((npc, dialogue) -> {
+                boolean unvisited = core.getProgressQuests().getOrDefault(super.getUniqueId() + "_" + npc, 0) == 0;
+                if (unvisited) {
+                    for (NodeActive node : node_world.getNodesOfType("npc:"+npc)) {
+                        output.add(new Location(bukkit.getWorld(), node.getX(), node.getY(), node.getZ()));
+                    }
+                }
+            });
+        }
+
+        return output;
     }
 
     @Override

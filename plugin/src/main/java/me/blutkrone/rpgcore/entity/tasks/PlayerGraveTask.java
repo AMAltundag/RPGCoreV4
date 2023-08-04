@@ -222,7 +222,7 @@ public class PlayerGraveTask extends BukkitRunnable {
     /**
      * Update the grave of the player, use -1 and null if you want
      * to disable the grave task.
-     * <p>
+     * <br>
      * Player is invisible and cannot be engaged with.
      *
      * @param timer How long before true death

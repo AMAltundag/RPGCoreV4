@@ -15,11 +15,14 @@ public class IndexedTexture {
     public String table;
     // width of this specific symbol
     public int width;
+    // height of texture
+    public int height;
 
-    private IndexedTexture(String symbol, String table, int width) {
+    private IndexedTexture(String symbol, String table, int width, int height) {
         this.symbol = symbol;
         this.table = table;
         this.width = width;
+        this.height = height;
     }
 
     IndexedTexture() {
@@ -27,7 +30,7 @@ public class IndexedTexture {
 
     @Override
     public String toString() {
-        return String.format("IndexedTexture{symbol=%s;table=%s;width=%s}", StringEscapeUtils.escapeJava(symbol), table, width);
+        return String.format("IndexedTexture{symbol=%s;table=%s;width=%s;height=%s}", StringEscapeUtils.escapeJava(symbol), table, width, height);
     }
 
     /**
@@ -35,8 +38,8 @@ public class IndexedTexture {
      * only needs to be indexed.
      */
     public static class StaticTexture extends IndexedTexture {
-        public StaticTexture(char symbol, String table, int width) {
-            super(String.valueOf(symbol), table, width);
+        public StaticTexture(char symbol, String table, int width, int height) {
+            super(String.valueOf(symbol), table, width, height);
         }
     }
 
@@ -45,12 +48,12 @@ public class IndexedTexture {
      */
     public static class ConfigTexture extends IndexedTexture {
 
-        public ConfigTexture(String symbol, String table, int width) {
-            super(symbol, table, width);
+        public ConfigTexture(String symbol, String table, int width, int height) {
+            super(symbol, table, width, height);
         }
 
         public ConfigTexture(IndexedTexture texture) {
-            super(texture.symbol, texture.table, texture.width);
+            super(texture.symbol, texture.table, texture.width, texture.height);
         }
     }
 
@@ -65,8 +68,8 @@ public class IndexedTexture {
         // an internal ID to prevent dupes
         public UUID uuid;
 
-        public GeneratedTexture(char symbol, String table, int width, BufferedImage texture, int offset) {
-            super(String.valueOf(symbol), table, width);
+        public GeneratedTexture(char symbol, String table, BufferedImage texture, int offset) {
+            super(String.valueOf(symbol), table, texture.getWidth(), texture.getHeight());
             this.texture = texture;
             this.offset = offset;
             this.uuid = UUID.randomUUID();
@@ -80,8 +83,8 @@ public class IndexedTexture {
 
         private final List<GeneratedTexture> textures;
 
-        GeneratedCompoundTexture(String symbol, String table, int width, List<GeneratedTexture> textures) {
-            super(symbol, table, width);
+        GeneratedCompoundTexture(String symbol, String table, int width, int height, List<GeneratedTexture> textures) {
+            super(symbol, table, width, height);
             this.textures = textures;
         }
 
@@ -92,6 +95,7 @@ public class IndexedTexture {
             // ensure we do use a single input
             String table = null;
             int width = 0;
+            int height = 0;
             StringBuilder concat = new StringBuilder();
 
             Iterator<GeneratedTexture> iterator = textures.iterator();
@@ -102,13 +106,14 @@ public class IndexedTexture {
                 if (!table.equals(texture.table))
                     throw new IllegalArgumentException(String.format("Mismatching tables '%s' and '%s'", table, texture.table));
                 width += texture.width;
+                height = texture.height;
                 concat.append(texture.symbol);
 
                 if (iterator.hasNext())
                     concat.append(FontMagicConstant.retreat(1));
             }
             // concat into a single texture
-            return new GeneratedCompoundTexture(concat.toString(), table, width, textures);
+            return new GeneratedCompoundTexture(concat.toString(), table, width, height, textures);
         }
 
         /**

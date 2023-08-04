@@ -18,17 +18,17 @@ import java.util.List;
 
 /**
  * Design suggestion:
- * <p>
+ * <br>
  * Structures should be contained in a root container, identified
  * by their ID.
- * <p>
+ * <br>
  * Locations are an uneditable data dump within the dungeon file,
  * you can sync them when saving a dungeon world.
- * <p>
+ * <br>
  * Spawner needs additional option for attributes
- * <p>
+ * <br>
  * Mechanic and selector for dungeon score
- * <p>
+ * <br>
  * Dungeon Root Class
  * + Dungeon structures by ID
  * + Hidden dungeon structure position dump

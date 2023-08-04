@@ -42,7 +42,7 @@ public class EntityWard implements IEntityEffect {
     /**
      * Tank the given amount with the ward, reducing the remaining
      * ward and returning how much it could NOT tank.
-     * <p>
+     * <br>
      * If the amount is less-equal zero, nothing happens.
      *
      * @param amount damage to take from ward
@@ -73,7 +73,7 @@ public class EntityWard implements IEntityEffect {
     /**
      * Recover the ward on the entity, do note that if the remaining ward
      * is zero it cannot be recovered at all and will be removed soon.
-     * <p>
+     * <br>
      * If the amount is less-equal zero, nothing happens.
      *
      * @param amount the amount to recover by

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * A data bundle is intended to contain information from the same
  * context,
- * <p>
+ * <br>
  * A single bundle of data which is meant to hold information
  * from the same context, for the sake of player data held in
  * a persistent manner.

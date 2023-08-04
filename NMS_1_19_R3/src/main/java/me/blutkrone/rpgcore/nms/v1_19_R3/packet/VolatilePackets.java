@@ -26,7 +26,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
@@ -38,9 +40,15 @@ public class VolatilePackets implements IVolatilePackets {
     private static final VolatilePacketSerializer.EntityData<Integer> SLIME_SIZE = new VolatilePacketSerializer.EntityData<>(16, EntityDataSerializers.INT);
     private static final VolatilePacketSerializer.EntityData<Byte> PLAYER_SKIN_PARTS = new VolatilePacketSerializer.EntityData<>(17, EntityDataSerializers.BYTE);
 
+    private static final VolatilePacketSerializer.EntityData<Integer> DISPLAY_INTERPOLATION_DELAY = new VolatilePacketSerializer.EntityData<>(8, EntityDataSerializers.INT);
+    private static final VolatilePacketSerializer.EntityData<Integer> DISPLAY_INTERPOLATION_DURATION = new VolatilePacketSerializer.EntityData<>(9, EntityDataSerializers.INT);
+    private static final VolatilePacketSerializer.EntityData<Vector3f> DISPLAY_TRANSLATION = new VolatilePacketSerializer.EntityData<>(10, EntityDataSerializers.VECTOR3);
     private static final VolatilePacketSerializer.EntityData<Vector3f> DISPLAY_SCALE = new VolatilePacketSerializer.EntityData<>(11, EntityDataSerializers.VECTOR3);
+    private static final VolatilePacketSerializer.EntityData<Quaternionf> DISPLAY_ROTATE_AFTER_LEFT = new VolatilePacketSerializer.EntityData<>(12, EntityDataSerializers.QUATERNION);
+    private static final VolatilePacketSerializer.EntityData<Quaternionf> DISPLAY_ROTATE_BEFORE_RIGHT = new VolatilePacketSerializer.EntityData<>(13, EntityDataSerializers.QUATERNION);
     private static final VolatilePacketSerializer.EntityData<Byte> DISPLAY_BILLBOARD = new VolatilePacketSerializer.EntityData<>(14, EntityDataSerializers.BYTE);
     private static final VolatilePacketSerializer.EntityData<Byte> DISPLAY_GLOW = new VolatilePacketSerializer.EntityData<>(21, EntityDataSerializers.BYTE);
+
     private static final VolatilePacketSerializer.EntityData<net.minecraft.world.item.ItemStack> DISPLAY_ITEM_MODEL = new VolatilePacketSerializer.EntityData<>(22, EntityDataSerializers.ITEM_STACK);
     private static final VolatilePacketSerializer.EntityData<Byte> DISPLAY_ITEM_RENDER = new VolatilePacketSerializer.EntityData<>(23, EntityDataSerializers.BYTE);
     private static final VolatilePacketSerializer.EntityData<Component> DISPLAY_TEXT_MESSAGE = new VolatilePacketSerializer.EntityData<>(22, EntityDataSerializers.COMPONENT);
@@ -443,6 +451,72 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeVarInt(mount); // mount id
             serializer.writeVarIntArray(new int[]{this.id}); // passengers
             sendPacket(player, new ClientboundSetPassengersPacket(serializer));
+        }
+
+        @Override
+        public void interpolation(Player player, int delay, int duration) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, delay);
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DURATION, duration);
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public void translation(Player player, double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_TRANSLATION, new Vector3f((float)x, (float)y, (float)z)); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public void rotateBeforeTranslation(Player player, Quaternionf rotation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, rotation); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public void rotateAfterTranslation(Player player, Quaternionf rotation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, rotation); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public void scale(Player player, double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_SCALE, new Vector3f((float)x, (float)y, (float)z)); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public void transform(Player player, int duration, Transformation transformation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            if (duration != 0) {
+                serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+                serializer.writeEntityData(DISPLAY_INTERPOLATION_DURATION, duration); // -1 delay to sync to tick
+            }
+            serializer.writeEntityData(DISPLAY_SCALE, transformation.getScale()); // data to update
+            serializer.writeEntityData(DISPLAY_TRANSLATION, transformation.getTranslation()); // data to update
+            serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, transformation.getLeftRotation()); // data to update
+            serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, transformation.getRightRotation()); // message to render
+            serializer.writeByte(0xFF); // data watcher end
+            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
         }
     }
 

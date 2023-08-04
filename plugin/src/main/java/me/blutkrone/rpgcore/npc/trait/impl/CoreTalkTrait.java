@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 
 /**
  * Sends a message if player is very close by.
- * <p>
+ * <br>
  * Provides no entry to the cortex.
  */
 public class CoreTalkTrait extends AbstractCoreTrait {

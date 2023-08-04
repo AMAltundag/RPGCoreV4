@@ -35,7 +35,7 @@ public class PassiveGenerator {
                             while (w < bi.getWidth()) {
                                 // slice up the texture and pool it
                                 BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-                                sliced.add(new IndexedTexture.GeneratedTexture(c++, key, slice.getWidth(), slice, MENU_VERTICAL_OFFSET - (18 * i) - 2 - 24));
+                                sliced.add(new IndexedTexture.GeneratedTexture(c++, key, slice, MENU_VERTICAL_OFFSET - (18 * i) - 2 - 24));
                                 // move our pointer ahead
                                 w += Math.min(128, bi.getWidth());
                             }

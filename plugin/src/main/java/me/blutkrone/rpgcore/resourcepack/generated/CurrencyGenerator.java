@@ -50,7 +50,7 @@ public class CurrencyGenerator {
         while (w < bi.getWidth()) {
             // slice up the texture and pool it
             BufferedImage slice = bi.getSubimage(w, 0, Math.min(128, bi.getWidth() - w), bi.getHeight());
-            sliced.add(new IndexedTexture.GeneratedTexture(symbol, "currency_symbols", slice.getWidth(), slice, MENU_VERTICAL_OFFSET + offset));
+            sliced.add(new IndexedTexture.GeneratedTexture(symbol, "currency_symbols", slice, MENU_VERTICAL_OFFSET + offset));
             // move our pointer ahead
             w += Math.min(128, bi.getWidth());
         }

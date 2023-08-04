@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * A bundle serves to contain multiple objects, including other
  * bundles.
- * <p>
+ * <br>
  * A zero-parameter constructor is to be supplied by any bundle.
  *
  * @see EditorName to ease user experience
