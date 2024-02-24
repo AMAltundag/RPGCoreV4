@@ -28,7 +28,7 @@ public class StatusMenu {
 
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "status.yml"));
         config.forEachUnder("status-slots", (path, root) -> {
-            this.layout.put(Integer.parseInt(path), new StatusLayout( root.getSection(path)));
+            this.layout.put(Integer.parseInt(path), root.getObject(path, StatusLayout::new));
         });
     }
 

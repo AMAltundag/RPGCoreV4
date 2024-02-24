@@ -25,6 +25,7 @@ public class TriggerConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("take", EditorTakeDamageTrigger::new);
         id_to_constructor.put("timer", EditorTimerTrigger::new);
         id_to_constructor.put("ward", EditorWardBreakTrigger::new);
+
         class_to_id.put(EditorAttackTrigger.class, "attack");
         class_to_id.put(EditorCastTrigger.class, "cast");
         class_to_id.put(EditorChannelTrigger.class, "channel");

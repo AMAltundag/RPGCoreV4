@@ -7,7 +7,7 @@ import me.blutkrone.rpgcore.editor.EditorMenu;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.menu.*;
 import me.blutkrone.rpgcore.hud.ux.*;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
 import net.md_5.bungee.api.ChatMessageType;
@@ -120,7 +120,7 @@ public class HUDManager implements Listener {
 
                 // off-load heavy lifting tasks to another thread
                 Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
-                    ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+                    ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
                     // construct the data which is to be rendered
                     UXWorkspace workspace = new UXWorkspace();
                     workspace.bossbar().setFinalLength(core.getSettings().screen_width);

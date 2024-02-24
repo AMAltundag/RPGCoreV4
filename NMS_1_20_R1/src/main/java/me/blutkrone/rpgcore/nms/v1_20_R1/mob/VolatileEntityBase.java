@@ -38,8 +38,10 @@ public class VolatileEntityBase implements IEntityBase {
     public boolean doBarrierDamageSoak(int damage) {
         // soak damage by all barrier phases
         boolean barrier = false;
-        for (AbstractEntityRoutine routine : getAI().active.values()) {
-            barrier = barrier || routine.doBarrierDamageSoak(damage);
+        for (WrappedRoutineGroup group : getAI().routines.values()) {
+            if (group.active != null) {
+                barrier = barrier || group.active.routine.doBarrierDamageSoak(damage);
+            }
         }
         return barrier;
     }
@@ -125,7 +127,7 @@ public class VolatileEntityBase implements IEntityBase {
 
     @Override
     public void addRoutine(String namespace, AbstractEntityRoutine routine) {
-        getAI().routines.computeIfAbsent(namespace, (k -> new ArrayList<>())).add(routine);
+        getAI().routines.computeIfAbsent(namespace, (k -> new WrappedRoutineGroup())).routines.add(new WrappedRoutine(routine));
     }
 
     @Override
@@ -146,6 +148,8 @@ public class VolatileEntityBase implements IEntityBase {
         }
         // look at the target location
         this.look(entity.getEyeLocation());
+        // snapshot the walk speed to avoid reflection
+        getAI().last_known_walk_speed = speed;
         // we are done
         return true;
     }
@@ -162,6 +166,8 @@ public class VolatileEntityBase implements IEntityBase {
         }
         // look at the target location
         this.look(where);
+        // snapshot the walk speed to avoid reflection
+        getAI().last_known_walk_speed = speed;
         // we are done
         return true;
     }
@@ -175,7 +181,7 @@ public class VolatileEntityBase implements IEntityBase {
 
             // find a location to stroll towards
             Vec3 where = null;
-            for (int i = 0; i < 6 && where == null; i++) {
+            for (int i = 0; i < 3 && where == null; i++) {
                 // pool a random location
                 where = LandRandomPos.getPos(creature, maximum, minimum);
                 if (where == null) {
@@ -189,6 +195,7 @@ public class VolatileEntityBase implements IEntityBase {
 
             // if we got the target, stroll there
             if (where != null) {
+                getAI().last_known_walk_speed = speed;
                 return insentient.getNavigation().moveTo(where.x, where.y, where.z, speed);
             }
         }
@@ -254,6 +261,11 @@ public class VolatileEntityBase implements IEntityBase {
     }
 
     @Override
+    public double getWalkingSpeed() {
+        return getAI().last_known_walk_speed;
+    }
+
+    @Override
     public boolean isInDeathSequence() {
         return getAI().death_routine != null;
     }
@@ -309,6 +321,29 @@ public class VolatileEntityBase implements IEntityBase {
         return ((CraftMob) this.getBukkitHandle()).getHandle();
     }
 
+    class WrappedRoutine {
+        // the routine that is wrapped
+        AbstractEntityRoutine routine;
+        // cooldown before checking this routine again
+        int cooldown;
+
+        public WrappedRoutine(AbstractEntityRoutine routine) {
+            this.routine = routine;
+            this.cooldown = 0;
+        }
+    }
+
+    class WrappedRoutineGroup {
+        // all routines that are allowed
+        List<WrappedRoutine> routines;
+        // current active routine in group
+        WrappedRoutine active;
+
+        public WrappedRoutineGroup() {
+            this.routines = new ArrayList<>();
+        }
+    }
+
     /*
      * Special override of native goal selection process, primary
      * handling is done by RPGCore so no logic is necessary.
@@ -317,15 +352,19 @@ public class VolatileEntityBase implements IEntityBase {
 
         private final Supplier<ProfilerFiller> profiler;
 
-        Map<String, List<AbstractEntityRoutine>> routines = new HashMap<>();
-        Map<String, AbstractEntityRoutine> active = new HashMap<>();
+        // general routines available to the entity
+        Map<String, WrappedRoutineGroup> routines = new HashMap<>();
+        // special routines invoked upon death
         List<AbstractEntityRoutine> death_routines = new ArrayList<>();
+        AbstractEntityRoutine death_routine;
+        Runnable death_callback;
+        // target for entity rage
         LivingEntity rage_entity;
         double rage_value;
         double rage_focus;
         long rage_cooldown;
-        AbstractEntityRoutine death_routine;
-        Runnable death_callback;
+        // snapshot of walk speed to avoid reflection
+        double last_known_walk_speed = 1.0f;
 
         public RPGCoreGoalSelector(Supplier<ProfilerFiller> supplier) {
             super(supplier);
@@ -346,6 +385,7 @@ public class VolatileEntityBase implements IEntityBase {
                         getBukkitHandle().remove();
                     }
                 }
+
                 // exit profiler
                 profiler.get().pop();
                 // do not process basic AI while dying
@@ -353,27 +393,38 @@ public class VolatileEntityBase implements IEntityBase {
             }
 
             // tick the rage
-            routines.forEach((key, routines) -> {
-                // fetch which routine we are working with
-                AbstractEntityRoutine routine = active.get(key);
+            routines.forEach((key, group) -> {
+                // update the cooldown of a routine
+                for (WrappedRoutine routine : group.routines) {
+                    routine.cooldown -= 1;
+                }
 
-                if (routine == null) {
-                    // attempt to initialize a new routine
-                    for (AbstractEntityRoutine candidate : routines) {
-                        if (candidate.doStart()) {
-                            active.put(key, candidate);
-                            return;
+                // initialize a routine if we are missing one
+                for (int i = 0; group.active == null && i < group.routines.size(); i++) {
+                    WrappedRoutine candidate = group.routines.get(i);
+                    if (candidate.cooldown <= 0) {
+                        if (candidate.routine.doStart()) {
+                            group.active = candidate;
+                        } else {
+                            candidate.cooldown = candidate.routine.getWaitTime();
                         }
                     }
-                } else if (routine.doUpdate()) {
-                    // check if we've finished
-                    active.remove(key);
-                    // remove if it was a singleton
-                    if (routine.isSingleton()) {
-                        routines.remove(routine);
+                }
+
+                // process the routine that we have active
+                if (group.active != null && group.active.routine.doUpdate()) {
+                    group.active.cooldown = group.active.routine.getCooldownTime();
+
+                    if (group.active.routine.isSingleton()) {
+                        group.routines.remove(group.active);
                     }
+
+                    group.active = null;
                 }
             });
+
+            // exit profiler
+            profiler.get().pop();
         }
 
         @Override

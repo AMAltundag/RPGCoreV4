@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.util.io;
 
 import me.blutkrone.rpgcore.RPGCore;
 import org.apache.commons.io.FileUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -75,10 +74,14 @@ public class FileUtil {
         return found.toArray(new File[found.size()]);
     }
 
-    public static File[] buildAllFiles(File directory) throws IOException {
+    public static File[] buildAllFiles(File... directory) throws IOException {
         Queue<File> directories = new LinkedList<>();
         Queue<File> files = new LinkedList<>();
-        directories.add(directory);
+        for (File file : directory) {
+            if (file.exists()) {
+                directories.add(file);
+            }
+        }
         while (!directories.isEmpty()) {
             File poll = directories.poll();
             File[] children = poll.listFiles();

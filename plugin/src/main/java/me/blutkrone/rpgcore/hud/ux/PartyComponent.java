@@ -7,8 +7,8 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
 import me.blutkrone.rpgcore.entity.resource.ResourceSnapshot;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.OfflinePlayer;
@@ -42,8 +42,8 @@ public class PartyComponent implements IUXComponent<List<PartyComponent.Snapshot
      * @param render_point     the point to draw at
      */
     private static void drawSpecificResource(UXWorkspace workspace, String graphic_cue, ResourceSnapshot resource, int render_point) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
-        IndexedTexture graphic_cue_texture = rpm.texture(graphic_cue + "_" + (int) (100 * resource.fraction));
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
+        AbstractTexture graphic_cue_texture = rpm.texture(graphic_cue + "_" + (int) (100 * resource.fraction));
         workspace.bossbar().shiftToExact(render_point);
         workspace.bossbar().append(graphic_cue_texture);
     }
@@ -93,7 +93,7 @@ public class PartyComponent implements IUXComponent<List<PartyComponent.Snapshot
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, List<Snapshot> prepared) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         for (int i = 0, size = prepared.size(); i < size && i < 5; i++) {
             Snapshot party_member = prepared.get(i);

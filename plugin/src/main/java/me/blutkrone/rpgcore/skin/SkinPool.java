@@ -29,7 +29,6 @@ public class SkinPool {
 
     public SkinPool() {
         this.skin_client = new MineskinClient("RPGCore/4");
-        MineskinClient skin_client = this.skin_client;
 
         File directory = FileUtil.directory("editor/skin");
         directory.getParentFile().mkdirs();

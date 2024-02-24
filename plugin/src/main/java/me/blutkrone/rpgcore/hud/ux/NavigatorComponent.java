@@ -6,8 +6,8 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
 import me.blutkrone.rpgcore.minimap.MapMarker;
 import me.blutkrone.rpgcore.minimap.v2.MinimapManagerV2;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.Bukkit;
@@ -51,7 +51,7 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, Snapshot prepared) {
         int size = MinimapManagerV2.MINIMAP_SIZE_BLOCK;
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // where to start rendering the component
         int render_point = core_player.getSettings().screen_width - rpm.texture("static_navigator_front_N").width - 10;
         // draw the background of our navigator
@@ -88,13 +88,17 @@ public class NavigatorComponent implements IUXComponent<NavigatorComponent.Snaps
             int close_x = prepared.map_anchor.getBlockZ() + (size/2);
             int close_z = prepared.map_anchor.getBlockX() + (size/2);
             for (MapMarker marker : prepared.map_marker) {
-                IndexedTexture texture = rpm.texture("marker_" + marker.marker + "_0");
+                AbstractTexture texture = rpm.texture("marker_" + marker.marker + "_0");
                 // marker position on an absolute space
                 int marker_x = Math.max(start_x, Math.min(close_x, marker.getLocation().getBlockZ()));
-                int marker_z = Math.max(start_z, Math.min(close_z - texture.height, marker.getLocation().getBlockX()));
+                int marker_z = Math.max(start_z, Math.min(close_z, marker.getLocation().getBlockX()));
                 // marker position on an relative space
                 marker_x = marker_x - start_x;
                 marker_z = marker_z - start_z;
+                // relative space clamping to not render outside of map
+                marker_x = Math.max(texture.height/8, Math.min(marker_x, size - (texture.height/8)));
+                marker_z = Math.max(texture.width/8, Math.min(marker_z, size - (texture.width/8)));
+
                 // semi-transparent if Y difference is too much
                 if (Math.abs(marker.getLocation().getY() - prepared.map_anchor.getY()) <= 16d) {
                     texture = rpm.texture("marker_" + marker.marker + "_" + marker_x);

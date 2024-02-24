@@ -6,12 +6,17 @@ import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierString;
 
 public class CoreModifierString {
 
+    private static boolean STRING_MODIFIER_WARNING = true;
+
     private String string;
 
     public CoreModifierString(EditorModifierString editor) {
         this.string = editor.base_value;
 
-        RPGCore.inst().getLogger().info("not implemented (more complex string modifiers)");
+        if (STRING_MODIFIER_WARNING) {
+            RPGCore.inst().getLogger().info("not implemented (more complex string modifiers)");
+            STRING_MODIFIER_WARNING = false;
+        }
     }
 
     public CoreModifierString(String string) {

@@ -32,11 +32,7 @@ public abstract class AbstractAilment {
         if (!config.getString("model", "").isBlank()) {
             this.decor_model = ItemBuilder.of(config.getString("model")).build();
         }
-        this.decor_particle = new WeightedRandomMap<>();
-        config.forEachUnder("particles", (path, root) -> {
-            ParticleUtility particle = new ParticleUtility(root.getSection(path));
-            this.decor_particle.add(particle.getWeighting(), particle);
-        });
+        this.decor_particle = config.getObjectWeighedMap("particles", ParticleUtility::new, ParticleUtility::getWeighting);
     }
 
     /**

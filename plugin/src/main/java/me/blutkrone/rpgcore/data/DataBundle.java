@@ -68,7 +68,7 @@ public class DataBundle {
             double z = Double.parseDouble(split[3]);
             float pitch = Float.parseFloat(split[4]);
             float yaw = Float.parseFloat(split[5]);
-            return new Location(world, x, y, z, pitch, yaw);
+            return new Location(world, x, y, z, yaw, pitch);
         } catch (Exception ex) {
             return null;
         }

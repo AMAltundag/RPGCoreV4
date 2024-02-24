@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,7 +18,10 @@ public class UnlockStorageCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<player> <storage> <*days> §fUnlock the storage for a given player.");
+        return buildHelpText("§fplayer storage §8days", "§cUnlocks storage space for a player [ADMIN]",
+                "§7Player: Whose storage do you want to unlock",
+                "§7Storage: The storage that will be opened",
+                "§8Days: Unlock for a limited duration instead");
     }
 
     @Override

@@ -1,5 +1,10 @@
 package me.blutkrone.rpgcore.entity;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.ListenerOptions;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CoreMob;
@@ -12,12 +17,17 @@ import me.blutkrone.rpgcore.util.world.ChunkIdentifier;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -27,9 +37,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EntityManager implements Listener {
 
     // snapshots of observable players in a range
-    private Map<ChunkIdentifier, List<Player>> observation = new HashMap<>();
+    private Map<ChunkIdentifier, List<Player>> players_observing_chunk = new HashMap<>();
+
     // entities which are registered in the core
-    private Map<UUID, CoreEntity> entity = new ConcurrentHashMap<>();
+    private final Map<UUID, CoreEntity> registered_entities = new ConcurrentHashMap<>();
+
+    // packet driven entity visibility
+    private final Object ENTITY_TRACKER_SYNC = new Object();
+    private final Map<UUID, Set<Integer>> entities_tracked_by_player = new ConcurrentHashMap<>();
+
+    // snapshot of player mapped to location
+    private Map<UUID, Location> location_snapshot = new ConcurrentHashMap<>();
+
     // death related handling
     private int grave_timer;
     private ItemStack default_grave;
@@ -47,16 +66,55 @@ public class EntityManager implements Listener {
             this.free_resurrect = true;
         }
 
+        // tracker for what entities a player has rendered
+        PacketAdapter.AdapterParameteters pa_param = new PacketAdapter.AdapterParameteters();
+        pa_param.plugin(RPGCore.inst());
+        pa_param.options(ListenerOptions.SYNC);
+        pa_param.types(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
+        pa_param.types(PacketType.Play.Server.ENTITY_DESTROY);
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(pa_param) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                if (event.getPacketType() == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
+                    // inform about entities being added
+                    int id = event.getPacket().getIntegers().read(0);
+                    synchronized (ENTITY_TRACKER_SYNC) {
+                        entities_tracked_by_player.computeIfAbsent(event.getPlayer().getUniqueId(), (k -> new HashSet<>())).add(id);
+                    }
+                } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_DESTROY) {
+                    // inform about entities being removed
+                    List<Integer> ids = event.getPacket().getIntLists().read(0);
+                    synchronized (ENTITY_TRACKER_SYNC) {
+                        for (Integer id : ids) {
+                            entities_tracked_by_player.computeIfAbsent(event.getPlayer().getUniqueId(), (k -> new HashSet<>())).remove(id);
+                        }
+                    }
+                }
+            }
+        });
+
+        // a best-effort at finding players who may observe a chunk
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
             if (!RPGCore.inst().isEnabled()) {
                 return;
             }
 
+            // snapshot location of entities for thread-safe access
+            Map<UUID, Location> location_snapshot = new ConcurrentHashMap<>();
+            for (World world : Bukkit.getWorlds()) {
+                for (Entity entity : world.getEntities()) {
+                    location_snapshot.put(entity.getUniqueId(), entity.getLocation());
+                }
+            }
+            this.location_snapshot = location_snapshot;
+
             // snapshot player locations
-            Map<Player, ChunkIdentifier> snapshot = new HashMap<>();
+            Map<Player, ChunkIdentifier> chunk_snapshot = new HashMap<>();
             Bukkit.getOnlinePlayers().forEach(player -> {
-                snapshot.put(player, new ChunkIdentifier(player.getLocation()));
+                chunk_snapshot.put(player, new ChunkIdentifier(player.getLocation()));
             });
+
+
             // run async to reduce performance impact
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 if (!RPGCore.inst().isEnabled()) {
@@ -65,7 +123,7 @@ public class EntityManager implements Listener {
 
                 // compute which player is observing what chunk
                 Map<ChunkIdentifier, List<Player>> computed = new HashMap<>();
-                snapshot.forEach((player, where) -> {
+                chunk_snapshot.forEach((player, where) -> {
                     for (int i = -3; i <= +3; i++) {
                         for (int j = -3; j <= +3; j++) {
                             computed.computeIfAbsent(where.withOffset(i, j), (k -> new ArrayList<>())).add(player);
@@ -78,12 +136,45 @@ public class EntityManager implements Listener {
                         return;
                     }
 
-                    observation = Collections.unmodifiableMap(computed);
+                    players_observing_chunk = Collections.unmodifiableMap(computed);
                 });
             });
         }, 1, 1);
 
         Bukkit.getPluginManager().registerEvents(this, RPGCore.inst());
+    }
+
+    /**
+     * Retrieve last known location of a player.<br>
+     * <br>
+     * Never modify this return value.
+     *
+     * @param owner Whose last location to check
+     * @return Last location known by, may be null
+     */
+    public Location getLastLocation(UUID owner) {
+        return this.location_snapshot.get(owner);
+    }
+
+    /**
+     * Retrieve last known location of a player.<br>
+     * <br>
+     * Never modify this return value.
+     *
+     * @return Snapshot of all entity locations
+     */
+    public Map<UUID, Location> getLastLocation() {
+        return this.location_snapshot;
+    }
+
+    /**
+     * Retrieve entityIds observed by the given player.
+     *
+     * @param player Whose observation to check
+     * @return Ids of the entity
+     */
+    public Set<Integer> getObservedBy(Player player) {
+        return this.entities_tracked_by_player.getOrDefault(player.getUniqueId(), Collections.emptySet());
     }
 
     /**
@@ -121,7 +212,7 @@ public class EntityManager implements Listener {
      * @return active entities
      */
     public Map<UUID, CoreEntity> getHandleUnsafe() {
-        return entity;
+        return registered_entities;
     }
 
     /**
@@ -129,7 +220,7 @@ public class EntityManager implements Listener {
      * expected to be provided
      */
     public void register(UUID uuid, CoreEntity entity) {
-        this.entity.put(uuid, entity);
+        this.registered_entities.put(uuid, entity);
     }
 
     /**
@@ -140,7 +231,19 @@ public class EntityManager implements Listener {
      * @return entity to retrieve
      */
     public CoreEntity getEntity(UUID uuid) {
-        return this.entity.get(uuid);
+        CoreEntity found = null;
+
+        if (uuid != null) {
+            found = this.registered_entities.get(uuid);
+            if (found == null) {
+                uuid = RPGCore.inst().getBBModelManager().getOwnerOfHitbox(uuid);
+                if (uuid != null) {
+                    found = this.registered_entities.get(uuid);
+                }
+            }
+        }
+
+        return found;
     }
 
     /**
@@ -185,7 +288,7 @@ public class EntityManager implements Listener {
      * @return entity to retrieve
      */
     public CoreEntity getEntity(LivingEntity entity) {
-        return this.entity.get(entity.getUniqueId());
+        return this.registered_entities.get(entity.getUniqueId());
     }
 
     /**
@@ -216,7 +319,7 @@ public class EntityManager implements Listener {
      * @param entity which entity to unregister
      */
     public void unregister(UUID entity) {
-        CoreEntity removed = this.entity.remove(entity);
+        CoreEntity removed = this.registered_entities.remove(entity);
         if (removed != null) {
             removed.remove();
         }
@@ -226,9 +329,9 @@ public class EntityManager implements Listener {
      * Request to drop all entities from the core.
      */
     public void unregisterAll() {
-        for (CoreEntity entity : this.entity.values())
+        for (CoreEntity entity : this.registered_entities.values())
             entity.remove();
-        this.entity.clear();
+        this.registered_entities.clear();
     }
 
     /**
@@ -239,7 +342,7 @@ public class EntityManager implements Listener {
      * @return the players which are observed.
      */
     public List<Player> getObserving(Location where) {
-        return observation.getOrDefault(new ChunkIdentifier(where), Collections.emptyList());
+        return players_observing_chunk.getOrDefault(new ChunkIdentifier(where), Collections.emptyList());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -249,6 +352,27 @@ public class EntityManager implements Listener {
         if (entity != null) {
             e.getDrops().clear();
             e.setDroppedExp(0);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    void on(PlayerRespawnEvent event) {
+        synchronized (ENTITY_TRACKER_SYNC) {
+            this.entities_tracked_by_player.remove(event.getPlayer().getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    void on(PlayerChangedWorldEvent event) {
+        synchronized (ENTITY_TRACKER_SYNC) {
+            this.entities_tracked_by_player.remove(event.getPlayer().getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    void on(PlayerQuitEvent event) {
+        synchronized (ENTITY_TRACKER_SYNC) {
+            this.entities_tracked_by_player.remove(event.getPlayer().getUniqueId());
         }
     }
 }

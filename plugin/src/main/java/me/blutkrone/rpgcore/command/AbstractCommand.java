@@ -1,6 +1,11 @@
 package me.blutkrone.rpgcore.command;
 
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Content;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,6 +15,29 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractCommand {
+
+    public static BaseComponent[] buildHelpText(String syntax, String first_info, String... other_info) {
+        List<Content> tooltip = new ArrayList<>();
+        tooltip.add(new Text(TextComponent.fromLegacyText(first_info + "\n")));
+        tooltip.add(new Text(TextComponent.fromLegacyText("\n")));
+        for (int i = 0; i < other_info.length; i++) {
+            if (i == other_info.length-1) {
+                tooltip.add(new Text(TextComponent.fromLegacyText(other_info[i])));
+            } else {
+                tooltip.add(new Text(TextComponent.fromLegacyText(other_info[i] + "\n")));
+            }
+        }
+
+        ComponentBuilder body = new ComponentBuilder();
+        body.appendLegacy(syntax);
+
+        BaseComponent[] output = body.create();
+        for (BaseComponent component : output) {
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip));
+        }
+
+        return output;
+    }
 
     /**
      * Create a sub-list from the given arguments, which start with

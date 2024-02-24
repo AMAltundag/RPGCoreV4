@@ -15,7 +15,7 @@ public class JewelTextureConstraint implements IEditorConstraint {
     @Override
     public List<String> getHint(String value) {
         if (this.candidates.isEmpty()) {
-            RPGCore.inst().getResourcePackManager().textures().forEach((id, tex) -> {
+            RPGCore.inst().getResourcepackManager().textures().forEach((id, tex) -> {
                 if (id.startsWith("lore_jewel_")) {
                     this.candidates.add(id.replace("lore_jewel_", ""));
                 }

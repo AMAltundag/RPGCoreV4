@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.api.roster.IRosterInitiator;
 import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -31,7 +31,7 @@ public class AliasInitiator implements IRosterInitiator {
 
     @Override
     public boolean initiate(CorePlayer _player) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         if (!"nothing".equalsIgnoreCase(_player.getAlias()))
             return false;

@@ -10,8 +10,8 @@ import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.styling.StylingRule;
 import me.blutkrone.rpgcore.language.LanguageManager;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.skill.info.CoreSkillInfo;
@@ -39,7 +39,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [1] header segment to hide the vanilla lore
         msb.shiftToExact(-20);
@@ -83,7 +83,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [7] generate data within the header
         int previous = compiled.size();
@@ -139,7 +139,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [11] lore is available as the last entry.
         List<String> collapsed = new ArrayList<>();
@@ -184,7 +184,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         Map<String, List<CoreSkillInfo>> categorized = new HashMap<>();
         modifiers.removeIf(modifier -> {
@@ -249,7 +249,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         Map<String, List<CoreSkillInfo>> categorized = new HashMap<>();
         modifiers.removeIf(modifier -> {
@@ -338,7 +338,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [11] lore is available as the last entry.
         if (!lore.isEmpty()) {
@@ -416,7 +416,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // separator above category name
         msb.shiftToExact(-20);
@@ -457,7 +457,7 @@ public class SkillDescriptor implements IItemDescriber {
         msb.shiftCentered((this.width_base / 2) - 20, width);
         // render the relevant jewel sockets
         for (String symbol : skills) {
-            IndexedTexture texture = resource_manager.texture("lore_skill_" + symbol);
+            AbstractTexture texture = resource_manager.texture("lore_skill_" + symbol);
             msb.append(texture, ChatColor.WHITE);
             msb.advance(2);
         }
@@ -473,7 +473,7 @@ public class SkillDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
@@ -512,7 +512,7 @@ public class SkillDescriptor implements IItemDescriber {
     public void describe(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         SkillManager skill_manager = RPGCore.inst().getSkillManager();
 
         // extract the data we got on this item

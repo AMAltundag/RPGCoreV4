@@ -29,8 +29,7 @@ public class SkillMenu {
      */
     public SkillMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "skill.yml"));
-
-        config.forEachUnder("skill-pages", (path, root) -> this.skill_pages.add(new SkillPage(root.getSection(path))));
+        this.skill_pages.addAll(config.getObjectList("skill-pages", SkillPage::new));
 
         this.unbind_skill = RPGCore.inst().getLanguageManager().getAsItem("unbind_skill").build();
         this.viewport_left = RPGCore.inst().getLanguageManager().getAsItem("viewport_left").build();

@@ -7,26 +7,19 @@ import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.editor.root.node.EditorNodeBox;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.node.struct.AbstractNode;
 import me.blutkrone.rpgcore.node.struct.NodeActive;
-import me.blutkrone.rpgcore.node.struct.NodeData;
+import me.blutkrone.rpgcore.node.struct.NodeDataWithModel;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -141,90 +134,43 @@ public class CoreNodeBox extends AbstractNode {
         // only a right click should open a box
     }
 
-    public class BoxNodeData extends NodeData {
+    public class BoxNodeData extends NodeDataWithModel {
 
-        // identifier based on the location
+        // basic information from the node
         private String node_identifier;
+        private Location where;
+
         // when can the node be restocked
         private int cooldown_until;
-        // physical entity representing us
-        private Reference<ItemDisplay> visual;
-        private Reference<IEntityCollider> collide;
-        // location of the node
-        private Location where;
 
         public BoxNodeData(World world, NodeActive node) {
             this.node_identifier = node.getID().toString();
-            this.cooldown_until = 0;
             this.where = new Location(world, node.getX() + 0.5d, node.getY(), node.getZ() + 0.5d);
-            this.visual = new WeakReference<>(null);
-            this.collide = new WeakReference<>(null);
+            this.cooldown_until = 0;
         }
 
-        @Override
-        public void abandon() {
-            ItemDisplay entity = this.visual.get();
-            if (entity != null) {
-                entity.remove();
-            }
-            IEntityCollider collide = this.collide.get();
-            if (collide != null) {
-                collide.destroy();
-            }
-        }
-
-        /*
+        /**
          * Check if the collectible is available to be harvested.
          *
          * @return true if we are not on a cooldown
          */
-        boolean isAvailable() {
+        public boolean isAvailable() {
             return RPGCore.inst().getTimestamp() >= this.cooldown_until;
         }
 
-        /*
-         * Update the model of our collectible.
-         *
-         * @param item the collectible we got
-         */
-        void update(ItemStack item) {
-            if (NOTHING.isSimilar(item))
-                item = new ItemStack(Material.AIR);
-            ItemDisplay visual = getVisual();
-            if (!item.isSimilar(visual.getItemStack())) {
-                visual.setItemStack(item);
-            }
+        @Override
+        protected Location getWhere() {
+            return this.where;
         }
 
-        /*
-         * Retrieve the primary visual entity.
-         *
-         * @return what entity we are backing
-         */
-        ItemDisplay getVisual() {
-            // fetch the existing model entity
-            ItemDisplay visual = this.visual.get();
-            // if the model entity broke, create a new one
-            if (visual == null || !visual.isValid()) {
-                visual = (ItemDisplay) this.where.getWorld().spawnEntity(where.clone().add(0d, 0.5d, 0d), EntityType.ITEM_DISPLAY);
-                visual.setPersistent(false);
-                visual.setMetadata("rpgcore-node", new FixedMetadataValue(RPGCore.inst(), this.node_identifier));
-                visual.setBillboard(Display.Billboard.FIXED);
-                visual.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-                this.visual = new WeakReference<>(visual);
-            }
-            // if the collider broke, create a new one
-            IEntityCollider collider = this.collide.get();
-            if (collider == null || !collider.isActive()) {
-                collider = RPGCore.inst().getVolatileManager().createCollider(visual);
-                collider.resize(collider_size);
-                this.collide = new WeakReference<>(collider);
-            }
-            // establish a link
-            collider.link(visual);
-            collider.move(visual.getLocation());
-            // offer up our model entity
-            return visual;
+        @Override
+        protected double getColliderSize() {
+            return CoreNodeBox.this.collider_size;
+        }
+
+        @Override
+        protected String getNodeID() {
+            return this.node_identifier;
         }
     }
 }

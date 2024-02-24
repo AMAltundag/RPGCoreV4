@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IItemDisplay;
 import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileBillboard;
@@ -150,13 +151,12 @@ public class PlayerGraveTask extends BukkitRunnable {
             String info = RPGCore.inst().getLanguageManager().getTranslation("grave_indicator")
                     .replace("{NAME}", this.player.getName())
                     .replace("{TIME}", String.valueOf(Math.max(this.grave_counter / 20, 1)));
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.grave_anchor);
-            for (Player viewer : observing) {
-                this.hologram_grave.spawn(viewer, this.grave_anchor.clone().add(0d, 1d, 0d));
-                this.hologram_grave.item(viewer, RPGCore.inst().getEntityManager().getGraveDefault(), 1d, VolatileBillboard.FIXED, VolatileDisplay.FIXED);
-                this.hologram_text.spawn(viewer, this.grave_anchor.clone().add(0d, 2.5d, 0d));
-                this.hologram_text.message(viewer, TextComponent.fromLegacyText(info), true, false);
-            }
+            // initialize the grave
+            IBundledPacket hologram_bundle = this.hologram_grave.spawn(this.grave_anchor.clone().add(0d, 1d, 0d));
+            this.hologram_grave.item(RPGCore.inst().getEntityManager().getGraveDefault(), VolatileBillboard.FIXED, VolatileDisplay.FIXED).addToOther(hologram_bundle);
+            this.hologram_text.spawn(this.grave_anchor.clone().add(0d, 2.5d, 0d)).addToOther(hologram_bundle);
+            this.hologram_text.message(TextComponent.fromLegacyText(info), false).addToOther(hologram_bundle);
+            hologram_bundle.dispatch(RPGCore.inst().getEntityManager().getObserving(this.grave_anchor));
             // be invisible during the death phase
             for (Player viewer : player_bukkit.getWorld().getPlayers()) {
                 viewer.hidePlayer(RPGCore.inst(), player_bukkit);
@@ -176,12 +176,9 @@ public class PlayerGraveTask extends BukkitRunnable {
             String info = RPGCore.inst().getLanguageManager().getTranslation("grave_indicator")
                     .replace("{NAME}", this.player.getName())
                     .replace("{TIME}", String.valueOf(Math.max(this.grave_counter / 20, 1)));
-            List<Player> observing = RPGCore.inst().getEntityManager().getObserving(this.grave_anchor);
-            for (Player viewer : observing) {
-                if (viewer != player_bukkit || true) {
-                    this.hologram_text.message(viewer, TextComponent.fromLegacyText(info), true, false);
-                }
-            }
+            // dispatch updated info text on the hologram
+            this.hologram_text.message(TextComponent.fromLegacyText(info), false)
+                    .dispatch(RPGCore.inst().getEntityManager().getObserving(this.grave_anchor));
             // just in case player somehow moved, snap back
             if (Utility.distanceSqOrWorld(player_bukkit, this.grave_anchor) > 1d) {
                 player_bukkit.teleport(this.grave_anchor);
@@ -200,16 +197,12 @@ public class PlayerGraveTask extends BukkitRunnable {
     public void clear() {
         // destroy the hologram for grave model
         if (this.hologram_grave != null) {
-            for (Player viewer : Bukkit.getOnlinePlayers()) {
-                this.hologram_grave.destroy(viewer);
-            }
+            this.hologram_grave.destroy().dispatch(Bukkit.getOnlinePlayers());
         }
         this.hologram_grave = null;
         // destroy the holograms for death text
         if (this.hologram_text != null) {
-            for (Player viewer : Bukkit.getOnlinePlayers()) {
-                this.hologram_text.destroy(viewer);
-            }
+            this.hologram_text.destroy().dispatch(Bukkit.getOnlinePlayers());
         }
         this.hologram_text = null;
         // undo the grave hiding

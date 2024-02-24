@@ -10,6 +10,7 @@ import me.blutkrone.rpgcore.attribute.AttributeCollection;
 import me.blutkrone.rpgcore.attribute.IExpiringModifier;
 import me.blutkrone.rpgcore.attribute.TagModifier;
 import me.blutkrone.rpgcore.attribute.TagModifierTimed;
+import me.blutkrone.rpgcore.bbmodel.owner.IModelOwner;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.AilmentTracker;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
@@ -38,6 +39,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The root for every entity affiliated with the core, primarily intended
@@ -87,6 +89,8 @@ public class CoreEntity implements IContext, IOrigin {
     protected List<CoreAction.ActionPipeline> actions = new ArrayList<>();
     // level of this creature
     protected int current_level;
+    // attachment entities we are pursued by
+    protected Map<String, IModelOwner> attachments = new ConcurrentHashMap<>();
 
     public CoreEntity(LivingEntity entity, EntityProvider provider) {
         // apply basic bukkit initialization
@@ -119,6 +123,16 @@ public class CoreEntity implements IContext, IOrigin {
         // tick skill behaviours we've queried
         this.bukkit_tasks.add(new EntitySkillTask(this)
                 .runTaskTimer(RPGCore.inst(), 1, 1));
+    }
+
+    /**
+     * Models that are attached to this entity, they are expected to
+     * appropriately follow this entity.
+     *
+     * @return Attachments of this entity.
+     */
+    public Map<String, IModelOwner> getAttachments() {
+        return attachments;
     }
 
     /**
@@ -700,6 +714,11 @@ public class CoreEntity implements IContext, IOrigin {
         this.bukkit_tasks.clear();
         // abandon if tracked thorough instance
         this.invalid = true;
+        // if we have attachments, request to recycle
+        for (IModelOwner value : this.attachments.values()) {
+            value.recycle();
+        }
+        this.attachments.clear();
     }
 
     /**

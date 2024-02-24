@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.command.impl;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,7 +23,8 @@ public class SocialCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<player> §fSocial menu for target player");
+        return buildHelpText("§fplayer", "§fShow social menu",
+                "§7Player: Whose social menu to show");
     }
 
     @Override

@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.editor.index.EditorIndex;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -24,7 +23,8 @@ public class EditorCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<type> §fOpen the editor of a certain type");
+        return buildHelpText("§ftype", "§cOpen the editor [ADMIN]",
+                "§7Type: What content to edit");
     }
 
     @Override

@@ -81,7 +81,7 @@ public class SkillContext implements IContext, IOrigin {
 
     @Override
     public double evaluateAttribute(String attribute) {
-        return this.owner.evaluateAttribute(attribute)
+        return this.owner.getAttribute(attribute).evaluate()
                 + this.attribute.computeIfAbsent(attribute, (k -> new AttributeCollection(IContext.EMPTY))).evaluate();
     }
 

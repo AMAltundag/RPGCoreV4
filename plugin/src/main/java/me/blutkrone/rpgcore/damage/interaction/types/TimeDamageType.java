@@ -23,14 +23,6 @@ public class TimeDamageType implements IDamageType {
         // managers which may be necessary to process damage
         DamageManager damage_manager = RPGCore.inst().getDamageManager();
 
-        // prevent damage of certain elements being applied at all
-        for (DamageElement element : damage_manager.getElements()) {
-            if (interaction.checkForTag("TAKE_NO_" + element.getId() + "_DAMAGE", interaction.getDefender()))
-                interaction.setDamage(element, 0d);
-            if (interaction.checkForTag("DEAL_NO_" + element.getId() + "_DAMAGE", interaction.getDefender()))
-                interaction.setDamage(element, 0d);
-        }
-
         // compute modifiers specific to dot damage
         double received_dot = interaction.evaluateAttribute("DOT_DAMAGE_TAKEN_MULTIPLIER", interaction.getDefender());
         double multi_dot = 0d;

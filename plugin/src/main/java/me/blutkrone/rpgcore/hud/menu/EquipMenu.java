@@ -49,9 +49,7 @@ public class EquipMenu implements Listener {
      */
     public EquipMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "equip.yml"));
-        config.forEachUnder("slots", (path, root) -> {
-            this.slots.add(new Slot(path, root.getSection(path)));
-        });
+        this.slots.addAll(config.getObjectList("slots", Slot::new));
 
         this.placeholder = RPGCore.inst().getLanguageManager().getAsItem("equip_placeholder").persist("reflected-item", 1).build();
 

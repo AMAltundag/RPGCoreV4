@@ -15,12 +15,9 @@ import me.blutkrone.rpgcore.editor.constraint.reference.index.NPCConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.index.QuestConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.editor.root.IEditorRoot;
-import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.quest.CoreQuest;
 import me.blutkrone.rpgcore.util.ItemBuilder;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -101,21 +98,7 @@ public class EditorQuest implements IEditorRoot<CoreQuest> {
 
     @Override
     public CoreQuest build(String id) {
-        // if the iteration was updated, wipe progress if relevant
-        if (RPGCore.inst().getQuestManager().getIndexQuest().has(id)) {
-            int old_iteration = RPGCore.inst().getQuestManager().getIndexQuest().get(id).getIteration();
-            if (old_iteration != (int) this.iteration) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    CorePlayer core_player = RPGCore.inst().getEntityManager().getPlayer(player);
-                    if (core_player != null) {
-                        RPGCore.inst().getLanguageManager().sendMessage(player, "warning_corrupt_quest", id);
-                        core_player.getProgressQuests().entrySet()
-                                .removeIf(entry -> entry.getKey().startsWith(id + "#"));
-                    }
-                }
-            }
-        }
-
+        RPGCore.inst().getQuestManager().handleIteration(id, (int) this.iteration);
         return new CoreQuest(id, this);
     }
 

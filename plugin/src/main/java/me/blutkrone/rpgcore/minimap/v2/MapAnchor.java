@@ -19,7 +19,7 @@ public class MapAnchor {
 
     public MapAnchor(ConfigWrapper config) {
         this.path = config.getStringList("path");
-        this.position = config.getLazyLocation("position");
+        this.position = config.getLazyLocation("location");
     }
 
     /**

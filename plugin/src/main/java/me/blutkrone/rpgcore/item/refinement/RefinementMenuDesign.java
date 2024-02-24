@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.item.refinement;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class RefinementMenuDesign {
      */
     public int getAnimationSize() {
         if (this.animation_size == -1) {
-            ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+            ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
             int counter = 0;
             while (rpm.textures().containsKey("menu_" + this.menu + "_progress_" + counter)) {
                 counter += 1;

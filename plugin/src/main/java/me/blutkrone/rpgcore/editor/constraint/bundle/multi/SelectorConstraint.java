@@ -37,6 +37,8 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         id_to_constructor.put("health", EditorHealthSelector::new);
         id_to_constructor.put("stamina", EditorStaminaSelector::new);
         id_to_constructor.put("mana", EditorManaSelector::new);
+        id_to_constructor.put("model", EditorModelSelector::new);
+        id_to_constructor.put("profession", EditorProfessionSelector::new);
 
         class_to_id.put(EditorAlliesSelector.class, "allies");
         class_to_id.put(EditorEnemiesSelector.class, "enemies");
@@ -59,6 +61,8 @@ public class SelectorConstraint extends AbstractMultiConstraint {
         class_to_id.put(EditorHealthSelector.class, "health");
         class_to_id.put(EditorStaminaSelector.class, "stamina");
         class_to_id.put(EditorManaSelector.class, "mana");
+        class_to_id.put(EditorModelSelector.class, "model");
+        class_to_id.put(EditorProfessionSelector.class, "profession");
     }
 
     @Override

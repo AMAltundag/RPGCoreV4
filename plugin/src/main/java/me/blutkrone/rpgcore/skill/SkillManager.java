@@ -39,7 +39,7 @@ public class SkillManager implements Listener {
     // skills registered to the core
     private EditorIndex<CoreSkill, EditorSkill> skill_index;
     // snapshot of previous movement
-    private Map<UUID, Location> snapshot = new HashMap<>();
+    private Map<UUID, Location> previous_locations = new HashMap<>();
 
     public SkillManager() {
         this.skill_index = new EditorIndex<>("skill", EditorSkill.class, EditorSkill::new);
@@ -60,10 +60,9 @@ public class SkillManager implements Listener {
             registered.forEach((bukkit, core) -> core.proliferateTrigger(CoreTimerTrigger.class, null));
 
             // prepare collections necessary to evaluate entity movement
-            Map<UUID, Location> before = snapshot;
-            Map<UUID, Location> after = new HashMap<>();
-            registered.forEach((bukkit, core) -> after.put(bukkit.getUniqueId(), bukkit.getLocation()));
-            snapshot = after;
+            Map<UUID, Location> before = previous_locations;
+            Map<UUID, Location> after = RPGCore.inst().getEntityManager().getLastLocation();
+            previous_locations = after;
             // async computing of distance moved
             Bukkit.getScheduler().runTaskAsynchronously(RPGCore.inst(), () -> {
                 // identify motion of the entity

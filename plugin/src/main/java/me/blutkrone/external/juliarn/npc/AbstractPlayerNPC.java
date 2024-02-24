@@ -4,6 +4,7 @@ import me.blutkrone.external.juliarn.npc.event.PlayerNPCHideEvent;
 import me.blutkrone.external.juliarn.npc.event.PlayerNPCShowEvent;
 import me.blutkrone.external.juliarn.npc.modifier.*;
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
 import me.blutkrone.rpgcore.nms.api.packet.handle.IPlayerNPC;
 import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileGameProfile;
@@ -211,8 +212,9 @@ public abstract class AbstractPlayerNPC {
                 }, this.pool.getTabListRemoveTicks());
             }
 
-            this.hologram().spawn(player, this.location());
-            this.hologram().mount(player, this.id());
+            IBundledPacket bundle = this.hologram().spawn(this.location());
+            this.hologram().mount(this.id()).addToOther(bundle);
+            bundle.dispatch(player);
 
             Bukkit.getPluginManager().callEvent(new PlayerNPCShowEvent(player, this));
         }, 10L);
@@ -227,7 +229,7 @@ public abstract class AbstractPlayerNPC {
     public void hide(Player player, PlayerNPCHideEvent.Reason reason) {
         if (reason != PlayerNPCHideEvent.Reason.QUIT) {
             this.visibility().action(VolatileInfoAction.REMOVE_PLAYER).destroy().flush(player);
-            this.hologram.destroy(player);
+            this.hologram.destroy().dispatch(player);
             this.seeing.remove(player);
             Bukkit.getScheduler().runTask(this.pool.getPlugin(), () -> {
                 Bukkit.getPluginManager().callEvent(new PlayerNPCHideEvent(player, this, reason));

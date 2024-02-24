@@ -10,7 +10,6 @@ import me.blutkrone.rpgcore.entity.entities.CoreEntity;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
@@ -138,7 +137,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         // gained based on the killed
         if (killed != null) {
             for (Map.Entry<String, Double> entry : quantity_killed.entrySet()) {
-                output += killed.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                output += killed.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
         }
         output = Math.max(0d, output);
@@ -146,7 +145,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         if (killer != null) {
             double multiplier = 1d;
             for (Map.Entry<String, Double> entry : quantity_killer.entrySet()) {
-                multiplier += killer.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                multiplier += killer.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
             output = output * multiplier;
         }
@@ -169,7 +168,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         // gained based on the killed
         if (killed != null) {
             for (Map.Entry<String, Double> entry : this.rarity_killed.entrySet()) {
-                output += killed.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                output += killed.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
         }
         output = Math.max(0d, output);
@@ -177,7 +176,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         if (killer != null) {
             double multiplier = 1d;
             for (Map.Entry<String, Double> entry : this.rarity_killer.entrySet()) {
-                multiplier += killer.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                multiplier += killer.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
             output = output * multiplier;
         }
@@ -198,7 +197,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         // gained based on the killed
         if (killed != null) {
             for (Map.Entry<String, Double> entry : quality_killed.entrySet()) {
-                output += killed.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                output += killed.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
         }
         output = Math.max(0d, output);
@@ -206,7 +205,7 @@ public class ItemCoreLoot extends AbstractCoreLoot {
         if (killer != null) {
             double multiplier = 1d;
             for (Map.Entry<String, Double> entry : quality_killer.entrySet()) {
-                multiplier += killer.getAttribute(entry.getKey()).evaluate() * entry.getValue();
+                multiplier += killer.evaluateAttribute(entry.getKey()) * entry.getValue();
             }
             output = output * multiplier;
         }

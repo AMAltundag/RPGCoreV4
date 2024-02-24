@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.entity.entities;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
+import me.blutkrone.rpgcore.bbmodel.owner.IModelOwner;
 import me.blutkrone.rpgcore.dungeon.IDungeonInstance;
 import me.blutkrone.rpgcore.dungeon.instance.ActiveDungeonInstance;
 import me.blutkrone.rpgcore.entity.tasks.SnapshotTask;
@@ -112,6 +113,7 @@ public class CoreMob extends CoreEntity {
         if (handle == null) {
             return null;
         }
+
         return RPGCore.inst().getVolatileManager().getEntity(handle);
     }
 
@@ -126,7 +128,7 @@ public class CoreMob extends CoreEntity {
             IDungeonInstance instance = RPGCore.inst().getDungeonManager().getInstance(getWorld());
             if (instance instanceof ActiveDungeonInstance) {
                 ((ActiveDungeonInstance) instance).getMobKills().add(getUniqueId());
-                ((ActiveDungeonInstance) instance).getScore().merge(template.getId().toLowerCase() + "_kill", 1d, (a, b) -> a + b);
+                ((ActiveDungeonInstance) instance).getScore().merge(template.getId().toLowerCase() + "_kill", 1d, Double::sum);
             }
         }
 
@@ -181,5 +183,34 @@ public class CoreMob extends CoreEntity {
      */
     public void addContribution(CorePlayer attacker) {
         this.killers.add(attacker.getUniqueId());
+    }
+
+    @Override
+    public void remove() {
+        // perform basic remove operation
+        super.remove();
+        // if we have a model, request to recycle
+        IModelOwner owner = RPGCore.inst().getBBModelManager().get(this);
+        if (owner != null) {
+            owner.recycle();
+        }
+    }
+
+    @Override
+    public Location getHeadLocation() {
+        // check if we have a bone we can offer
+        IModelOwner model_owner = RPGCore.inst().getBBModelManager().get(this);
+        if (model_owner != null) {
+            Location location = model_owner.getLocation("head", false);
+            if (location != null) {
+                return location;
+            }
+            location = model_owner.getLocation("h_head", false);
+            if (location != null) {
+                return location;
+            }
+        }
+
+        return super.getHeadLocation();
     }
 }

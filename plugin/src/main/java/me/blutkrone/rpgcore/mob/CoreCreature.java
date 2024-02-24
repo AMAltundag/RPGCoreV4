@@ -2,6 +2,9 @@ package me.blutkrone.rpgcore.mob;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.entity.EntityProvider;
+import me.blutkrone.rpgcore.bbmodel.io.deserialized.Model;
+import me.blutkrone.rpgcore.bbmodel.owner.IModelOwner;
+import me.blutkrone.rpgcore.bbmodel.util.exception.BBExceptionRecycled;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.entity.AbstractEditorEntityProvider;
 import me.blutkrone.rpgcore.editor.bundle.loot.AbstractEditorLoot;
@@ -15,6 +18,7 @@ import me.blutkrone.rpgcore.mob.loot.AbstractCoreLoot;
 import me.blutkrone.rpgcore.nms.api.mob.AbstractEntityRoutine;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
 import me.blutkrone.rpgcore.util.Utility;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -47,6 +51,9 @@ public class CoreCreature {
     public String focus_sigil;
     private String id;
     private String name;
+    // custom model for creature
+    public String custom_model;
+    public float model_size;
 
     public CoreCreature(String id, EditorCreature editor) {
         this.id = id;
@@ -72,6 +79,8 @@ public class CoreCreature {
         this.tags_hostile = new ArrayList<>(editor.hostile_tag);
         this.tags_friendly = new ArrayList<>(editor.friendly_tag);
         this.focus_sigil = editor.focus_sigil;
+        this.custom_model = editor.custom_model;
+        this.model_size = (float) editor.model_size;
         RPGCore.inst().getLogger().info("not implemented (loot from mobs)");
     }
 
@@ -149,6 +158,21 @@ public class CoreCreature {
         for (CoreMobLogic logic : this.ai_death) {
             AbstractEntityRoutine routine = logic.construct(base_entity, core_entity);
             base_entity.addDeathRoutine(routine);
+        }
+
+        // initialize a custom model
+        if (!this.custom_model.equalsIgnoreCase("nothingness")) {
+            Model model = RPGCore.inst().getResourcepackManager().getModel(this.custom_model);
+            if (model != null) {
+                IModelOwner owner = RPGCore.inst().getBBModelManager().register(core_entity);
+                try {
+                    owner.use(model);
+                } catch (BBExceptionRecycled ignored) {
+                    // ignored
+                }
+            } else if (!this.custom_model.startsWith("rpgcore_debug_")){
+                Bukkit.getLogger().warning("The model '%s' used by '%s' does not exist!".formatted(this.custom_model, this.id));
+            }
         }
 
         // register within the core

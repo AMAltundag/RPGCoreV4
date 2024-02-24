@@ -3,6 +3,7 @@ package me.blutkrone.rpgcore.damage.splash;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.damage.interaction.DamageInteraction;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
 import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -43,19 +44,22 @@ public class DamageIndicatorHandling {
                         Vector3f scale = new Vector3f(impact, impact, impact);
                         // attach a hologram to the indicator
                         ITextDisplay hologram = RPGCore.inst().getVolatileManager().getPackets().text();
-                        hologram.spawn(indicator.connection, indicator.where.getX(), indicator.where.getY(), indicator.where.getZ(), 0f, 0f);
-                        hologram.message(indicator.connection, TextComponent.fromLegacyText(String.valueOf(indicator.message)), false, false);
-                        hologram.transform(indicator.connection, 0, new Transformation(translation, new Quaternionf(), scale, new Quaternionf()));
+
+                        IBundledPacket bundled = hologram.spawn(indicator.where.getX(), indicator.where.getY(), indicator.where.getZ(), 0f, 0f);
+                        hologram.message(TextComponent.fromLegacyText(String.valueOf(indicator.message)), false).addToOther(bundled);
+                        hologram.transform(0, new Transformation(translation, new Quaternionf(), scale, new Quaternionf())).addToOther(bundled);
+                        bundled.dispatch(indicator.connection);
+
                         indicator.display = hologram;
                     } else if (indicator.duration == 1) {
                         // prepare the target animation
                         Vector3f translation = new Vector3f(indicator.x, indicator.y+6, indicator.z);
                         Vector3f scale = new Vector3f(0f, 0f, 0f);
                         // start the damage indicator animation
-                        indicator.display.transform(indicator.connection, 40, new Transformation(translation, new Quaternionf(), scale, new Quaternionf()));
+                        indicator.display.transform(40, new Transformation(translation, new Quaternionf(), scale, new Quaternionf())).dispatch(indicator.connection);
                     } else if (indicator.duration == 41) {
                         // hint where we are going
-                        indicator.display.destroy(indicator.connection);
+                        indicator.display.destroy().dispatch(indicator.connection);
                         return true;
                     }
 
@@ -68,8 +72,8 @@ public class DamageIndicatorHandling {
 
     public void indicate(CorePlayer player, DamageInteraction interaction) {
         Location where = interaction.getDefender().getEntity().getEyeLocation();
-        String message = String.valueOf((long) (interaction.getDamage() * (Math.random()*1000000)));
-        if (interaction.getTags().contains("CRITICAL_HIT") || Math.random() <= 0.25d) {
+        String message = String.valueOf((long) (interaction.getDamage()));
+        if (interaction.getTags().contains("CRITICAL_HIT")) {
             message = "§c§l" + message;
         }
 

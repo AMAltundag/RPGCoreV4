@@ -533,7 +533,5 @@ public class QuestMenu {
                 }
             });
         }
-
-
     }
 }

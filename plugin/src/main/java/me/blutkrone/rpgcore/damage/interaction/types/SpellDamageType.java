@@ -135,14 +135,6 @@ public class SpellDamageType implements IDamageType {
         // shift the damage to another element
         takeDamageAs(interaction, damage_multi, damage_flat);
 
-        // prevent damage of certain elements being applied at all
-        for (DamageElement element : damage_manager.getElements()) {
-            if (interaction.checkForTag("TAKE_NO_" + element.getId() + "_DAMAGE", interaction.getDefender()))
-                interaction.setDamage(element, 0d);
-            if (interaction.checkForTag("DEAL_NO_" + element.getId() + "_DAMAGE", interaction.getDefender()))
-                interaction.setDamage(element, 0d);
-        }
-
         // upscale according to critical damage
         double crit_damage = 1d;
         if (interaction.getAttacker() != null && interaction.checkForTag("CRITICAL_HIT", interaction.getAttacker())) {

@@ -1,6 +1,7 @@
 package me.blutkrone.rpgcore.nms.v1_20_R1.packet;
 
-import me.blutkrone.rpgcore.nms.api.packet.IDispatchPacket;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IDispatchPacket;
 import me.blutkrone.rpgcore.nms.api.packet.IVolatilePackets;
 import me.blutkrone.rpgcore.nms.api.packet.handle.*;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.*;
@@ -84,6 +85,11 @@ public class VolatilePackets implements IVolatilePackets {
     @Override
     public IHighlight highlight(int x, int y, int z) {
         return new VolatileHighlight(x, y, z);
+    }
+
+    @Override
+    public IBundledPacket bundle() {
+        return new VolatileBundledPacket();
     }
 
     /*
@@ -234,19 +240,18 @@ public class VolatilePackets implements IVolatilePackets {
         }
 
         @Override
-        public void item(Player player, ItemStack item, double scale, VolatileBillboard billboard, VolatileDisplay display) {
+        public IBundledPacket item(ItemStack item, VolatileBillboard billboard, VolatileDisplay display) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_ITEM_MODEL, CraftItemStack.asNMSCopy(item)); // what item to show
-            serializer.writeEntityData(DISPLAY_SCALE, new Vector3f((float) scale)); // what item to show
             serializer.writeEntityData(DISPLAY_BILLBOARD, (byte) billboard.ordinal()); // what item to show
             serializer.writeEntityData(DISPLAY_ITEM_RENDER, (byte) display.ordinal()); // what item to show
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void spawn(Player player, Location where) {
+        public IBundledPacket spawn(Location where) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeUUID(this.uuid); // uuid
@@ -260,11 +265,11 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
-            sendPacket(player, new ClientboundAddEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundAddEntityPacket(serializer));
         }
 
         @Override
-        public void spawn(Player player, double x, double y, double z) {
+        public IBundledPacket spawn(double x, double y, double z) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeUUID(this.uuid); // uuid
@@ -278,18 +283,18 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
-            sendPacket(player, new ClientboundAddEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundAddEntityPacket(serializer));
         }
 
         @Override
-        public void destroy(Player player) {
+        public IBundledPacket destroy() {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarIntArray(new int[]{this.id}); // ids
-            sendPacket(player, new ClientboundRemoveEntitiesPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundRemoveEntitiesPacket(serializer));
         }
 
         @Override
-        public void teleport(Player player, Location where) {
+        public IBundledPacket teleport(Location where) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeDouble(where.getX()); // position
@@ -298,11 +303,11 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeRotation(where.getPitch()); // rotation
             serializer.writeRotation(where.getYaw()); // rotation
             serializer.writeBoolean(false); // grounded
-            sendPacket(player, new ClientboundTeleportEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundTeleportEntityPacket(serializer));
         }
 
         @Override
-        public void teleport(Player player, double x, double y, double z) {
+        public IBundledPacket teleport(double x, double y, double z) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeDouble(x); // position
@@ -311,23 +316,100 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeRotation(0f); // rotation
             serializer.writeRotation(0f); // rotation
             serializer.writeBoolean(false); // grounded
-            sendPacket(player, new ClientboundTeleportEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundTeleportEntityPacket(serializer));
         }
 
         @Override
-        public void mount(Player player, LivingEntity mount) {
+        public IBundledPacket mount(LivingEntity mount) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(mount.getEntityId()); // mount id
             serializer.writeVarIntArray(new int[]{this.id}); // passengers
-            sendPacket(player, new ClientboundSetPassengersPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetPassengersPacket(serializer));
         }
 
         @Override
-        public void mount(Player player, int mount) {
+        public IBundledPacket mount(int mount) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(mount); // mount id
             serializer.writeVarIntArray(new int[]{this.id}); // passengers
-            sendPacket(player, new ClientboundSetPassengersPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetPassengersPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket move(double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(getEntityId()); // entity id
+            serializer.writeShort((short) (x * 4096d));
+            serializer.writeShort((short) (y * 4096d));
+            serializer.writeShort((short) (z * 4096d));
+            serializer.writeBoolean(true);
+            return new VolatileBundledPacket(ClientboundMoveEntityPacket.Pos.read(serializer));
+        }
+
+        @Override
+        public IBundledPacket interpolation(int delay, int duration) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, delay);
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DURATION, duration);
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket translation(double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_TRANSLATION, new Vector3f((float)x, (float)y, (float)z)); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket rotateBeforeTranslation(Quaternionf rotation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, rotation); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket rotateAfterTranslation(Quaternionf rotation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, rotation); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket scale(double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+            serializer.writeEntityData(DISPLAY_SCALE, new Vector3f((float)x, (float)y, (float)z)); // data to update
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket transform(int duration, Transformation transformation) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(this.id); // id
+            if (duration != 0) {
+                serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
+                serializer.writeEntityData(DISPLAY_INTERPOLATION_DURATION, duration); // -1 delay to sync to tick
+            }
+            serializer.writeEntityData(DISPLAY_SCALE, transformation.getScale()); // data to update
+            serializer.writeEntityData(DISPLAY_TRANSLATION, transformation.getTranslation()); // data to update
+            serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, transformation.getLeftRotation()); // data to update
+            serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, transformation.getRightRotation()); // message to render
+            serializer.writeByte(0xFF); // data watcher end
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
     }
 
@@ -346,7 +428,7 @@ public class VolatilePackets implements IVolatilePackets {
         }
 
         @Override
-        public void spawn(Player player, Location where) {
+        public IBundledPacket spawn(Location where) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeUUID(this.uuid); // uuid
@@ -360,11 +442,11 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
-            sendPacket(player, new ClientboundAddEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundAddEntityPacket(serializer));
         }
 
         @Override
-        public void spawn(Player player, double x, double y, double z, float pitch, float yaw) {
+        public IBundledPacket spawn(double x, double y, double z, float pitch, float yaw) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeUUID(this.uuid); // uuid
@@ -378,33 +460,33 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
             serializer.writeShort(0); // velocity
-            sendPacket(player, new ClientboundAddEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundAddEntityPacket(serializer));
         }
 
         @Override
-        public void destroy(Player player) {
+        public IBundledPacket destroy() {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarIntArray(new int[]{this.id}); // ids
-            sendPacket(player, new ClientboundRemoveEntitiesPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundRemoveEntitiesPacket(serializer));
         }
 
         @Override
-        public void message(Player player, BaseComponent[] message, boolean shadow, boolean locked) {
+        public IBundledPacket message(BaseComponent[] message, boolean locked, VolatileStyle... styles) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_TEXT_MESSAGE, CraftChatMessage.fromJSON(ComponentSerializer.toString(message))); // message to render
 
-            serializer.writeEntityData(DISPLAY_TEXT_FORMAT, (byte) (0x01));
+            serializer.writeEntityData(DISPLAY_TEXT_FORMAT, VolatileStyle.join(styles));
             serializer.writeEntityData(DISPLAY_TEXT_BACKGROUND, 0);
             serializer.writeEntityData(DISPLAY_TEXT_LINEBREAK, 99999);
             serializer.writeEntityData(DISPLAY_BILLBOARD, (byte) (locked ? 0 : 1));
 
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void teleport(Player player, Location where) {
+        public IBundledPacket teleport(Location where) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeDouble(where.getX()); // position
@@ -413,11 +495,11 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeRotation(where.getPitch()); // rotation
             serializer.writeRotation(where.getYaw()); // rotation
             serializer.writeBoolean(false); // grounded
-            sendPacket(player, new ClientboundTeleportEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundTeleportEntityPacket(serializer));
         }
 
         @Override
-        public void teleport(Player player, double x, double y, double z) {
+        public IBundledPacket teleport(double x, double y, double z) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeDouble(x); // position
@@ -426,85 +508,85 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeRotation(0f); // rotation
             serializer.writeRotation(0f); // rotation
             serializer.writeBoolean(false); // grounded
-            sendPacket(player, new ClientboundTeleportEntityPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundTeleportEntityPacket(serializer));
         }
 
         @Override
-        public void rotate(Player player, float yaw) {
+        public IBundledPacket rotate(float yaw) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeRotation(yaw); // rotation
-            sendPacket(player, new ClientboundRotateHeadPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundRotateHeadPacket(serializer));
         }
 
         @Override
-        public void mount(Player player, LivingEntity mount) {
+        public IBundledPacket mount(LivingEntity mount) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(mount.getEntityId()); // mount id
             serializer.writeVarIntArray(new int[]{this.id}); // passengers
-            sendPacket(player, new ClientboundSetPassengersPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetPassengersPacket(serializer));
         }
 
         @Override
-        public void mount(Player player, int mount) {
+        public IBundledPacket mount(int mount) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(mount); // mount id
             serializer.writeVarIntArray(new int[]{this.id}); // passengers
-            sendPacket(player, new ClientboundSetPassengersPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetPassengersPacket(serializer));
         }
 
         @Override
-        public void interpolation(Player player, int delay, int duration) {
+        public IBundledPacket interpolation(int delay, int duration) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, delay);
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DURATION, duration);
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void translation(Player player, double x, double y, double z) {
+        public IBundledPacket translation(double x, double y, double z) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
             serializer.writeEntityData(DISPLAY_TRANSLATION, new Vector3f((float)x, (float)y, (float)z)); // data to update
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void rotateBeforeTranslation(Player player, Quaternionf rotation) {
+        public IBundledPacket rotateBeforeTranslation(Quaternionf rotation) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
             serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, rotation); // data to update
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void rotateAfterTranslation(Player player, Quaternionf rotation) {
+        public IBundledPacket rotateAfterTranslation(Quaternionf rotation) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
             serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, rotation); // data to update
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void scale(Player player, double x, double y, double z) {
+        public IBundledPacket scale(double x, double y, double z) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             serializer.writeEntityData(DISPLAY_INTERPOLATION_DELAY, -1); // -1 delay to sync to tick
             serializer.writeEntityData(DISPLAY_SCALE, new Vector3f((float)x, (float)y, (float)z)); // data to update
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
         }
 
         @Override
-        public void transform(Player player, int duration, Transformation transformation) {
+        public IBundledPacket transform(int duration, Transformation transformation) {
             VolatilePacketSerializer serializer = new VolatilePacketSerializer();
             serializer.writeVarInt(this.id); // id
             if (duration != 0) {
@@ -516,7 +598,18 @@ public class VolatilePackets implements IVolatilePackets {
             serializer.writeEntityData(DISPLAY_ROTATE_AFTER_LEFT, transformation.getLeftRotation()); // data to update
             serializer.writeEntityData(DISPLAY_ROTATE_BEFORE_RIGHT, transformation.getRightRotation()); // message to render
             serializer.writeByte(0xFF); // data watcher end
-            sendPacket(player, new ClientboundSetEntityDataPacket(serializer));
+            return new VolatileBundledPacket(new ClientboundSetEntityDataPacket(serializer));
+        }
+
+        @Override
+        public IBundledPacket move(double x, double y, double z) {
+            VolatilePacketSerializer serializer = new VolatilePacketSerializer();
+            serializer.writeVarInt(getEntityId()); // entity id
+            serializer.writeShort((short) (x * 4096d));
+            serializer.writeShort((short) (y * 4096d));
+            serializer.writeShort((short) (z * 4096d));
+            serializer.writeBoolean(true);
+            return new VolatileBundledPacket(ClientboundMoveEntityPacket.Pos.read(serializer));
         }
     }
 

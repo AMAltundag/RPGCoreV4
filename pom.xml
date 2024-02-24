@@ -19,7 +19,6 @@
 
     <modules>
         <module>api</module>
-        <module>NMS_1_19_R3</module>
         <module>NMS_1_20_R1</module>
         <module>plugin</module>
         <module>proxy</module>

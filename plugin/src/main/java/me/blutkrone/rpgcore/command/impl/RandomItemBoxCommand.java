@@ -6,7 +6,6 @@ import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.item.CoreItem;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,7 +25,7 @@ public class RandomItemBoxCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("§fContains a box of debug items.");
+        return buildHelpText("", "§cA double-chest full of random items [ADMIN]");
     }
 
     @Override

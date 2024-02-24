@@ -6,8 +6,7 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.minimap.v2.MapInfo;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreTravelTrait;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.util.ItemBuilder;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -102,7 +101,7 @@ public class NavigationMenu {
          */
         public ItemStack itemize(MapInfo.MapAction action) {
             ItemStack icon = language().getAsItem("invisible").build();
-            icon = ItemBuilder.of(action.tooltip).inheritIcon(icon).build();
+            icon = language().getAsItem(action.tooltip).inheritIcon(icon).build();
             if (!action.next_map.equals("")) {
                 // link to next map
                 IChestMenu.setBrand(icon, RPGCore.inst(), "minimap", action.next_map);
@@ -127,7 +126,7 @@ public class NavigationMenu {
 
         @Override
         public void rebuild() {
-            ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+            ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
             getMenu().clearItems();
 
             // grab the current map we work on

@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.util;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 
 import java.util.ArrayList;
@@ -38,10 +38,10 @@ public class MenuAnimator {
             return false;
         }
         // merge the next frame of the animation
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         animations.removeIf(anim -> {
             try {
-                IndexedTexture texture = rpm.texture("animation_slot_" + anim.id + "_" + anim.frame);
+                AbstractTexture texture = rpm.texture("animation_slot_" + anim.id + "_" + anim.frame);
                 anim.frame += 1;
                 msb.shiftToExact(anim.offset).append(texture);
                 return false;

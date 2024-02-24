@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IInputWrapper;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
@@ -54,8 +54,8 @@ public abstract class AbstractCoreInput implements IInputWrapper {
      *
      * @return
      */
-    protected ResourcePackManager resourcepack() {
-        return RPGCore.inst().getResourcePackManager();
+    protected ResourcepackManager resourcepack() {
+        return RPGCore.inst().getResourcepackManager();
     }
 
     /*

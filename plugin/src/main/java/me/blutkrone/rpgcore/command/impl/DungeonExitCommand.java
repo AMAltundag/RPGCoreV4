@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -19,7 +18,7 @@ public class DungeonExitCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("§fExit the current dungeon");
+        return buildHelpText("", "§fExit the dungeon you are in", "§fNothing will happen if you aren't in a dungeon");
     }
 
     @Override

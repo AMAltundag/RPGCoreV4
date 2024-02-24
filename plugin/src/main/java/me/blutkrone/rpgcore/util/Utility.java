@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.util;
 
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.AttributeInstance;
@@ -23,10 +22,18 @@ public final class Utility {
 
     }
 
+    public static double clamp(double value, double minimum, double maximum) {
+        return Math.max(minimum, Math.min(value, maximum));
+    }
+
+    public static float clamp(float value, float minimum, float maximum) {
+        return Math.max(minimum, Math.min(value, maximum));
+    }
+
     private static String getMaybeDevFile(File file, String keyword) throws IOException {
         // read from dev file
-        File root_folder = Bukkit.getWorldContainer();
-        File config = new File(root_folder, "__developer.rpgcore");
+        File root_folder = RPGCore.inst().getDataFolder().getParentFile();
+        File config = new File(root_folder + File.separator + "__rpgcore", "config.yml");
         if (config.exists()) {
             ConfigWrapper wrapper = me.blutkrone.rpgcore.util.io.FileUtil.asConfigYML(config);
             if (wrapper.contains(keyword)) {
@@ -63,7 +70,7 @@ public final class Utility {
     }
 
     public static int measure(String message) {
-        return RPGCore.inst().getResourcePackManager().measure(message) - 1;
+        return RPGCore.inst().getResourcepackManager().measure(message) - 1;
     }
 
     public static String makeMMSS(long seconds) {

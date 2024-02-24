@@ -6,7 +6,7 @@ import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreVendorTrait;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -37,7 +37,7 @@ public class VendorMenu {
     }
 
     public void present(Player player, CoreVendorTrait trait) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         LanguageManager lpm = RPGCore.inst().getLanguageManager();
 
         if (RPGCore.inst().getEntityManager().getPlayer(player) == null) {

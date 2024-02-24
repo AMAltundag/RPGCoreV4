@@ -4,15 +4,15 @@ import me.blutkrone.rpgcore.api.IContext;
 import me.blutkrone.rpgcore.api.IOrigin;
 import me.blutkrone.rpgcore.api.entity.IEntityEffect;
 import me.blutkrone.rpgcore.attribute.AttributeModifier;
+import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.mechanic.EditorStatusMechanic;
+import me.blutkrone.rpgcore.editor.bundle.other.EditorAction;
 import me.blutkrone.rpgcore.editor.bundle.other.EditorAttributeAndModifier;
 import me.blutkrone.rpgcore.entity.entities.CoreEntity;
+import me.blutkrone.rpgcore.skill.behaviour.CoreAction;
 import me.blutkrone.rpgcore.skill.modifier.CoreModifierNumber;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StatusMechanic extends AbstractCoreMechanic {
 
@@ -23,6 +23,8 @@ public class StatusMechanic extends AbstractCoreMechanic {
     private final CoreModifierNumber duration;
     private final CoreModifierNumber stack;
     private final String icon;
+    private final List<CoreAction> actions;
+    private final CoreModifierNumber action_rate;
 
     public StatusMechanic(EditorStatusMechanic editor) {
         this.id = editor.id;
@@ -32,6 +34,13 @@ public class StatusMechanic extends AbstractCoreMechanic {
         this.duration = editor.duration.build();
         this.stack = editor.stack.build();
         this.icon = editor.icon;
+        this.actions = new ArrayList<>();
+        for (IEditorBundle action : editor.actions) {
+            if (action instanceof EditorAction) {
+                this.actions.add(((EditorAction) action).build());
+            }
+        }
+        this.action_rate = editor.action_rate.build();
     }
 
     @Override
@@ -61,6 +70,10 @@ public class StatusMechanic extends AbstractCoreMechanic {
         private List<AttributeModifier> expired;
         private int last_stack;
 
+        private int action_rate;
+        private int action_cooldown;
+        private List<CoreAction> actions;
+
         public StatusEffect(CoreEntity entity, Map<String, Double> attribute, int duration, boolean debuff) {
             this.entity = entity;
             this.stack = 1;
@@ -72,6 +85,9 @@ public class StatusMechanic extends AbstractCoreMechanic {
             this.expired = new ArrayList<>();
             this.last_stack = -1;
             this.scaling = new ArrayList<>();
+            this.action_rate = 0;
+            this.actions = new ArrayList<>();
+            this.action_cooldown = 0;
         }
 
         StatusEffect(CoreEntity entity, StatusMechanic mechanic, IContext context) {
@@ -88,6 +104,9 @@ public class StatusMechanic extends AbstractCoreMechanic {
             mechanic.attribute.forEach((id, factor) -> {
                 this.attribute.put(id, factor.evalAsDouble(context));
             });
+            this.action_rate = mechanic.action_rate.evalAsInt(context);
+            this.actions = mechanic.actions;
+            this.action_cooldown = 0;
         }
 
         /**
@@ -110,11 +129,23 @@ public class StatusMechanic extends AbstractCoreMechanic {
         @Override
         public boolean tickEffect(int delta) {
             this.duration -= delta;
+            this.action_cooldown -= delta;
+
             if (this.duration < 0 || this.stack < 0) {
                 this.expired.forEach(AttributeModifier::setExpired);
                 return true;
             } else {
                 if (this.last_stack != this.stack) {
+                    // update ticking cooldown
+                    if (this.action_cooldown < 0) {
+                        for (CoreAction action : actions) {
+                            CoreAction.ActionPipeline pipeline = action.pipeline(this.entity, Collections.singletonList(this.entity));
+                            if (!pipeline.update()) {
+                                this.entity.addPipeline(pipeline);
+                            }
+                        }
+                        this.action_cooldown = this.action_rate;
+                    }
                     // get rid of previous effects
                     this.expired.forEach(AttributeModifier::setExpired);
                     this.expired.clear();

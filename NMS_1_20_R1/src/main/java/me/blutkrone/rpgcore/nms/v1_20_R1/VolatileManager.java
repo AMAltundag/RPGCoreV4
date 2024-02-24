@@ -2,9 +2,10 @@ package me.blutkrone.rpgcore.nms.v1_20_R1;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.blutkrone.rpgcore.nms.api.AbstractVolatileManager;
 import me.blutkrone.rpgcore.nms.api.block.ChunkOutline;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -22,7 +23,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -50,9 +53,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class VolatileManager extends AbstractVolatileManager implements Listener {
 
@@ -92,7 +93,32 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
             }
         }, 1, 1);
 
-        Bukkit.getLogger().severe("not implemented (outline needs more accuracy)");
+        Bukkit.getLogger().info("not implemented (outline needs more accuracy)");
+    }
+
+    /**
+     * Create a snapshot of the entity map that backs up the
+     * target world, do note that this is has a non-trivial
+     * performance footprint.
+     *
+     * @param world The world to snapshot
+     * @return Entities mapped to players
+     */
+    public Int2ObjectMap<Set<UUID>> getEntityMap(World world) {
+        Int2ObjectMap<Set<UUID>> output = new Int2ObjectOpenHashMap<>();
+
+        ServerLevel server_level = ((CraftWorld) world).getHandle();
+        Int2ObjectMap<ChunkMap.TrackedEntity> map = server_level.getChunkSource().chunkMap.entityMap;
+        for (Int2ObjectMap.Entry<ChunkMap.TrackedEntity> entry : map.int2ObjectEntrySet()) {
+            Set<UUID> players = new HashSet<>();
+            entry.getValue().seenBy.forEach((connection -> {
+                players.add(connection.getPlayer().getUUID());
+            }));
+
+            output.put(entry.getIntKey(), players);
+        }
+
+        return output;
     }
 
     @Override
@@ -109,7 +135,7 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
                     for (int y = 0; y < 16; y++) {
                         for (int z = 0; z < 16; z++) {
                             BlockState state = section.getBlockState(x, y, z);
-                            outline.set(x, s*16+y, z, !state.isAir());
+                            outline.set(x, s*16+y, z, state.isSolid());
                         }
                     }
                 }
@@ -141,21 +167,6 @@ public class VolatileManager extends AbstractVolatileManager implements Listener
     public int getNextEntityId() {
         // faster access then using reflection for the NMS tracker
         return this.entity_id++;
-    }
-
-    @Override
-    public IEntityCollider createCollider(org.bukkit.entity.Entity owner) {
-        World world = owner.getWorld();
-        if (world instanceof CraftWorld) {
-            VolatileEntityCollider collider = new VolatileEntityCollider(((CraftWorld) owner.getWorld()).getHandle());
-            collider.move(owner.getLocation());
-            if (!((CraftWorld) world).getHandle().addFreshEntity(collider, CreatureSpawnEvent.SpawnReason.CUSTOM)) {
-                throw new IllegalArgumentException("Could not add visual entity to server!");
-            }
-            return collider;
-        }
-
-        throw new IllegalArgumentException("Bad location passed");
     }
 
     @Override

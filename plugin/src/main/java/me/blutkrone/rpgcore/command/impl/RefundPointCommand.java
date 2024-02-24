@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,7 +19,10 @@ public class RefundPointCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<player> <type> <amount> §fGrants number of refund points");
+        return buildHelpText("§fplayer type amount", "§cAdd refund points [ADMIN]",
+                "§7Player: Who will receive the refund points",
+                "§7Type: What type of refund points to add",
+                "§7Amount: How many refund points to add");
     }
 
     @Override

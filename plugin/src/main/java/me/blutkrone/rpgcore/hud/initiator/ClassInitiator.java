@@ -6,7 +6,7 @@ import me.blutkrone.rpgcore.editor.index.IndexAttachment;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.job.CoreJob;
 import me.blutkrone.rpgcore.menu.JobInitiationMenu;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class ClassInitiator implements IRosterInitiator {
 
     @Override
     public boolean initiate(CorePlayer player) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         // only offer this if we got no jobs listed
         if (player.getJob() != null)

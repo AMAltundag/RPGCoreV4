@@ -15,7 +15,7 @@ import me.blutkrone.rpgcore.entity.EntityManager;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.providers.PlayerProvider;
 import me.blutkrone.rpgcore.hud.HUDManager;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import me.blutkrone.rpgcore.util.io.FileUtil;
@@ -81,7 +81,7 @@ public class DataManager implements Listener {
 
         // lock away player in (intended) dark box.
         Bukkit.getScheduler().runTaskTimer(RPGCore.inst(), () -> {
-            ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+            ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
             EntityManager em = RPGCore.inst().getEntityManager();
             HUDManager hudm = RPGCore.inst().getHUDManager();
 

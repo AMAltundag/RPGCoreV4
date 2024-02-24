@@ -4,6 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.editor.annotation.EditorCategory;
 import me.blutkrone.rpgcore.editor.annotation.EditorTooltip;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorList;
+import me.blutkrone.rpgcore.editor.annotation.value.EditorNumber;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.constraint.bundle.mono.AttributeAndFactorConstraint;
@@ -11,6 +12,7 @@ import me.blutkrone.rpgcore.editor.constraint.bundle.mono.LogicConstraint;
 import me.blutkrone.rpgcore.editor.constraint.bundle.multi.EntityProviderConstraint;
 import me.blutkrone.rpgcore.editor.constraint.bundle.multi.LootConstraint;
 import me.blutkrone.rpgcore.editor.constraint.other.StringConstraint;
+import me.blutkrone.rpgcore.editor.constraint.reference.other.BBModelConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.other.LanguageConstraint;
 import me.blutkrone.rpgcore.editor.root.IEditorRoot;
 import me.blutkrone.rpgcore.mob.CoreCreature;
@@ -71,9 +73,16 @@ public class EditorCreature implements IEditorRoot<CoreCreature> {
     @EditorTooltip(tooltip = {"Friendly to entities that have any of these tags"})
     public List<String> hostile_tag = new ArrayList<>();
 
+    @EditorCategory(info = "Model", icon = Material.PAINTING)
+    @EditorWrite(name = "Model", constraint = BBModelConstraint.class)
+    @EditorTooltip(tooltip = "Custom bbmodel to use for the mob.")
+    public String custom_model = "NOTHINGNESS";
+    @EditorNumber(name = "Size")
+    @EditorTooltip(tooltip = {"Size multiplier applied to model", "Multiplies with 'MOB_SIZE' attribute", "Only works for modeled mobs!"})
+    public double model_size = 1.0d;
+
     public transient File file;
     public int migration_version = RPGCore.inst().getMigrationManager().getVersion();
-
 
     @Override
     public File getFile() {
@@ -117,6 +126,9 @@ public class EditorCreature implements IEditorRoot<CoreCreature> {
         instruction.add("Players have the 'PLAYER' tag, others are configured.");
         instruction.add("Friendly supersedes hostile check.");
         instruction.add("If summoned, relationship is checked via parent.");
+        instruction.add("");
+        instruction.add("You may use a *.bbmodel file to replace the base");
+        instruction.add("Create with a custom model.");
 
         return instruction;
     }

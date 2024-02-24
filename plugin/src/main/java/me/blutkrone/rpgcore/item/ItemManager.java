@@ -83,9 +83,7 @@ public class ItemManager implements Listener {
 
         try {
             ConfigWrapper configs = FileUtil.asConfigYML(FileUtil.file("item.yml"));
-            configs.forEachUnder("style", (path, root) -> {
-                this.styling_rules.put(path.toLowerCase(), new StylingRule(root.getSection(path)));
-            });
+            this.styling_rules.putAll(configs.getObjectMap("style", StylingRule::new));
         } catch (Exception ex) {
             ex.printStackTrace();
         }

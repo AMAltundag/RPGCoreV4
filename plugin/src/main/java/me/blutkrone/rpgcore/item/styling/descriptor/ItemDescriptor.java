@@ -15,8 +15,8 @@ import me.blutkrone.rpgcore.item.modifier.ModifierStyle;
 import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.styling.StylingRule;
 import me.blutkrone.rpgcore.language.LanguageManager;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
@@ -45,7 +45,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         String item_level_text = language_manager.formatShortNumber(item_level);
 
@@ -92,7 +92,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [7] generate data within the header
         int previous = compiled.size();
@@ -148,7 +148,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [11] lore is available as the last entry.
         if (!info.isEmpty()) {
@@ -181,7 +181,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         Map<String, List<CoreModifier>> categorized = new HashMap<>();
         modifiers.removeIf(modifier -> {
@@ -246,7 +246,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         Map<String, List<CoreModifier>> categorized = new HashMap<>();
         modifiers.removeIf(modifier -> {
@@ -335,7 +335,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [12] requirement appears after description.
         if (!requirements.isEmpty()) {
@@ -414,7 +414,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [11] lore is available as the last entry.
         if (!lore.isEmpty()) {
@@ -492,7 +492,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // empty lines create the relevant spacing
         msb.shiftToExact(-20);
@@ -540,7 +540,7 @@ public class ItemDescriptor implements IItemDescriber {
         msb.shiftCentered((this.width_base / 2) - 20, width);
         // render the relevant jewel sockets
         for (String symbol : symbols) {
-            IndexedTexture texture = resource_manager.texture("lore_jewel_" + symbol);
+            AbstractTexture texture = resource_manager.texture("lore_jewel_" + symbol);
             msb.append(texture, ChatColor.WHITE);
             msb.advance(2);
         }
@@ -559,7 +559,7 @@ public class ItemDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // close up the body segment, open up footer
         msb.shiftToExact(-20);
@@ -597,7 +597,7 @@ public class ItemDescriptor implements IItemDescriber {
     private boolean describeIdentified(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // extract the data we got on this item
         ItemDataGeneric generic_data = item_manager.getItemData(item, ItemDataGeneric.class);
@@ -683,7 +683,7 @@ public class ItemDescriptor implements IItemDescriber {
     private boolean describeUnidentified(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // extract id we are wrapping.
         if (!item.hasItemMeta()) {

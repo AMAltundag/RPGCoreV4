@@ -9,8 +9,8 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileSkin;
 import me.blutkrone.rpgcore.npc.trait.impl.CoreQuestTrait;
 import me.blutkrone.rpgcore.quest.CoreQuest;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -135,7 +135,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         }
         equipment.flush();
         // deploy an updated title
-        hologram().message(player, describe(player), true, false);
+        hologram().message(describe(player), false).dispatch(player);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         }
         // update name shown via hologram
         if (Math.random() <= 0.25d) {
-            hologram().message(player, describe(player), true, false);
+            hologram().message(describe(player), false).dispatch(player);
         }
     }
 
@@ -167,11 +167,11 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
             return new BaseComponent[0];
         }
 
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         MagicStringBuilder msb = new MagicStringBuilder();
 
         // show info symbols for quest offers
-        IndexedTexture texture = null;
+        AbstractTexture texture = null;
         if (template.getQuestRewardOffer(core_player) != null) {
             texture = rpm.texture("static_reward_quest_icon");
         } else if (template.getQuestDialogueOffer(core_player) != null) {
@@ -198,7 +198,7 @@ public class ActiveCoreNPC extends AbstractPlayerNPC {
         // if we got a header, draw that as the background
         if (rpm.textures().containsKey(contents.get(0))) {
             String header = contents.remove(0);
-            IndexedTexture background_texture = RPGCore.inst().getResourcePackManager().texture(header);
+            AbstractTexture background_texture = RPGCore.inst().getResourcepackManager().texture(header);
             msb.shiftCentered(0, background_texture.width).append(background_texture);
         }
 

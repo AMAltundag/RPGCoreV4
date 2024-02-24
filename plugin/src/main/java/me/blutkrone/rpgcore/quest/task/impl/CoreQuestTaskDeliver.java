@@ -16,7 +16,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Deliver certain items to an NPC.
@@ -69,7 +72,7 @@ public class CoreQuestTaskDeliver extends AbstractQuestTask<CoreNPC> {
 
             // where we can drop off the items we have gathered
             if (matched) {
-                for (NodeActive node : node_world.getNodesOfType(drop_off_npc)) {
+                for (NodeActive node : node_world.getNodesOfType("npc:" + drop_off_npc)) {
                     output.add(new Location(bukkit.getWorld(), node.getX(), node.getY(), node.getZ()));
                 }
             }

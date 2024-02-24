@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.nms.api.packet;
 
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
 import me.blutkrone.rpgcore.nms.api.packet.handle.*;
 import org.bukkit.World;
 
@@ -49,4 +50,11 @@ public interface IVolatilePackets {
      * @return Highlight wrapper
      */
     IHighlight highlight(int x, int y, int z);
+
+    /**
+     * Create an empty packet bundle.
+     *
+     * @return Empty packet bundle
+     */
+    IBundledPacket bundle();
 }

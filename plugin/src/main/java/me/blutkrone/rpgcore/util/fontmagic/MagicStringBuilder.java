@@ -1,7 +1,7 @@
 package me.blutkrone.rpgcore.util.fontmagic;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.Utility;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -30,7 +30,7 @@ public class MagicStringBuilder {
 
     public MagicStringBuilder() {
         this.compiled = new ArrayList<>();
-        this.charset = RPGCore.inst().getResourcePackManager().aliasToReal("default_fixed");
+        this.charset = RPGCore.inst().getResourcepackManager().aliasToReal("default_fixed");
         this.internal = new StringBuilder();
         this.length = 0;
         this.pending_offset = 0;
@@ -180,7 +180,7 @@ public class MagicStringBuilder {
         // make sure we can retreat to our page
         String current_font = this.charset;
         // insert the text we are awaiting here
-        font(RPGCore.inst().getResourcePackManager().aliasToReal(offset));
+        font(RPGCore.inst().getResourcepackManager().aliasToReal(offset));
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
@@ -227,7 +227,7 @@ public class MagicStringBuilder {
         // make sure we can retreat to our page
         String current_font = this.charset;
         // insert the text we are awaiting here
-        font(RPGCore.inst().getResourcePackManager().aliasToReal(offset));
+        font(RPGCore.inst().getResourcepackManager().aliasToReal(offset));
         this.internal.append(text);
         this.pending_offset -= 1;
         this.length += length;
@@ -247,7 +247,7 @@ public class MagicStringBuilder {
      *
      * @param text the symbol to be appended
      */
-    public MagicStringBuilder append(IndexedTexture text) {
+    public MagicStringBuilder append(AbstractTexture text) {
         // flush the offset that lays on our buffer
         flush();
         // make sure we can retreat to our page
@@ -270,7 +270,7 @@ public class MagicStringBuilder {
      * @param text  the symbol to be appended
      * @param color dyes the appended component
      */
-    public MagicStringBuilder append(IndexedTexture text, ChatColor color) {
+    public MagicStringBuilder append(AbstractTexture text, ChatColor color) {
         // flush the offset that lays on our buffer
         split();
         // make sure we can retreat to our page
@@ -366,7 +366,7 @@ public class MagicStringBuilder {
         BaseComponent[] compiled = compile();
         // clear out any data we have
         this.compiled = new ArrayList<>();
-        this.charset = RPGCore.inst().getResourcePackManager().aliasToReal("default_fixed");
+        this.charset = RPGCore.inst().getResourcepackManager().aliasToReal("default_fixed");
         this.internal = new StringBuilder();
         this.length = 0;
         this.pending_offset = 0;

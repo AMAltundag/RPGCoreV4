@@ -1,14 +1,35 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Anwender">
     <words>
+      <w>ambientocclusion</w>
+      <w>armorstand</w>
+      <w>bbmodel</w>
+      <w>bbtexture</w>
+      <w>blockbench</w>
       <w>blutkrone</w>
+      <w>catmullrom</w>
       <w>chestplate</w>
       <w>cooldown</w>
+      <w>datapoints</w>
+      <w>hitbox</w>
+      <w>hitboxes</w>
       <w>knockback</w>
+      <w>lapis</w>
       <w>mainhand</w>
+      <w>mainplate</w>
+      <w>netherite</w>
+      <w>observator</w>
+      <w>outliner</w>
+      <w>pkce</w>
+      <w>redstone</w>
       <w>resourcepack</w>
       <w>rpgcore</w>
+      <w>rpgmodel</w>
+      <w>skillbar</w>
+      <w>slerp</w>
       <w>spawnpoint</w>
+      <w>tintindex</w>
+      <w>unobserve</w>
     </words>
   </dictionary>
 </component>

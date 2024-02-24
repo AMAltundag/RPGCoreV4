@@ -7,7 +7,7 @@ import me.blutkrone.rpgcore.npc.CoreNPC;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogue;
 import me.blutkrone.rpgcore.quest.dialogue.CoreDialogueChoice;
 import me.blutkrone.rpgcore.quest.task.impl.CoreQuestTaskTalk;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
@@ -24,7 +24,7 @@ public class DialogueMenu extends AbstractCoreMenu {
     private CoreDialogue dialogue;
     private CoreNPC npc;
     private List<String> contents;
-    private IndexedTexture portrait;
+    private AbstractTexture portrait;
     private ItemStack next_page;
     private CoreQuestTaskTalk task;
 
@@ -41,7 +41,7 @@ public class DialogueMenu extends AbstractCoreMenu {
     @Override
     public void rebuild() {
         this.getMenu().clearItems();
-        IndexedTexture portrait = null;
+        AbstractTexture portrait = null;
 
         MagicStringBuilder msb = new MagicStringBuilder();
 
@@ -68,7 +68,7 @@ public class DialogueMenu extends AbstractCoreMenu {
                     // quest image is the only thing rendered
                     if (i == 0) {
                         line = contents.remove(0);
-                        IndexedTexture texture = resourcepack().texture(line);
+                        AbstractTexture texture = resourcepack().texture(line);
                         msb.shiftToExact(-242);
                         msb.append(texture, ChatColor.WHITE);
                     }

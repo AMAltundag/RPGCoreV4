@@ -41,9 +41,7 @@ public class NPCManager implements Listener {
         // load respective storage pages
         try {
             ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("storage.yml"));
-            config.forEachUnder("storages", (id, root) -> {
-                this.storage.put(id, new CoreStorageTrait.StoragePage(id, root.getSection(id)));
-            });
+            this.storage.putAll(config.getObjectMap("storages", CoreStorageTrait.StoragePage::new));
         } catch (IOException e) {
             e.printStackTrace();
         }

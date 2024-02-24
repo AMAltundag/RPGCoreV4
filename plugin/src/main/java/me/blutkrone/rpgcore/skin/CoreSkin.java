@@ -2,7 +2,6 @@ package me.blutkrone.rpgcore.skin;
 
 public class CoreSkin {
     public final String id;
-
     public final String value;
     public final String signature;
     public final String url;

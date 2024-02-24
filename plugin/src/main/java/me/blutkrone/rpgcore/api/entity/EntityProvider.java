@@ -4,8 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.BoundingBox;
 
-import java.util.List;
-
 public interface EntityProvider {
 
     /**
@@ -32,14 +30,4 @@ public interface EntityProvider {
      * @return Location of head of the mob.
      */
     Location getHeadLocation(LivingEntity entity);
-
-    /**
-     * Retrieve a list of special locations relative to the mob, these
-     * locations are specific to the provider.
-     *
-     * @param entity   What entity we are working with.
-     * @param location What locations we want
-     * @return List of special locations
-     */
-    List<Location> getSpecialLocations(LivingEntity entity, String location);
 }

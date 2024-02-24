@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,7 +19,10 @@ public class PassivePointCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<player> <type> <amount> §fGrants number of passive points");
+        return buildHelpText("§fplayer type amount", "§cAdd passive points [ADMIN]",
+                "§7Player: §fWho will receive the points",
+                "§7Type: What type of points to add",
+                "§7Amount: How many points to add");
     }
 
     @Override

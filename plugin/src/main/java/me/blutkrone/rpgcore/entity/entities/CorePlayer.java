@@ -43,6 +43,7 @@ import org.bukkit.util.RayTraceResult;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class CorePlayer extends CoreEntity implements IOfflineCorePlayer, IDataIdentity, IDescriptionRequester {
 

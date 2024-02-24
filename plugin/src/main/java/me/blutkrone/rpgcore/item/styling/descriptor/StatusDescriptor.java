@@ -10,7 +10,7 @@ import me.blutkrone.rpgcore.item.styling.IDescriptionRequester;
 import me.blutkrone.rpgcore.item.styling.StylingRule;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
@@ -37,7 +37,7 @@ public class StatusDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [1] header segment to hide the vanilla lore
         msb.shiftToExact(-20);
@@ -81,7 +81,7 @@ public class StatusDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [7] generate data within the header
         int previous = compiled.size();
@@ -132,7 +132,7 @@ public class StatusDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         // additionally processed data
         Map<String, List<StatusMenu.StatusInfo>> categorized = new LinkedHashMap<>();
         modifiers.removeIf(modifier -> {
@@ -192,7 +192,7 @@ public class StatusDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // [11] lore is available as the last entry.
         if (!lore.isEmpty()) {
@@ -264,7 +264,7 @@ public class StatusDescriptor implements IItemDescriber {
         // managers that we may need
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
 
         // output collection
         List<BaseComponent[]> compiled = new ArrayList<>();
@@ -296,7 +296,7 @@ public class StatusDescriptor implements IItemDescriber {
     public void describe(ItemStack item, IDescriptionRequester player) {
         LanguageManager language_manager = RPGCore.inst().getLanguageManager();
         ItemManager item_manager = RPGCore.inst().getItemManager();
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         SkillManager skill_manager = RPGCore.inst().getSkillManager();
 
         // do not generate data without a player

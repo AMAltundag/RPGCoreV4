@@ -10,7 +10,7 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
 import me.blutkrone.rpgcore.entity.resource.ResourceSnapshot;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.skill.activity.ISkillActivity;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
@@ -50,7 +50,7 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, Snapshot prepared) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // focus may not render anything if we have no snapshot
         if (prepared == null) {
             return;
@@ -104,7 +104,7 @@ public class FocusComponent implements IUXComponent<FocusComponent.Snapshot> {
      * @param renderpoint point to render status at
      */
     private void drawStatus(UXWorkspace workspace, String icon, int time, int stack, int index, int renderpoint) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // draw the icon of the effect
         workspace.bossbar().shiftToExact(renderpoint + this.focus_status_offset + (index * 26));
         workspace.bossbar().append(rpm.texture("status_focus_" + icon));

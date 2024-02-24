@@ -4,7 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.language.LanguageManager;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.IMenuWrapper;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -84,8 +84,8 @@ public abstract class AbstractCoreMenu implements IMenuWrapper {
      *
      * @return
      */
-    protected ResourcePackManager resourcepack() {
-        return RPGCore.inst().getResourcePackManager();
+    protected ResourcepackManager resourcepack() {
+        return RPGCore.inst().getResourcepackManager();
     }
 
     /*

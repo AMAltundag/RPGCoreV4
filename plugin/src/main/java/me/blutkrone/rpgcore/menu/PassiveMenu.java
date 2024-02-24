@@ -9,7 +9,7 @@ import me.blutkrone.rpgcore.item.CoreItem;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.passive.CorePassiveNode;
 import me.blutkrone.rpgcore.passive.CorePassiveTree;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
@@ -60,7 +60,7 @@ public class PassiveMenu extends AbstractCoreMenu {
             return;
         }
 
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         this.getMenu().clearItems();
         MagicStringBuilder msb = new MagicStringBuilder();

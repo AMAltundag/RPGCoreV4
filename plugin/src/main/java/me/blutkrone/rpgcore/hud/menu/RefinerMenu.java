@@ -20,9 +20,7 @@ public class RefinerMenu {
 
     public RefinerMenu() throws IOException {
         ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("menu", "refiner.yml"));
-        config.forEachUnder("refiner", (path, root) -> {
-            this.refinement_designs.put(path.toLowerCase(), new RefinementMenuDesign(path, root.getSection(path)));
-        });
+        this.refinement_designs.putAll(config.getObjectMap("refiner", RefinementMenuDesign::new));
     }
 
     public void present(Player player, CoreRefinerTrait trait) {

@@ -1,9 +1,10 @@
 package me.blutkrone.rpgcore.hologram.impl;
 
 import me.blutkrone.rpgcore.RPGCore;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
 import me.blutkrone.rpgcore.nms.api.packet.handle.ITextDisplay;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
@@ -70,13 +71,13 @@ public class StationaryHologram {
      * @param player who will receive the hologram.
      */
     public void update(Player player) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         // retrieve the description for the mob
         ComponentBuilder builder = new ComponentBuilder();
         List<String> contents = RPGCore.inst().getLanguageManager().getTranslationList(lc_text);
         for (String content : contents) {
-            IndexedTexture.ConfigTexture texture = rpm.textures().get(content);
+            AbstractTexture texture = rpm.textures().get(content);
             if (texture == null) {
                 // add as text
                 builder.append(content).append("\n");
@@ -89,13 +90,16 @@ public class StationaryHologram {
             }
         }
 
-        // present the hologram
+        // initialize hologram if we didn't
         if (this.hologram == null) {
             this.hologram = RPGCore.inst().getVolatileManager().getPackets().text();
         }
-        this.hologram.spawn(player, this.x, this.y, this.z, this.pitch, this.yaw);
-        this.hologram.rotate(player, this.yaw);
-        this.hologram.message(player, builder.create(), true, this.locked);
+
+        // dispatch hologram to observing players
+        IBundledPacket hologram_bundle = this.hologram.spawn(this.x, this.y, this.z, this.pitch, this.yaw);
+        this.hologram.rotate(this.yaw).addToOther(hologram_bundle);
+        this.hologram.message(builder.create(), this.locked).addToOther(hologram_bundle);
+        hologram_bundle.dispatch(player);
     }
 
     /**
@@ -105,7 +109,7 @@ public class StationaryHologram {
      */
     public void destroy(Player player) {
         if (this.hologram != null) {
-            this.hologram.destroy(player);
+            this.hologram.destroy().dispatch(player);
         }
     }
 }

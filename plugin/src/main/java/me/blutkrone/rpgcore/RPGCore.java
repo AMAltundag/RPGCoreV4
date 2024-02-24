@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.blutkrone.rpgcore.api.social.IGuildHandler;
 import me.blutkrone.rpgcore.attribute.AttributeManager;
+import me.blutkrone.rpgcore.bbmodel.BBModelManager;
 import me.blutkrone.rpgcore.chat.ChatManager;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.command.CommandArgumentException;
@@ -34,7 +35,8 @@ import me.blutkrone.rpgcore.node.NodeManager;
 import me.blutkrone.rpgcore.npc.NPCManager;
 import me.blutkrone.rpgcore.passive.PassiveManager;
 import me.blutkrone.rpgcore.quest.QuestManager;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.utils.CompileClock;
 import me.blutkrone.rpgcore.skill.SkillManager;
 import me.blutkrone.rpgcore.skin.SkinPool;
 import me.blutkrone.rpgcore.social.SocialManager;
@@ -82,7 +84,7 @@ public final class RPGCore extends JavaPlugin {
     private Gson gson_ugly;
     // delegate handlers for commands
     private Map<String, AbstractCommand> commands = new HashMap<>();
-    // skin handling
+    // skin pool allowing us to use custom skins
     private SkinPool skin;
 
     // Managers providing low-level logic and functionality
@@ -93,7 +95,7 @@ public final class RPGCore extends JavaPlugin {
     private HologramManager hologram_manager;
     private LanguageManager language_manager;
     private DataManager data_manager;
-    private ResourcePackManager resourcepack_manager;
+    private ResourcepackManager resourcepack_manager;
     private HUDManager hud_manager;
     private MinimapManagerV2 minimap_manager;
     private ItemManager item_manager;
@@ -110,6 +112,7 @@ public final class RPGCore extends JavaPlugin {
     private SocialManager social_manager;
     private WorldIntegrationManager world_integration_manager;
     private ChatManager chat_manager;
+    private BBModelManager bbmodel_manager;
 
     // Managers providing high-level functionality for the server
     private MountManager mount_manager;
@@ -147,31 +150,59 @@ public final class RPGCore extends JavaPlugin {
         if (this.volatile_manager == null)
             throw new InitializationException("Could not create 'Volatile Manager' for this version!");
 
+        CompileClock clock = new CompileClock();
+        
         // modules which make up the core
         this.attribute_manager = new AttributeManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(AttributeManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.data_manager = new DataManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(DataManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.entity_manager = new EntityManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(EntityManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.language_manager = new LanguageManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(LanguageManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.damage_manager = new DamageManager();
-        this.resourcepack_manager = new ResourcePackManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(DamageManager.class.getSimpleName().toLowerCase(), clock.loop()));
+        this.resourcepack_manager = new ResourcepackManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(ResourcepackManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.job_manager = new JobManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(JobManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.minimap_manager = new MinimapManagerV2();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(MinimapManagerV2.class.getSimpleName().toLowerCase(), clock.loop()));
         this.item_manager = new ItemManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(ItemManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.skill_manager = new SkillManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(SkillManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.effect_manager = new EffectManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(EffectManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.node_manager = new NodeManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(NodeManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.npc_manager = new NPCManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(NPCManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.mob_manager = new MobManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(MobManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.quest_manager = new QuestManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(QuestManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.passive_manager = new PassiveManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(PassiveManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.level_manager = new LevelManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(LevelManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.dungeon_manager = new DungeonManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(DungeonManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.social_manager = new SocialManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(SocialManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.mail_manager = new MailManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(MailManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.hud_manager = new HUDManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(HUDManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.hologram_manager = new HologramManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(HologramManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.world_integration_manager = new WorldIntegrationManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(WorldIntegrationManager.class.getSimpleName().toLowerCase(), clock.loop()));
         this.chat_manager = new ChatManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(ChatManager.class.getSimpleName().toLowerCase(), clock.loop()));
+        this.bbmodel_manager = new BBModelManager();
+        Bukkit.getLogger().info("Initialized 'rpgcore:%s' in %sms".formatted(BBModelManager.class.getSimpleName().toLowerCase(), clock.loop()));
 
         // initialize relevant commands
         this.commands.put("mob", new SpawnMobCommand());
@@ -194,6 +225,7 @@ public final class RPGCore extends JavaPlugin {
         this.commands.put("social", new SocialCommand());
         this.commands.put("dexit", new DungeonExitCommand());
         this.commands.put("internal", new InternalCommand());
+        this.commands.put("dropbox", new DropboxCommand());
 
         this.commands.put("migrate", new ToolPlayerMigrateCommand());
         this.commands.put("push", new ToolConfigPushCommand());
@@ -347,7 +379,13 @@ public final class RPGCore extends JavaPlugin {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        AbstractCommand cmd = commands.get(args[0]);
+        AbstractCommand cmd;
+        if (args.length == 0) {
+            cmd = commands.get("help");
+        } else {
+            cmd = commands.get(args[0]);
+        }
+
         if (cmd != null) {
             if (cmd.canUseCommand(sender)) {
                 try {
@@ -363,6 +401,7 @@ public final class RPGCore extends JavaPlugin {
             String msg = RPGCore.inst().getLanguageManager().getTranslation("unknown_command");
             sender.sendMessage("§c" + msg);
         }
+
         return true;
     }
 
@@ -382,7 +421,7 @@ public final class RPGCore extends JavaPlugin {
         return damage_manager;
     }
 
-    public ResourcePackManager getResourcePackManager() {
+    public ResourcepackManager getResourcepackManager() {
         return resourcepack_manager;
     }
 
@@ -468,5 +507,9 @@ public final class RPGCore extends JavaPlugin {
 
     public MigrationHandler getMigrationManager() {
         return migration_manager;
+    }
+
+    public BBModelManager getBBModelManager() {
+        return bbmodel_manager;
     }
 }

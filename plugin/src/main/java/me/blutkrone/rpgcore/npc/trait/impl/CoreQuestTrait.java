@@ -12,9 +12,14 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /**
- * A trait intended for progression in a quest, this trait is treated
- * differently then other traits - allowing it to supersede any other
- * traits.
+ * This trait is <b>ONLY</b>> responsible for providing quests to players, the
+ * actual quest handling is done independently.<br>
+ * <br>
+ * Do note that quest handling associated with the NPC will take precedence
+ * over allowing interactions with traits.<br>
+ * <br>
+ * Should this trait be available, it means that this NPC has quests that
+ * can be claimed.
  */
 public class CoreQuestTrait extends AbstractCoreTrait {
 

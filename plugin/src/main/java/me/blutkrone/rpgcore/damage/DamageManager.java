@@ -5,6 +5,10 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.damage.IDamageType;
 import me.blutkrone.rpgcore.api.event.CoreEntityKilledEvent;
 import me.blutkrone.rpgcore.api.social.IPartySnapshot;
+import me.blutkrone.rpgcore.bbmodel.active.tints.ActiveTint;
+import me.blutkrone.rpgcore.bbmodel.owner.IActiveOwner;
+import me.blutkrone.rpgcore.bbmodel.owner.IModelOwner;
+import me.blutkrone.rpgcore.bbmodel.util.exception.BBExceptionRecycled;
 import me.blutkrone.rpgcore.damage.ailment.AbstractAilment;
 import me.blutkrone.rpgcore.damage.ailment.ailments.AttributeAilment;
 import me.blutkrone.rpgcore.damage.ailment.ailments.DamageAilment;
@@ -66,8 +70,7 @@ public final class DamageManager implements Listener {
         // load elements which damage can belong to
         try {
             ConfigWrapper damage_config = FileUtil.asConfigYML(FileUtil.file("damage.yml"));
-            damage_config.forEachUnder("element", ((path, root) ->
-                    damage_elements.put(path, new DamageElement(path, root.getSection(path)))));
+            damage_elements.putAll(damage_config.getObjectMap("element", DamageElement::new));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -76,12 +79,11 @@ public final class DamageManager implements Listener {
         try {
             ConfigWrapper damage_config = FileUtil.asConfigYML(FileUtil.file("ailment.yml"));
             damage_config.forEachUnder("ailment", ((path, root) -> {
-                ConfigWrapper ailment_config = root.getSection(path);
-                String ailment_type = ailment_config.getString("type", "NONE");
+                String ailment_type = root.getString(path + ".type", "NONE");
                 if (ailment_type.equalsIgnoreCase("DOT")) {
-                    ailments.add(new DamageAilment(path, root.getSection(path)));
+                    ailments.add(root.getObject(path, DamageAilment::new));
                 } else if (ailment_type.equalsIgnoreCase("ATTRIBUTE")) {
-                    ailments.add(new AttributeAilment(path, root.getSection(path)));
+                    ailments.add(root.getObject(path, AttributeAilment::new));
                 } else {
                     RPGCore.inst().getLogger().warning(String.format("Unable to create ailment of type '%s'", ailment_type));
                 }
@@ -147,23 +149,6 @@ public final class DamageManager implements Listener {
         // prepare the initial snapshot of the damage to inflict
         interaction.getType().process(interaction);
 
-        // triggers for damage events
-        interaction.getDefender().proliferateTrigger(CoreTakeDamageTrigger.class, interaction);
-        if (interaction.getAttacker() != null) {
-            interaction.getAttacker().proliferateTrigger(CoreDealDamageTrigger.class, interaction);
-        }
-
-        // players should track damage for metric purposes
-        if (interaction.getAttacker() instanceof CorePlayer) {
-            for (DamageElement element : getElements()) {
-                double damage = interaction.getDamage(element);
-                if (damage > 0d) {
-                    ((CorePlayer) interaction.getAttacker()).getMetric(interaction.getDamageBlame() + "_" + element.getId())
-                            .track(interaction.getDefender().getUniqueId(), damage);
-                }
-            }
-        }
-
         // transform damage by the variance factor
         if (interaction.getAttacker() != null) {
             for (DamageElement element : getElements()) {
@@ -200,6 +185,34 @@ public final class DamageManager implements Listener {
         for (DamageElement element : getElements()) {
             double damage = Math.max(0d, interaction.getDamage(element) * interaction.getMultiplier());
             interaction.setDamage(element, damage);
+        }
+
+        // prevent damage of certain elements being applied at all
+        for (DamageElement element : this.getElements()) {
+            if (interaction.checkForTag("TAKE_NO_" + element.getId() + "_DAMAGE", interaction.getDefender())) {
+                interaction.setDamage(element, 0d);
+            }
+
+            if (interaction.checkForTag("DEAL_NO_" + element.getId() + "_DAMAGE", interaction.getAttacker())) {
+                interaction.setDamage(element, 0d);
+            }
+        }
+
+        // triggers for damage events
+        interaction.getDefender().proliferateTrigger(CoreTakeDamageTrigger.class, interaction);
+        if (interaction.getAttacker() != null) {
+            interaction.getAttacker().proliferateTrigger(CoreDealDamageTrigger.class, interaction);
+        }
+
+        // players should track damage for metric purposes
+        if (interaction.getAttacker() instanceof CorePlayer) {
+            for (DamageElement element : getElements()) {
+                double damage = interaction.getDamage(element);
+                if (damage > 0d) {
+                    ((CorePlayer) interaction.getAttacker()).getMetric(interaction.getDamageBlame() + "_" + element.getId())
+                            .track(interaction.getDefender().getUniqueId(), damage);
+                }
+            }
         }
 
         // show an indicator for damage dealt
@@ -324,6 +337,17 @@ public final class DamageManager implements Listener {
 
         // show entity hurt effect
         interaction.getDefender().getEntity().playEffect(EntityEffect.HURT);
+        if (interaction.getDefender() instanceof CoreMob) {
+            IModelOwner owner = RPGCore.inst().getBBModelManager().get(interaction.getDefender());
+            if (owner instanceof IActiveOwner active) {
+                try {
+                    active.tint("rpgcore_root", "rpgcore:damage_tint", new ActiveTint(0, 0xFF0000, 6));
+                    active.playAnimation("hurt", 1f);
+                } catch (BBExceptionRecycled ignored) {
+                    // ignored
+                }
+            }
+        }
 
         // apply an appropriate degree of knockback
         if (interaction.getKnockback() > 0d

@@ -7,14 +7,15 @@ import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.entity.resource.EntityWard;
 import me.blutkrone.rpgcore.entity.resource.ResourceSnapshot;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.skill.CoreSkill;
 import me.blutkrone.rpgcore.skill.SkillContext;
 import me.blutkrone.rpgcore.skill.skillbar.bound.SkillBindCast;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -33,7 +34,7 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
     private int skillbar_start_at;
     private int exp_and_level_start_at;
 
-    private int instant_animation_size;
+    private int instant_animation_size = -1;
 
     public MainPlateComponent(ConfigWrapper section) {
         activity_frame_start_at = section.getInt("interface-offset.activity-frame-start-at");
@@ -45,13 +46,6 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
         skillbar_start_at = section.getInt("interface-offset.skills-start-at");
         exp_and_level_start_at = section.getInt("interface-offset.exp-and-level-start-at");
 
-        for (int i = 0; i < 24; i++) {
-            if (RPGCore.inst().getResourcePackManager().textures().containsKey("skillbar_instant_animation_" + i)) {
-                instant_animation_size = i;
-            } else {
-                break;
-            }
-        }
     }
 
     @Override
@@ -61,12 +55,22 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
 
     @Override
     public Snapshot prepare(CorePlayer core_player, Player bukkit_player) {
+        if (instant_animation_size == -1) {
+            Bukkit.getLogger().info("not implemented ('instant_animation_size' as indexed parameter)");
+            for (int i = 0; i < 24; i++) {
+                if (RPGCore.inst().getResourcepackManager().textures().containsKey("skillbar_instant_animation_" + i)) {
+                    instant_animation_size = i;
+                } else {
+                    break;
+                }
+            }
+        }
         return new Snapshot(core_player);
     }
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, Snapshot prepared) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         workspace.actionbar().shiftToExact(0);
 
         // draw the back plate
@@ -192,10 +196,10 @@ public class MainPlateComponent implements IUXComponent<MainPlateComponent.Snaps
      * @param render_point     the point to draw at
      */
     private void drawSpecificResource(UXWorkspace workspace, String graphic_cue, String text_cue, ResourceSnapshot snapshot, String text_cue_font, int render_point) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         // draw the graphic cue first
-        IndexedTexture graphic_cue_texture = rpm.texture(graphic_cue + "_" + ((int) (100 * snapshot.fraction)));
+        AbstractTexture graphic_cue_texture = rpm.texture(graphic_cue + "_" + ((int) (100 * snapshot.fraction)));
         workspace.actionbar().shiftToExact(render_point);
         workspace.actionbar().append(graphic_cue_texture);
         // draw the info text in-place

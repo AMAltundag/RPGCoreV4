@@ -64,7 +64,7 @@ public class MinimapManagerV2 {
         // load configuration
         try {
             ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("minimap.yml"));
-            this.marker_mixed = config.getObjectList("markers", MapMarker::new);
+            this.marker_mixed = config.getObjectList("markers", (cfg -> new MapMarker(cfg)));
             this.anchor_mixed = config.getObjectList("anchors", MapAnchor::new);
             this.id_to_map = config.getObjectMap("maps", MapInfo::new);
         } catch (IOException e) {
@@ -92,6 +92,19 @@ public class MinimapManagerV2 {
             // restrain maximum cache size
             this.restrainCacheSize();
         }, 1, 1);
+    }
+
+    /**
+     * Reload the resourcepack
+     */
+    public void reload() {
+        synchronized (SYNC) {
+            outline_queued.clear();
+            outline_finished.clear();
+            minimap_cache.clear();
+            marker_cache.clear();
+            anchor_cache.clear();
+        }
     }
 
     /**
@@ -168,6 +181,7 @@ public class MinimapManagerV2 {
      * @return markers visible to player
      */
     public List<MapMarker> getMarkersOf(Player bukkit, CorePlayer core) {
+        NodeWorld node_world = RPGCore.inst().getNodeManager().getNodeWorld(bukkit.getWorld());
         List<MapMarker> markers_for_player = new ArrayList<>();
 
         // markers that are fixed into the world
@@ -221,7 +235,6 @@ public class MinimapManagerV2 {
                     }
                 }
             } else if (quest.getRewardNPC() != null) {
-                NodeWorld node_world = RPGCore.inst().getNodeManager().getNodeWorld(bukkit.getWorld());
                 if (node_world != null) {
                     List<NodeActive> nodes = node_world.getNodesOfType("npc:" + quest.getRewardNPC());
                     for (NodeActive node : nodes) {
@@ -234,15 +247,16 @@ public class MinimapManagerV2 {
 
         // highlights for NPCs that can give us quests
         Location player_location = bukkit.getLocation();
-        NodeWorld node_world = RPGCore.inst().getNodeManager().getNodeWorld(bukkit.getWorld());
-        for (NodeActive nearby : node_world.getNodesNear(player_location.getBlockX(), player_location.getBlockY(), player_location.getBlockZ(), 60)) {
-            if (nearby.getNode() instanceof CoreNPC) {
-                List<AbstractCoreTrait> traits = ((CoreNPC) nearby.getNode()).getAvailableTraits(bukkit);
-                for (AbstractCoreTrait trait : traits) {
-                    if (trait instanceof CoreQuestTrait) {
-                        if (!((CoreQuestTrait) trait).getQuestAvailable(core).isEmpty()) {
-                            Location location = new Location(bukkit.getWorld(), nearby.getX(), nearby.getY(), nearby.getZ());
-                            markers_for_player.add(new MapMarker(location, "quest_available"));
+        if (node_world != null) {
+            for (NodeActive nearby : node_world.getNodesNear(player_location.getBlockX(), player_location.getBlockY(), player_location.getBlockZ(), 60)) {
+                if (nearby.getNode() instanceof CoreNPC) {
+                    List<AbstractCoreTrait> traits = ((CoreNPC) nearby.getNode()).getAvailableTraits(bukkit);
+                    for (AbstractCoreTrait trait : traits) {
+                        if (trait instanceof CoreQuestTrait) {
+                            if (!((CoreQuestTrait) trait).getQuestAvailable(core).isEmpty()) {
+                                Location location = new Location(bukkit.getWorld(), nearby.getX(), nearby.getY(), nearby.getZ());
+                                markers_for_player.add(new MapMarker(location, "quest_available"));
+                            }
                         }
                     }
                 }
@@ -350,7 +364,9 @@ public class MinimapManagerV2 {
                 }
             }
 
-            minimap_cache.put(identifier, minimize);
+            synchronized (SYNC) {
+                minimap_cache.put(identifier, minimize);
+            }
             return minimize;
         } else {
             throw new NullPointerException("Location has no world!");

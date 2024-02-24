@@ -75,6 +75,22 @@ public abstract class AbstractEntityRoutine {
     public abstract boolean doBarrierDamageSoak(int damage);
 
     /**
+     * Time to wait for checking if this routine can start, after the
+     * last time we checked it.
+     *
+     * @return Wait time in ticks.
+     */
+    public abstract int getWaitTime();
+
+    /**
+     * Time to wait for invoking this again, after successful completion
+     * of the routine.
+     *
+     * @return Cooldown time in ticks.
+     */
+    public abstract int getCooldownTime();
+
+    /**
      * Request for this routine to finish, there is no promise
      * on if or when the routine will be finished.
      */
@@ -91,5 +107,4 @@ public abstract class AbstractEntityRoutine {
     public boolean isPleaseFinishEarly() {
         return please_finish_early;
     }
-
 }

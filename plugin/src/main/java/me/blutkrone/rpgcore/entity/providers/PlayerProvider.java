@@ -23,9 +23,4 @@ public class PlayerProvider implements EntityProvider {
     public Location getHeadLocation(LivingEntity entity) {
         return entity.getEyeLocation();
     }
-
-    @Override
-    public List<Location> getSpecialLocations(LivingEntity entity, String location) {
-        return new ArrayList<>();
-    }
 }

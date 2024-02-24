@@ -166,6 +166,13 @@ public interface IEntityBase {
     boolean isWalking();
 
     /**
+     * Speed we are currently walking with.
+     *
+     * @return Speed we are currently walking with
+     */
+    double getWalkingSpeed();
+
+    /**
      * Death phase cannot be aborted, serves as one final
      * mechanic to finish with.
      *

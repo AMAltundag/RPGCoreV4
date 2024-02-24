@@ -4,7 +4,6 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.editor.index.EditorIndex;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 
 import java.util.HashMap;
@@ -21,7 +20,7 @@ public class ReloadCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("§fReloads some parts of the core, not everything!");
+        return buildHelpText("", "§cReload parts of the core [ADMIN]");
     }
 
     @Override
@@ -37,6 +36,8 @@ public class ReloadCommand extends AbstractCommand {
         RPGCore.inst().getHologramManager().reload();
         // flush hud menu controllers
         RPGCore.inst().getHUDManager().reload();
+        // flush the minimap
+        RPGCore.inst().getMinimapManager().reload();
 
         sender.sendMessage("§fReloaded RPGCore in: §c%.2f§f seconds!".formatted((System.currentTimeMillis() - stamp) / 1000d));
     }

@@ -11,24 +11,27 @@ import me.blutkrone.rpgcore.skill.mechanic.BarrierMechanic;
 import me.blutkrone.rpgcore.skill.selector.AbstractCoreSelector;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CoreMobLogic extends CoreAction {
 
     // the group to share among other logic
-    private String group;
+    private final String group;
     // cooldown after being invoked
-    private int cooldown;
+    private final int cooldown;
+    // cooldown after failing the start condition
+    private final int wait;
     // priority used for sorting
-    private double priority;
+    private final double priority;
     // logic only starts after meeting conditions
-    private List<AbstractCoreSelector> start_when_found;
+    private final List<AbstractCoreSelector> start_when_found;
 
     public CoreMobLogic(EditorMobLogic editor) {
         super(editor);
         this.group = editor.group;
         this.cooldown = (int) editor.cooldown;
+        this.wait = (int) editor.wait;
         this.priority = editor.priority;
         this.start_when_found = AbstractEditorSelector.unwrap(editor.start_when_found);
     }
@@ -70,8 +73,6 @@ public class CoreMobLogic extends CoreAction {
         private CoreMob core_entity;
         // iterator on the AI routine of the mob
         private ActionPipeline pipeline;
-        // cooldown before being triggered again
-        private int cooldown;
 
         public SmartEntityRoutine(IEntityBase entity, CoreMob core_entity) {
             super(entity);
@@ -81,7 +82,7 @@ public class CoreMobLogic extends CoreAction {
         @Override
         public boolean doStart() {
             // cannot start if no steps defined
-            if (mechanics.isEmpty() || cooldown-- > 0) {
+            if (mechanics.isEmpty()) {
                 return false;
             }
             // we can start if the selector discovers anything
@@ -95,22 +96,14 @@ public class CoreMobLogic extends CoreAction {
                 return false;
             }
             // initialize an iterator
-            pipeline = pipeline(core_entity, Arrays.asList(core_entity));
+            pipeline = pipeline(core_entity, Collections.singletonList(core_entity));
             // allow the task to start
             return true;
         }
 
         @Override
         public boolean doUpdate() {
-            if (this.pipeline.update()) {
-                // put on cooldown since we finished
-                cooldown = CoreMobLogic.this.cooldown;
-                // we are finished
-                return true;
-            } else {
-                // we haven't finished yet
-                return false;
-            }
+            return this.pipeline.update();
         }
 
         @Override
@@ -122,6 +115,16 @@ public class CoreMobLogic extends CoreAction {
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public int getWaitTime() {
+            return wait;
+        }
+
+        @Override
+        public int getCooldownTime() {
+            return cooldown;
         }
     }
 }

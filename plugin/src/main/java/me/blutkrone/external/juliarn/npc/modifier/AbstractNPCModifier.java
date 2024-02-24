@@ -1,6 +1,6 @@
 package me.blutkrone.external.juliarn.npc.modifier;
 
-import me.blutkrone.rpgcore.nms.api.packet.IDispatchPacket;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IDispatchPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

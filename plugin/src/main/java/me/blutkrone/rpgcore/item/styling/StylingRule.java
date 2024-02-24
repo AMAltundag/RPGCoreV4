@@ -1,8 +1,8 @@
 package me.blutkrone.rpgcore.item.styling;
 
 import me.blutkrone.rpgcore.RPGCore;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
-import me.blutkrone.rpgcore.resourcepack.utils.IndexedTexture;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
+import me.blutkrone.rpgcore.resourcepack.generation.component.hud.AbstractTexture;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import net.md_5.bungee.api.ChatColor;
 
@@ -48,8 +48,8 @@ public class StylingRule {
      * @param position position of the texture
      * @return the texture we found
      */
-    public IndexedTexture texture(String pattern, int position) {
-        ResourcePackManager resource_manager = RPGCore.inst().getResourcePackManager();
+    public AbstractTexture texture(String pattern, int position) {
+        ResourcepackManager resource_manager = RPGCore.inst().getResourcepackManager();
         return resource_manager.texture("lore_" + pattern + "_" + this.style + "_" + position);
     }
 

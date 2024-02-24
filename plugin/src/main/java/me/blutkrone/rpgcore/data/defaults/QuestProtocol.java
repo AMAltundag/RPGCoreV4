@@ -55,6 +55,8 @@ public class QuestProtocol implements DataProtocol {
         if (bundle.isEmpty()) {
 
         } else if (version == 0) {
+            // Protocol version '0' is incompatible
+        } else if (version == 1) {
             int header = 0;
 
             int size = bundle.getNumber(header++).intValue();
@@ -77,8 +79,6 @@ public class QuestProtocol implements DataProtocol {
 
                 player.getActiveQuestIds().add(quest_id);
             }
-        } else if (version == 1) {
-
         }
     }
 }

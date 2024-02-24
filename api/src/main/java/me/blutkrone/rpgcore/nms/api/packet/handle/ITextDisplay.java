@@ -1,9 +1,10 @@
 package me.blutkrone.rpgcore.nms.api.packet.handle;
 
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IBundledPacket;
+import me.blutkrone.rpgcore.nms.api.packet.wrapper.VolatileStyle;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 
@@ -11,6 +12,16 @@ import org.joml.Quaternionf;
  * Packet handling for holograms.
  */
 public interface ITextDisplay {
+
+    /**
+     * Update the message shown by component
+     *
+     * @param message
+     * @param locked
+     * @param styles
+     * @return Packet for bundling
+     */
+    IBundledPacket message(BaseComponent[] message, boolean locked, VolatileStyle... styles);
 
     /**
      * The entity ID we are tied with
@@ -22,133 +33,136 @@ public interface ITextDisplay {
     /**
      * Show to a player
      *
-     * @param player
      * @param where
+     * @return Packet for bundling
      */
-    void spawn(Player player, Location where);
+    IBundledPacket spawn(Location where);
 
     /**
      * Show to a player
      *
-     * @param player
      * @param x
      * @param y
      * @param z
      * @param pitch
      * @param yaw
+     * @return Packet for bundling
      */
-    void spawn(Player player, double x, double y, double z, float pitch, float yaw);
+    IBundledPacket spawn(double x, double y, double z, float pitch, float yaw);
 
     /**
      * Hide from a player
      *
-     * @param player
+     * @return Packet for bundling
      */
-    void destroy(Player player);
-
-    /**
-     * Update the message shown by component
-     *
-     * @param player
-     * @param message
-     * @param shadow
-     * @param locked
-     */
-    void message(Player player, BaseComponent[] message, boolean shadow, boolean locked);
+    IBundledPacket destroy();
 
     /**
      * Teleport to a location
      *
-     * @param player
      * @param where
+     * @return Packet for bundling
      */
-    void teleport(Player player, Location where);
+    IBundledPacket teleport(Location where);
 
     /**
      * Teleport to a location
      *
-     * @param player
      * @param x
      * @param y
      * @param z
+     * @return Packet for bundling
      */
-    void teleport(Player player, double x, double y, double z);
+    IBundledPacket teleport(double x, double y, double z);
 
     /**
      * Rotation on entity level
      *
-     * @param player
      * @param yaw
+     * @return Packet for bundling
      */
-    void rotate(Player player, float yaw);
-
-    /**
-     * Make this display mounted to another entity
-     * @param player
-     * @param mount
-     */
-    void mount(Player player, LivingEntity mount);
+    IBundledPacket rotate(float yaw);
 
     /**
      * Make this display mounted to another entity
      *
-     * @param player
      * @param mount
+     * @return Packet for bundling
      */
-    void mount(Player player, int mount);
+    IBundledPacket mount(LivingEntity mount);
+
+    /**
+     * Make this display mounted to another entity
+     *
+     * @param mount
+     * @return Packet for bundling
+     */
+    IBundledPacket mount(int mount);
 
     /**
      * Interpolation of translation, rotation and scale over the given duration
      * starting after a delay.
      *
-     * @param player
      * @param delay
      * @param duration
+     * @return Packet for bundling
      */
-    void interpolation(Player player, int delay, int duration);
+    IBundledPacket interpolation(int delay, int duration);
 
     /**
      * Displace the entity
      *
-     * @param player
      * @param x
      * @param y
      * @param z
+     * @return Packet for bundling
      */
-    void translation(Player player, double x, double y, double z);
+    IBundledPacket translation(double x, double y, double z);
 
     /**
      * Apply a rotation before applying the translation
      *
-     * @param player
      * @param rotation
+     * @return Packet for bundling
      */
-    void rotateBeforeTranslation(Player player, Quaternionf rotation);
+    IBundledPacket rotateBeforeTranslation(Quaternionf rotation);
 
     /**
      * Apply a rotation after applying the translation
      *
-     * @param player
      * @param rotation
+     * @return Packet for bundling
      */
-    void rotateAfterTranslation(Player player, Quaternionf rotation);
+    IBundledPacket rotateAfterTranslation(Quaternionf rotation);
 
     /**
      * Size multiplier of the display
      *
-     * @param player
      * @param x
      * @param y
      * @param z
+     * @return Packet for bundling
      */
-    void scale(Player player, double x, double y, double z);
+    IBundledPacket scale(double x, double y, double z);
 
     /**
      * Deploy a transformation as one package.
      *
-     * @param player
      * @param duration
      * @param transformation
+     * @return Packet for bundling
      */
-    void transform(Player player, int duration, Transformation transformation);
+    IBundledPacket transform(int duration, Transformation transformation);
+
+    /**
+     * Displace entity by the given factor, note that this at most supports an
+     * offset of 8 blocks, but it should look smooth. Use teleport for shorter
+     * distance travel.
+     *
+     * @param x
+     * @param y
+     * @param z
+     * @return Packet for bundling
+     */
+    IBundledPacket move(double x, double y, double z);
 }

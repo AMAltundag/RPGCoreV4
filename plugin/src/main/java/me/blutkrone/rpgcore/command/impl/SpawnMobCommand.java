@@ -5,7 +5,6 @@ import me.blutkrone.rpgcore.command.AbstractCommand;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.mob.CoreCreature;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
@@ -23,7 +22,9 @@ public class SpawnMobCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<mob> <*level> §fSpawn a mob where you are looking at.");
+        return buildHelpText("§fmob §8level", "§cSpawn a mob where you are looking at [ADMIN]",
+                "§7Mob: The mob to be spawned",
+                "§8Level: Level of the mob");
     }
 
     @Override

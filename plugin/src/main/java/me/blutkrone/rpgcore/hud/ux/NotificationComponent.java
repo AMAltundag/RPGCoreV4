@@ -4,7 +4,7 @@ import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.api.hud.IUXComponent;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.entity.Player;
@@ -79,7 +79,7 @@ public class NotificationComponent implements IUXComponent<List<NotificationComp
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, List<Message> prepared) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // identify where the message should center at
         int center = rpm.texture("static_plate_back").width / 2;
         // render the messages we prepared

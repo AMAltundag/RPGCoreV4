@@ -7,6 +7,7 @@ import me.blutkrone.rpgcore.editor.annotation.value.EditorList;
 import me.blutkrone.rpgcore.editor.annotation.value.EditorWrite;
 import me.blutkrone.rpgcore.editor.bundle.IEditorBundle;
 import me.blutkrone.rpgcore.editor.bundle.modifier.EditorModifierNumber;
+import me.blutkrone.rpgcore.editor.constraint.bundle.mono.ActionConstraint;
 import me.blutkrone.rpgcore.editor.constraint.bundle.mono.AttributeAndModifierConstraint;
 import me.blutkrone.rpgcore.editor.constraint.other.StringConstraint;
 import me.blutkrone.rpgcore.editor.constraint.reference.index.AttributeConstraint;
@@ -43,6 +44,12 @@ public class EditorStatusMechanic extends AbstractEditorMechanic {
     @EditorWrite(name = "Icon", constraint = StringConstraint.class)
     @EditorTooltip(tooltip = "Icon shown on the HUD")
     public String icon = "none";
+    @EditorList(name = "Actions", constraint = ActionConstraint.class)
+    @EditorTooltip(tooltip = "Actions triggered while affected")
+    public List<IEditorBundle> actions = new ArrayList<>();
+    @EditorBundle(name = "Action Rate")
+    @EditorTooltip(tooltip = {"Tick rate at which actions are triggered", "Warning: Internal clock is fixed at 10 ticks"})
+    public EditorModifierNumber action_rate = new EditorModifierNumber(20);
 
     @Override
     public AbstractCoreMechanic build() {

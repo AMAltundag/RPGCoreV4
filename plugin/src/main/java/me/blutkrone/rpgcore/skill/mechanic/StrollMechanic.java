@@ -43,6 +43,7 @@ public class StrollMechanic extends AbstractCoreMechanic {
             return;
         }
 
+
         // stroll randomly within a valid distance
         ((CoreMob) entity).getBase().stroll(minimum, maximum, speed, (((CoreMob) entity)::isValidStrollTarget));
     }

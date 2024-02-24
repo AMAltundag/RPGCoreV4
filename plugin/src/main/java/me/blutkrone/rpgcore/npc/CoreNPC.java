@@ -213,26 +213,29 @@ public class CoreNPC extends AbstractNode {
      * @return the offer if available
      */
     public CoreQuest getQuestRewardOffer(CorePlayer player) {
+        Set<String> quests_offered_by_npc = new HashSet<>();
         CoreQuestTrait trait = getTrait(CoreQuestTrait.class);
-        if (trait != null && trait.isAvailable(player)) {
-            // grab quest list from the quest trait
-            Set<String> offered_quests = new HashSet<>(trait.getQuests());
-            // search for any quest that has no more tasks (finished)
-            for (String id : player.getActiveQuestIds()) {
-                CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
-                // ensure this NPC can actually offer the rewards
-                String npc = quest.getRewardNPC();
-                if (npc == null) {
-                    if (!offered_quests.contains(id)) {
-                        continue;
-                    }
-                } else if (!npc.equalsIgnoreCase(this.getId())) {
+        if (trait != null) {
+            quests_offered_by_npc.addAll(trait.getQuests());
+        }
+
+        // search for any quest that has no more tasks (finished)
+        for (String id : player.getActiveQuestIds()) {
+            CoreQuest quest = RPGCore.inst().getQuestManager().getIndexQuest().get(id);
+            String npc = quest.getRewardNPC();
+            if (npc == null) {
+                // if quest has no reward npc, quest giver offers reward
+                if (!quests_offered_by_npc.contains(id)) {
                     continue;
                 }
-                // if no tasks are left, we can claim a reward
-                if (quest.getCurrentTask(player) == null) {
-                    return quest;
-                }
+            } else if (!npc.equalsIgnoreCase(this.getId())) {
+                // if reward npc is set, we check for that NPC
+                continue;
+            }
+
+            // if no tasks are left, we can claim a reward
+            if (quest.getCurrentTask(player) == null) {
+                return quest;
             }
         }
 
@@ -318,10 +321,6 @@ public class CoreNPC extends AbstractNode {
             return;
         }
 
-        // find the traits we can interact with
-        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
-        traits.removeIf((trait -> !trait.isAvailable(core_player)));
-
         // handle shortcuts if appropriate
         if (shortcut) {
             // if we got a reward, we present that one
@@ -330,12 +329,14 @@ public class CoreNPC extends AbstractNode {
                 RPGCore.inst().getHUDManager().getQuestMenu().reward(reward, player, this);
                 return;
             }
+
             // if we got dialogue, we present that one
             CoreQuestTaskTalk.QuestDialogue dialogue = getQuestDialogueOffer(core_player);
             if (dialogue != null) {
                 RPGCore.inst().getHUDManager().getDialogueMenu().open(dialogue.dialogue, player, this, dialogue.task);
                 return;
             }
+
             // if we got a delivery, we present that one
             CoreQuestTaskDeliver delivery = getQuestDeliverOffer(core_player, true);
             if (delivery != null) {
@@ -343,6 +344,10 @@ public class CoreNPC extends AbstractNode {
                 return;
             }
         }
+
+        // find the traits we can interact with
+        List<AbstractCoreTrait> traits = new ArrayList<>(this.traits);
+        traits.removeIf((trait -> !trait.isAvailable(core_player)));
 
         // present the cortex menu itself
         if (traits.size() == 1) {

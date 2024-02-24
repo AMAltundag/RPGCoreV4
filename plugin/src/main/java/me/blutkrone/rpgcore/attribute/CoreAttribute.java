@@ -15,6 +15,7 @@ public class CoreAttribute {
     private List<Inherited> inherited;
     // deprecated attributes should be avoided
     private boolean deprecated;
+    // force multiplier groups
 
     public CoreAttribute(String id, EditorAttribute editor) {
         this.id = id;

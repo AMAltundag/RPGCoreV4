@@ -203,7 +203,7 @@ public final class DamageInteraction {
      * @return true if we have the tag
      */
     public boolean checkForTag(String tag, CoreEntity context) {
-        return this.tags.contains(tag) || (context != null && context.checkForTag(tag));
+        return this.tags.contains(tag.toLowerCase()) || (context != null && context.checkForTag(tag.toLowerCase()));
     }
 
     /**
@@ -221,7 +221,7 @@ public final class DamageInteraction {
         // compute the local value of the modifier
         double local = getAttribute(attribute).evaluate();
         // join with shared value of the modifier
-        return local + entity.evaluateAttribute(attribute);
+        return local + entity.getAttribute(attribute).evaluate();
     }
 
     /**

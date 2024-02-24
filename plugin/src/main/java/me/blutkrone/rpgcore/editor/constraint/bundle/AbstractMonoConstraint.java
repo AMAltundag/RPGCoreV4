@@ -8,7 +8,7 @@ import java.util.List;
 public abstract class AbstractMonoConstraint implements IEditorConstraint {
 
     {
-        Bukkit.getLogger().severe("not implemented (dissolve mono constraint)"); // common ancestor for constraint + bundle so we can bypass mono constraints
+        Bukkit.getLogger().info("not implemented (dissolve mono constraint)"); // common ancestor for constraint + bundle so we can bypass mono constraints
     }
 
     @Override

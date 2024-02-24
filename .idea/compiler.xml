@@ -12,11 +12,11 @@
         <module name="api" />
         <module name="NMS_1_20_R1" />
         <module name="NMS_1_18_R1" />
-        <module name="NMS_1_19_R3" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17">
       <module name="NMS_1_19_R1" target="17" />
+      <module name="NMS_1_19_R3" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>

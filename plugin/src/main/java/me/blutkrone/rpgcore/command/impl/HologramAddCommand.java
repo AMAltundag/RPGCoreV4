@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.command.impl;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,7 +17,12 @@ public class HologramAddCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("<lc_text> <*axis_lock> <*~x> <*~y> <*~z> §fCreate a hologram (use language identifier.)");
+        return buildHelpText("§fcontent §8billboard ~x ~y ~z", "§cCreates a hologram [ADMIN]",
+                "§7Content: What language identifier to show",
+                "§8Billboard: Lock the axis",
+                "§8X: Location of hologram (~ for relative)",
+                "§8Y: Location of hologram (~ for relative)",
+                "§8Z: Location of hologram (~ for relative)");
     }
 
     @Override

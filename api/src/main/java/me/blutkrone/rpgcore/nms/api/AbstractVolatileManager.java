@@ -1,7 +1,6 @@
 package me.blutkrone.rpgcore.nms.api;
 
 import me.blutkrone.rpgcore.nms.api.block.ChunkOutline;
-import me.blutkrone.rpgcore.nms.api.entity.IEntityCollider;
 import me.blutkrone.rpgcore.nms.api.menu.IChestMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
 import me.blutkrone.rpgcore.nms.api.mob.IEntityBase;
@@ -12,7 +11,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -113,14 +111,6 @@ public abstract class AbstractVolatileManager {
      * @return the entity ID we fetched
      */
     public abstract int getNextEntityId();
-
-    /**
-     * Create an entity for collider purposes.
-     *
-     * @param owner initial sync target.
-     * @return the collider entity which was created
-     */
-    public abstract IEntityCollider createCollider(Entity owner);
 
     /**
      * Update the title of a bossbar

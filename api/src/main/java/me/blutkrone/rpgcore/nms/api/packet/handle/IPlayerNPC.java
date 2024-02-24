@@ -1,6 +1,6 @@
 package me.blutkrone.rpgcore.nms.api.packet.handle;
 
-import me.blutkrone.rpgcore.nms.api.packet.IDispatchPacket;
+import me.blutkrone.rpgcore.nms.api.packet.grouping.IDispatchPacket;
 import me.blutkrone.rpgcore.nms.api.packet.wrapper.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Pose;

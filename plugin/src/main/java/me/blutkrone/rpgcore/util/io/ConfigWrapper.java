@@ -1,5 +1,6 @@
 package me.blutkrone.rpgcore.util.io;
 
+import me.blutkrone.rpgcore.util.collection.WeightedRandomMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -38,6 +40,17 @@ public class ConfigWrapper {
         return output;
     }
 
+    public <K> List<K> getObjectList(String path, BiFunction<String, ConfigWrapper, K> constructor) {
+        List<K> output = new ArrayList<>();
+
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        for (String key : section.getKeys(false)) {
+            output.add(constructor.apply(key, new ConfigWrapper(section.getConfigurationSection(key))));
+        }
+
+        return output;
+    }
+
     public <K> Map<String, K> getObjectMap(String path, Function<ConfigWrapper, K> constructor) {
         Map<String, K> output = new HashMap<>();
 
@@ -48,10 +61,37 @@ public class ConfigWrapper {
 
         return output;
     }
+    public <K> Map<String, K> getObjectMap(String path, BiFunction<String, ConfigWrapper, K> constructor) {
+        Map<String, K> output = new HashMap<>();
+
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        for (String key : section.getKeys(false)) {
+            output.put(key, constructor.apply(key, new ConfigWrapper(section.getConfigurationSection(key))));
+        }
+
+        return output;
+    }
+
+    public <K> WeightedRandomMap<K> getObjectWeighedMap(String path, Function<ConfigWrapper, K> constructor, Function<K, Double> weighting) {
+        WeightedRandomMap<K> output = new WeightedRandomMap<>();
+
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        for (String key : section.getKeys(false)) {
+            K object = constructor.apply(new ConfigWrapper(section.getConfigurationSection(key)));
+            output.add(object, weighting.apply(object));
+        }
+
+        return output;
+    }
 
     public <K> K getObject(String path, Function<ConfigWrapper, K> constructor) {
         ConfigurationSection section = this.handle.getConfigurationSection(path);
         return constructor.apply(new ConfigWrapper(section));
+    }
+
+    public <K> K getObject(String path, BiFunction<String, ConfigWrapper, K> constructor) {
+        ConfigurationSection section = this.handle.getConfigurationSection(path);
+        return constructor.apply(path, new ConfigWrapper(section));
     }
 
     public void forEachKey(Consumer<String> consumer) {

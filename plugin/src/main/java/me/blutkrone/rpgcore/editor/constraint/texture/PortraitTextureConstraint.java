@@ -15,7 +15,7 @@ public class PortraitTextureConstraint implements IEditorConstraint {
     @Override
     public List<String> getHint(String value) {
         if (this.candidates.isEmpty()) {
-            RPGCore.inst().getResourcePackManager().textures().forEach((id, tex) -> {
+            RPGCore.inst().getResourcepackManager().textures().forEach((id, tex) -> {
                 // "static_" + portrait + "_portrait"
                 if (id.startsWith("static_") && id.endsWith("_portrait")) {
                     id = id.replace("static_", "");

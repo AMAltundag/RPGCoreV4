@@ -5,7 +5,7 @@ import me.blutkrone.rpgcore.api.entity.IEntityEffect;
 import me.blutkrone.rpgcore.api.hud.IUXComponent;
 import me.blutkrone.rpgcore.entity.entities.CorePlayer;
 import me.blutkrone.rpgcore.hud.UXWorkspace;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.Utility;
 import me.blutkrone.rpgcore.util.io.ConfigWrapper;
 import org.bukkit.entity.Player;
@@ -51,7 +51,7 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
 
     @Override
     public void populate(CorePlayer core_player, Player bukkit_player, UXWorkspace workspace, List<IEntityEffect> prepared) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
 
         // abandon all buffs without an attached icon
         prepared.removeIf(effect -> effect.getIcon() == null);
@@ -92,7 +92,7 @@ public class StatusComponent implements IUXComponent<List<IEntityEffect>> {
      * @param renderpoint point to render status at
      */
     private void drawStatus(UXWorkspace workspace, String icon, int time, int stack, int renderpoint) {
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // draw the icon of the effect
         workspace.actionbar().shiftToExact(renderpoint);
         workspace.actionbar().append(rpm.texture("status_self_lower_" + icon));

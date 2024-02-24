@@ -12,9 +12,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A provider capable of providing us with a simple
  * vanilla entity, without any mutations.
@@ -82,6 +79,10 @@ public class LivingProvider implements EntityProvider {
             if (this.hidden) {
                 entity.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 9999999, 1, false, false, false));
             }
+
+            // force an injection of last known locations
+            RPGCore.inst().getEntityManager().getLastLocation().put(entity.getUniqueId(), entity.getLocation());
+
             return entity;
         } catch (Exception e) {
             return null;
@@ -96,10 +97,5 @@ public class LivingProvider implements EntityProvider {
     @Override
     public Location getHeadLocation(LivingEntity entity) {
         return entity.getEyeLocation();
-    }
-
-    @Override
-    public List<Location> getSpecialLocations(LivingEntity entity, String location) {
-        return new ArrayList<>();
     }
 }

@@ -39,9 +39,7 @@ public class LevelManager {
         // load the segments from the disk
         try {
             ConfigWrapper config = FileUtil.asConfigYML(FileUtil.file("level.yml"));
-            config.forEachUnder("character-level-segment", (path, root) -> {
-                this.segments.add(new LevelSegment(root.getSection(path)));
-            });
+            this.segments.addAll(config.getObjectList("character-level-segment", LevelSegment::new));
             this.lazy_exp_multiplier = new Expression(config.getString("level-difference-multiplier"));
             this.lazy_profession_exp = new Expression(config.getString("profession-exp-formula"));
         } catch (IOException e) {

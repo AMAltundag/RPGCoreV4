@@ -7,7 +7,7 @@ import me.blutkrone.rpgcore.editor.design.DesignElement;
 import me.blutkrone.rpgcore.editor.instruction.InstructionBuilder;
 import me.blutkrone.rpgcore.menu.EditorMenu;
 import me.blutkrone.rpgcore.nms.api.menu.ITextInput;
-import me.blutkrone.rpgcore.resourcepack.ResourcePackManager;
+import me.blutkrone.rpgcore.resourcepack.ResourcepackManager;
 import me.blutkrone.rpgcore.util.ItemBuilder;
 import me.blutkrone.rpgcore.util.fontmagic.MagicStringBuilder;
 import net.md_5.bungee.api.ChatColor;
@@ -41,7 +41,7 @@ public class DesignColor implements IDesignFieldEditor {
         // close previous menu
         viewer.closeInventory();
         // fetch resourcepack manager
-        ResourcePackManager rpm = RPGCore.inst().getResourcePackManager();
+        ResourcepackManager rpm = RPGCore.inst().getResourcepackManager();
         // create input which we can work with
         ITextInput input = RPGCore.inst().getVolatileManager().createInput(viewer);
         input.setItemAt(0, ItemBuilder.of(this.invisible.clone()).name("FFFFFF").build());

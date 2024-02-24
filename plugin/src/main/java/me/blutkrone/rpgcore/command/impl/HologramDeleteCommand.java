@@ -3,7 +3,6 @@ package me.blutkrone.rpgcore.command.impl;
 import me.blutkrone.rpgcore.RPGCore;
 import me.blutkrone.rpgcore.command.AbstractCommand;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -17,7 +16,7 @@ public class HologramDeleteCommand extends AbstractCommand {
 
     @Override
     public BaseComponent[] getHelpText() {
-        return TextComponent.fromLegacyText("§fDestroys the closest hologram to you.");
+        return buildHelpText("", "§cDestroy nearest hologram");
     }
 
     @Override
